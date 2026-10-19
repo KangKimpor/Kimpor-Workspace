@@ -1,0 +1,252 @@
+/* Design tokens: SPEC.md §9 (palette, type, spacing), §10 (materials), §11 (motion).
+   Light is the default; dark overrides under [data-theme='dark'].
+   Light tokens are also bound to [data-theme='light'] so a subtree can force a theme. */
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Core surfaces and text */
+  --bg-canvas: #ffffff;
+  --bg-sidebar: #f7f7f5;
+  --bg-raised: #ffffff;
+  --bg-hover: rgb(55 53 47 / 0.06);
+  --bg-pressed: rgb(55 53 47 / 0.1);
+  --border-subtle: rgb(55 53 47 / 0.09);
+  --border-strong: rgb(55 53 47 / 0.16);
+  --text-primary: #37352f;
+  --text-secondary: rgb(55 53 47 / 0.72);
+  --text-tertiary: rgb(55 53 47 / 0.45); /* disabled and decorative only */
+  --accent: #2383e2;
+  --accent-fill: #1a73d9;
+  --accent-text: #1b6ec2;
+  --selection: rgb(35 131 226 / 0.14);
+  --danger: #eb5757;
+  --danger-text: #c93b3b; /* DECISIONS D-03: --danger fails 4.5:1 as text on white */
+  --success: #448361;
+  --success-text: #3a7355; /* DECISIONS D-03 */
+  --on-accent: #ffffff;
+
+  /* Palette: text and icon colors */
+  --c-gray: #787774;
+  --c-brown: #9f6b53;
+  --c-orange: #d9730d;
+  --c-yellow: #cb912f;
+  --c-green: #448361;
+  --c-blue: #337ea9;
+  --c-purple: #9065b0;
+  --c-pink: #c14c8a;
+  --c-red: #d44c47;
+
+  /* Palette: chip backgrounds */
+  --chip-gray: #e3e2e0;
+  --chip-brown: #eee0da;
+  --chip-orange: #fadec9;
+  --chip-yellow: #fdecc8;
+  --chip-green: #dbeddb;
+  --chip-blue: #d3e5ef;
+  --chip-purple: #e8deee;
+  --chip-pink: #f5e0e9;
+  --chip-red: #ffe2dd;
+
+  /* Elevation (§9) */
+  --shadow-popover: 0 0 0 1px rgb(15 15 15 / 0.05), 0 3px 6px rgb(15 15 15 / 0.1),
+    0 9px 24px rgb(15 15 15 / 0.2);
+
+  /* Glass (§10) */
+  --glass-hairline: rgb(55 53 47 / 0.1);
+  --glass-highlight: rgb(255 255 255 / 0.7);
+  --glass-shade: rgb(55 53 47 / 0.06);
+  --glass-shadow: 0 8px 32px rgb(15 15 15 / 0.12);
+  --glass-thin-bg: rgb(255 255 255 / 0.45);
+  --glass-regular-bg: rgb(255 255 255 / 0.62);
+  --glass-thick-bg: rgb(255 255 255 / 0.78);
+  --glass-tint-alpha: 100%; /* DECISIONS D-02: 70% gives 2.83:1 with a white label in light mode */
+  --ambient-opacity: 0.05;
+  --scrim: rgb(15 15 15 / 0.32);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg-canvas: #191919;
+  --bg-sidebar: #202020;
+  --bg-raised: #252525;
+  --bg-hover: rgb(255 255 255 / 0.055);
+  --bg-pressed: rgb(255 255 255 / 0.09);
+  --border-subtle: rgb(255 255 255 / 0.09);
+  --border-strong: rgb(255 255 255 / 0.17);
+  --text-primary: rgb(255 255 255 / 0.81);
+  --text-secondary: rgb(255 255 255 / 0.52);
+  --text-tertiary: rgb(255 255 255 / 0.34);
+  --accent: #2383e2;
+  --accent-fill: #1a73d9;
+  --accent-text: #5ba5f0;
+  --selection: rgb(35 131 226 / 0.28);
+  --danger: #ff7369;
+  --danger-text: #ff7369;
+  --success: #529e72;
+  --success-text: #529e72;
+
+  --c-gray: #9b9b9b;
+  --c-brown: #ba856f;
+  --c-orange: #c77d48;
+  --c-yellow: #ca9849;
+  --c-green: #529e72;
+  --c-blue: #5e87c9;
+  --c-purple: #9d68d3;
+  --c-pink: #d15796;
+  --c-red: #df5452;
+
+  --chip-gray: #454b4e;
+  --chip-brown: #434040;
+  --chip-orange: #594a3a;
+  --chip-yellow: #59563b;
+  --chip-green: #354c4b;
+  --chip-blue: #364954;
+  --chip-purple: #443f57;
+  --chip-pink: #533b4c;
+  --chip-red: #594141;
+
+  --shadow-popover: 0 0 0 1px rgb(0 0 0 / 0.2), 0 3px 6px rgb(0 0 0 / 0.3),
+    0 9px 24px rgb(0 0 0 / 0.4);
+
+  --glass-hairline: rgb(255 255 255 / 0.12);
+  --glass-highlight: rgb(255 255 255 / 0.16);
+  --glass-shade: rgb(0 0 0 / 0.3);
+  --glass-shadow: 0 10px 40px rgb(0 0 0 / 0.5);
+  --glass-thin-bg: rgb(32 32 32 / 0.45);
+  --glass-regular-bg: rgb(32 32 32 / 0.6);
+  --glass-thick-bg: rgb(32 32 32 / 0.78);
+  --glass-tint-alpha: 70%;
+  --ambient-opacity: 0.1;
+  --scrim: rgb(0 0 0 / 0.5);
+}
+
+:root {
+  /* Semantic status and priority colors (§7) */
+  --status-not-started: var(--c-gray);
+  --status-in-progress: var(--c-blue);
+  --status-in-review: var(--c-purple);
+  --status-blocked: var(--c-red);
+  --status-done: var(--c-green);
+  --priority-low: var(--c-gray);
+  --priority-medium: var(--c-blue);
+  --priority-high: var(--c-orange);
+  --priority-urgent: var(--c-red);
+
+  /* Typography (§9). System fonts only. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text',
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: ui-serif, 'New York', Georgia, serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
+
+  --fs-title: 2.5rem;
+  --lh-title: 3rem;
+  --fs-h1: 1.875rem;
+  --lh-h1: 2.375rem;
+  --fs-h2: 1.5rem;
+  --lh-h2: 2rem;
+  --fs-h3: 1.25rem;
+  --lh-h3: 1.75rem;
+  --fs-body: 1rem;
+  --lh-body: 1.5rem;
+  --fs-label: 0.875rem;
+  --lh-label: 1.25rem;
+  --fs-small: 0.75rem;
+  --lh-small: 1rem;
+  --fs-caption: 0.6875rem;
+  --lh-caption: 0.875rem;
+
+  /* Spacing, 4 px base */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* Radii */
+  --radius-chip: 4px;
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --radius-popover: 12px;
+  --radius-modal: 16px;
+  --radius-glass: 20px;
+  --radius-tabbar: 28px;
+  --radius-pill: 999px;
+
+  /* Control heights: desktop values, raised under coarse pointers below */
+  --h-sidebar-item: 28px;
+  --h-row: 36px;
+  --h-button: 32px;
+  --h-input: 36px;
+  --h-topbar: 44px;
+  --w-sidebar: 260px;
+  --w-inspector: 340px;
+  --h-tabbar: 64px;
+
+  /* Content width (§9) */
+  --content-width: 720px;
+  --content-width-full: 1100px;
+  --content-pad: 96px;
+
+  /* Motion (§11) */
+  --duration-instant: 80ms;
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 340ms;
+  --duration-page: 420ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Safe areas */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+@media (pointer: coarse) {
+  :root {
+    --h-sidebar-item: 44px;
+    --h-row: 48px;
+    --h-button: 44px;
+    --h-input: 44px;
+  }
+}
+
+@media (max-width: 1439px) {
+  :root {
+    --content-pad: 48px;
+  }
+}
+
+@media (max-width: 639px) {
+  :root {
+    --content-pad: 16px;
+    --fs-title: 2rem;
+    --lh-title: 2.5rem;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme='light'] {
+    --text-secondary: #37352f;
+    --border-subtle: rgb(55 53 47 / 0.4);
+    --border-strong: rgb(55 53 47 / 0.6);
+  }
+  [data-theme='dark'] {
+    --text-secondary: rgb(255 255 255 / 0.81);
+    --border-subtle: rgb(255 255 255 / 0.4);
+    --border-strong: rgb(255 255 255 / 0.6);
+  }
+}

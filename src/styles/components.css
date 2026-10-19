@@ -1,0 +1,257 @@
+/* Component styles. Tokens only: no literal colours, radii, spacing or durations (§2 rule 4). */
+
+/* GlassButton */
+.gbtn {
+  --glass-radius: var(--radius-control);
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--h-button);
+  padding: 0 var(--space-12);
+  border: 0;
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.gbtn[data-material='tinted'] {
+  color: var(--on-accent);
+}
+.gbtn[data-size='icon'] {
+  width: var(--h-button);
+  padding: 0;
+}
+.gbtn > .gbtn-layer {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+.gbtn > .gbtn-layer[data-hidden='true'] {
+  opacity: 0;
+}
+.gbtn:active,
+.gbtn[data-force='pressed'] {
+  filter: brightness(0.94);
+}
+.gbtn[data-force='pressed'] {
+  transform: scale(0.97);
+}
+.gbtn[data-force='focus'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.gbtn:disabled,
+.gbtn[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: 0 0 0 1px var(--border-subtle);
+}
+.gbtn[data-status='error'] {
+  animation: shake 0.3s var(--ease-standard);
+}
+.gbtn .spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+.gbtn .check-path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: draw 240ms var(--ease-enter) forwards;
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Pills (non-glass; they sit on glass bars) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 24px;
+  padding: 0 var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.pill .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+}
+.pill[data-tone='warn'] .dot {
+  background: var(--c-orange);
+}
+.pill[data-tone='busy'] .dot {
+  background: var(--accent);
+}
+
+/* Chips: chip background with --text-primary (§9) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 20px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-chip);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--chip, var(--chip-gray));
+}
+.chip .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip-dot, var(--c-gray));
+}
+
+/* Popover (Thick material, rendered in a portal) */
+.popover {
+  --glass-radius: var(--radius-popover);
+  z-index: 60;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - var(--space-16)));
+  padding: var(--space-8);
+  transform-origin: var(--radix-popover-content-transform-origin);
+}
+.popover[data-state='open'] {
+  animation: pop-in var(--duration-fast) var(--ease-enter);
+}
+.popover[data-state='closed'] {
+  animation: pop-out 100ms var(--ease-exit) forwards;
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes pop-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.menu-label {
+  padding: var(--space-6) var(--space-8) var(--space-4);
+  color: var(--text-secondary);
+}
+.menu-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: var(--h-sidebar-item);
+  padding: 0 var(--space-8);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.menu-option > svg:last-child {
+  margin-left: auto;
+}
+@media (hover: hover) and (pointer: fine) {
+  .menu-option:hover {
+    background: var(--bg-hover);
+  }
+}
+.menu-option:active {
+  background: var(--bg-pressed);
+}
+.menu-option[aria-checked='true'] {
+  background: var(--selection);
+}
+.menu-sep {
+  height: 1px;
+  margin: var(--space-4) 0;
+  background: var(--border-subtle);
+}
+
+/* Empty state */
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-12);
+  padding: var(--space-48) var(--space-16);
+  text-align: center;
+}
+.empty .glyph {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-glass);
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+.empty p {
+  max-width: 36ch;
+  margin: 0;
+  color: var(--text-secondary);
+}
+.btn-glow {
+  box-shadow:
+    0 0 0 1px var(--glass-hairline),
+    0 0 24px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Solid accent button for places that sit on glass (never glass on glass, §10) */
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  min-height: var(--h-button);
+  padding: 0 var(--space-12);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-standard),
+    filter var(--duration-instant) var(--ease-standard);
+}
+.btn-accent:active {
+  transform: scale(0.97);
+  filter: brightness(0.92);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-accent:hover {
+    filter: brightness(1.08);
+  }
+}
+.btn-accent[data-round='true'] {
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-popover);
+}
