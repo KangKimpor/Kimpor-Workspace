@@ -11,7 +11,6 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test e2e/a11y.spec.ts",
-    "shots": "node scripts/screenshots.mjs",
     "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
@@ -41,6 +40,7 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
     "vite-plugin-pwa": "^2.0.0",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "workbox-window": "^7.4.1"
   }
 }

@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /** Automated contrast check over tokens.css (SPEC §9: fix any pair that fails). */
-const css = readFileSync(new URL('../styles/tokens.css', import.meta.url), 'utf8')
+const css = readFileSync(resolve(process.cwd(), 'src/styles/tokens.css'), 'utf8')
 
 type RGBA = [number, number, number, number]
 
