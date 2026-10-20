@@ -10,9 +10,9 @@ The iPhone sidebar now uses portal-safe positioning, one Motion transform animat
 
 Validation: 66 unit tests, frontend/API type checks, lint, build and the initial-JavaScript budget pass. Focused account and phone navigation checks pass in Chromium and WebKit. The full deterministic suite contains 106 checks plus four opt-in live checks; current remote results are available in GitHub Actions. Initial JavaScript is 103.0 KiB gzip against a 200 KiB budget. The pre-paint theme script is inline with an exact CSP hash checked against the built HTML.
 
-Independent Ubuntu Lighthouse after the initial-render optimization measured mobile performance 98, accessibility 100, best practices 100, TBT 61 ms and LCP 2.21 seconds. The final inline theme bootstrap removes another blocking request; its production measurement is being collected. The release LCP target is under two seconds, so the earlier 2.21-second result does not meet that target.
+Independent Ubuntu Lighthouse on the deployed fix measured desktop performance 100 with LCP 0.47 seconds and mobile performance 92 with LCP 2.24 seconds; accessibility and best practices are 100. A preceding mobile run was 81 / 2.67 seconds on a slower shared runner, so the mobile score is not stable. The release targets remain performance at least 95 and LCP under two seconds; mobile acceptance is still open. Local compressed-response measurements are not used to claim a pass.
 
-Remaining acceptance: final production performance/remote CI result, a precisely timed phone-to-Google write, actual revoked-consent reconnect, physical Windows scaling/Edge, iPad and screen-reader checks. Google OAuth remains in Testing for the two approved accounts; refresh tokens may expire after seven days. Publishing/verification remains a separate owner decision. No full hardware acceptance is claimed.
+Remaining acceptance: mobile production performance target/remote CI result, a precisely timed phone-to-Google write, actual revoked-consent reconnect, physical Windows scaling/Edge, iPad and screen-reader checks. Google OAuth remains in Testing for the two approved accounts; refresh tokens may expire after seven days. Publishing/verification remains a separate owner decision. No full hardware acceptance is claimed.
 
 ## Historical checkpoints
 
