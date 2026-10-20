@@ -24,13 +24,6 @@ import {
 } from '@/components/WorkspaceUI'
 import { TaskRow } from '@/components/TaskRow'
 import { useWorkspaceUI } from '@/shell/workspace'
-const homeDateFormat = new Intl.DateTimeFormat('en-US', {
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-})
-
 export function Home() {
   const [detailsReady, setDetailsReady] = useState(() => window.innerWidth >= 640)
   useEffect(() => {
@@ -54,7 +47,7 @@ export function Home() {
         <div>
           <h1 className="t-title">{greeting}, Kimpor</h1>
           <p className="muted">
-            {homeDateFormat.format(new Date())} · {upcoming.length} events,{' '}
+            {new Date().toDateString()} · {upcoming.length} events,{' '}
             {
               tasks.filter(
                 (t) =>
