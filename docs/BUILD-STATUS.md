@@ -1,5 +1,13 @@
 # Build status · October 20, 2026
 
+## Production performance follow-up · October 20, evening
+
+The deployed fix at `305ac0b` passes [Production performance run 39424125774](https://github.com/KangKimpor/Kimpor-Workspace/actions/runs/39424125774). Mobile performance is **98**, LCP **1.922 seconds**, total blocking time **93 ms**, and CLS **0**. Desktop performance is **100**, LCP **0.433 seconds**, blocking time **0 ms**, and CLS **0**. Accessibility and best practices are **100** on both. These are independent Ubuntu measurements of https://kimpor-workspace.vercel.app with the original thresholds: performance at least 95, accessibility 100, and LCP under two seconds. Earlier performance results below are historical observations.
+
+Compact Home now paints its heading and today's events before rendering tasks, projects and recent pages. All sections are then available without scrolling or interaction; accessibility audits wait for the complete content. Guest background initialization waits for first paint. A fresh guest with no existing IndexedDB workspace initializes on the first click or keydown; an existing workspace still restores automatically. Account and stored-session startup remain gated before rendering. The first edit retains its local recovery copy and survives reload. The performance workflow waits for this commit's successful Vercel status, runs on relevant `main` changes, supports manual reruns and cancels superseded audits.
+
+Validation: 67 unit tests, lint, frontend/API types, production build, the 103.3 KiB initial JavaScript budget, 10 focused Chromium/WebKit startup/navigation/offline-update checks, and four complete mobile Home accessibility audits pass. A local WebKit sign-up check timed out once, then passed two isolated repetitions. The previous full Ubuntu Workspace checks run 39420463900 passed all 120 deterministic checks with four opt-in live checks skipped. The expanded full suite for `305ac0b` is running separately; its result is not implied by the Lighthouse pass. Remaining physical-device, screen-reader, precise Google write timing and revoked-consent checks stay open. No live account or calendar data was changed for this performance work.
+
 ## Continuation verification · October 20, evening
 
 Fetched GitHub and continued locally from `origin/codex/finish-workspace` at `95bb324`; at the start of this continuation, `main` was at the foundation commit `0a9d067` and [PR #1](https://github.com/KangKimpor/Kimpor-Workspace/pull/1) was a draft. The attachment is historical context, not fresh authorization to publish, change repository visibility, or modify live accounts.
