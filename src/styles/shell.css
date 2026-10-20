@@ -328,13 +328,13 @@
 .rsheet {
   position: fixed;
   z-index: 50;
-  top: max(var(--gutter), var(--safe-top));
-  bottom: var(--gutter);
+  top: max(var(--space-8), var(--safe-top));
+  bottom: max(var(--space-8), var(--safe-bottom));
   overflow: hidden;
 }
 .drawer {
   --glass-radius: var(--radius-glass);
-  left: max(var(--gutter), var(--safe-left));
+  left: max(var(--space-8), var(--safe-left));
   width: min(var(--w-sidebar), calc(100vw - var(--space-48)));
   display: flex;
   flex-direction: column;
@@ -342,10 +342,15 @@
 }
 .rsheet {
   --glass-radius: var(--radius-glass);
-  right: max(var(--gutter), var(--safe-right));
+  right: max(var(--space-8), var(--safe-right));
   width: min(380px, calc(100vw - var(--space-48)));
   padding: var(--space-16);
   overflow-y: auto;
+}
+.drawer-dismiss {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 /* Bottom sheet (compact) with drag handle and detents */

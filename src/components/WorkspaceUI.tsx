@@ -52,14 +52,41 @@ export function Tile({
     )[name] ?? FileText
   return (
     <span className="icon-tile" style={tint(color)}>
-      {/^(storage:|local-file:)/.test(name)?<UploadedIcon source={name}/>: /\p{Extended_Pictographic}/u.test(name)?<span aria-hidden="true">{name}</span>:<Icon size={16} strokeWidth={1.75} aria-hidden="true" />}
+      {/^(storage:|local-file:)/.test(name) ? (
+        <UploadedIcon source={name} />
+      ) : /\p{Extended_Pictographic}/u.test(name) ? (
+        <span aria-hidden="true">{name}</span>
+      ) : (
+        <Icon size={16} strokeWidth={1.75} aria-hidden="true" />
+      )}
     </span>
   )
 }
-function UploadedIcon({source}:{source:string}) {
-  const [url,setUrl]=useState('')
-  useEffect(()=>{let active=true;void import('@/data/files').then(module=>module.resolveFile(source)).then(value=>{if(active)setUrl(value)}).catch(()=>undefined);return()=>{active=false}},[source])
-  return url?<img src={url} width={16} height={16} alt="" style={{objectFit:'cover',borderRadius:'var(--radius-chip)'}}/>:<FileText size={16} aria-hidden="true"/>
+function UploadedIcon({ source }: { source: string }) {
+  const [url, setUrl] = useState('')
+  useEffect(() => {
+    let active = true
+    void import('@/data/files')
+      .then((module) => module.resolveFile(source))
+      .then((value) => {
+        if (active) setUrl(value)
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [source])
+  return url ? (
+    <img
+      src={url}
+      width={16}
+      height={16}
+      alt=""
+      style={{ objectFit: 'cover', borderRadius: 'var(--radius-chip)' }}
+    />
+  ) : (
+    <FileText size={16} aria-hidden="true" />
+  )
 }
 export function Badge({
   color = 'gray',
@@ -126,11 +153,12 @@ export function ProjectCards() {
     </div>
   )
 }
+let shortDateFormat: Intl.DateTimeFormat | undefined
 export function formatDate(value: string): string {
   return value
-    ? new Date(`${value}T12:00:00`).toLocaleDateString('en-US', {
+    ? (shortDateFormat ??= new Intl.DateTimeFormat('en-US', {
         month: 'short',
         day: 'numeric',
-      })
+      })).format(new Date(`${value}T12:00:00`))
     : 'No date'
 }

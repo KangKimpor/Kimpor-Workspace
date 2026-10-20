@@ -22,6 +22,12 @@ import {
 } from '@/components/WorkspaceUI'
 import { TaskRow } from '@/components/TaskRow'
 import { useWorkspaceUI } from '@/shell/workspace'
+const homeDateFormat = new Intl.DateTimeFormat('en-US', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+})
 
 export function Home() {
   const { tasks, events, pages, scratchpad, setScratchpad, addPage, addTask } =
@@ -31,7 +37,7 @@ export function Home() {
   const today = dateKey()
   const upcoming = events
     .filter((e) => !e.deletedAt && !e.isSeriesMaster && e.date === today)
-    .sort((a, b) => a.start.localeCompare(b.start))
+    .sort((a, b) => (a.start === b.start ? 0 : a.start < b.start ? -1 : 1))
   const priority = tasks.slice(0, 4)
   const hour = new Date().getHours()
   const greeting =
@@ -42,13 +48,7 @@ export function Home() {
         <div>
           <h1 className="t-title">{greeting}, Kimpor</h1>
           <p className="muted">
-            {new Date().toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            })}{' '}
-            · {upcoming.length} events,{' '}
+            {homeDateFormat.format(new Date())} · {upcoming.length} events,{' '}
             {
               tasks.filter(
                 (t) =>
