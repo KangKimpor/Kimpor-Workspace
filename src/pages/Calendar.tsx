@@ -1,3 +1,5 @@
+import '@/styles/calendar.css'
+import './workspace-views.css'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { displayTime } from '@/calendar/time'
 import { TZDate } from '@date-fns/tz'

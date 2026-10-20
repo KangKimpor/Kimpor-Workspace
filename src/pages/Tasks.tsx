@@ -1,3 +1,4 @@
+import './workspace-views.css'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { AlertTriangle, CalendarDays, CheckCircle2, Clock3, Folder, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'

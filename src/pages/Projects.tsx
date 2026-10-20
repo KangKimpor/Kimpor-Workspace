@@ -1,3 +1,4 @@
+import './workspace-views.css'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { TaskTable } from '@/components/TaskTable'
 import { ProjectBoard } from '@/components/ProjectBoard'
