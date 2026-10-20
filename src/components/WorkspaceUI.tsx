@@ -153,12 +153,9 @@ export function ProjectCards() {
     </div>
   )
 }
-let shortDateFormat: Intl.DateTimeFormat | undefined
 export function formatDate(value: string): string {
-  return value
-    ? (shortDateFormat ??= new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-      })).format(new Date(`${value}T12:00:00`))
-    : 'No date'
+  if (!value) return 'No date'
+  const date = new Date(`${value}T12:00:00`)
+  if (Number.isNaN(date.getTime())) throw new RangeError('Invalid time value')
+  return `${date.toDateString().slice(4, 7)} ${date.getDate()}`
 }
