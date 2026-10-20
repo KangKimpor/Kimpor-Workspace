@@ -12,8 +12,21 @@ import { useWorkspace } from './data'
 syncGlassToDocument()
 const updateSW = registerSW({
   immediate: true,
+  // Reload only the tab that requested it, including its first installation session.
+  onNeedReload() {},
   onNeedRefresh() {
-    useInstall.setState({ update: () => updateSW(true) })
+    useInstall.setState({
+      update: async () => {
+        const reload = () => location.reload()
+        navigator.serviceWorker.addEventListener('controllerchange', reload, { once: true })
+        try {
+          await updateSW(true)
+        } catch (error) {
+          navigator.serviceWorker.removeEventListener('controllerchange', reload)
+          throw error
+        }
+      },
+    })
   },
 })
 
