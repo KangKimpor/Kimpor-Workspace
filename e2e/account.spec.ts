@@ -110,10 +110,8 @@ test('Google sign-in goes to the configured provider and exact app callback', as
   )
   expect(destination.searchParams.get('code_challenge')).toBeTruthy()
 })
-test('account forms fit phone, tablet and desktop with accessible labels and contrast', async ({
-  page,
-}) => {
-  for (const width of [320, 393, 820, 1180, 1920]) {
+for (const width of [320, 393, 820, 1180, 1920]) {
+  test(`account forms fit at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/settings/account')
     await expect(
@@ -124,15 +122,19 @@ test('account forms fit phone, tablet and desktop with accessible labels and con
         () => document.documentElement.scrollWidth <= innerWidth + 1,
       ),
     ).toBe(true)
-  }
-  for (const scheme of ['light', 'dark'] as const) {
+  })
+}
+for (const scheme of ['light', 'dark'] as const) {
+  test(`account form accessibility in ${scheme}`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: scheme })
     await page.setViewportSize({ width: 393, height: 852 })
+    await page.goto('/settings/account')
+    await expect(page.getByRole('button', { name: 'Continue with Google', exact: true })).toBeVisible()
     const result = await new AxeBuilder({ page }).analyze()
     expect(
       result.violations
         .filter((v) => ['serious', 'critical'].includes(v.impact || ''))
         .map((v) => `${scheme} ${v.id}: ${v.nodes[0]?.target}`),
     ).toEqual([])
-  }
-})
+  })
+}
