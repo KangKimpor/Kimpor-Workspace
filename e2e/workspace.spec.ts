@@ -124,11 +124,9 @@ test('sidebar pages can be nested with a drag and restored with Undo', async ({
     name: 'Move page Reading list',
     exact: true,
   })
-  const target = page
-    .locator('.page-tree-row')
-    .filter({
-      has: page.getByRole('link', { name: 'Workspace Overview', exact: true }),
-    })
+  const target = page.locator('.page-tree-row').filter({
+    has: page.getByRole('link', { name: 'Workspace Overview', exact: true }),
+  })
   const source = await handle.boundingBox(),
     destination = await target.boundingBox()
   if (!source || !destination)
@@ -321,28 +319,25 @@ for (const width of [1920, 1180, 820, 393, 320]) {
   })
 }
 
-test('new feature routes have no serious accessibility violations in both themes', async ({
-  page,
-}) => {
-  test.setTimeout(120000)
-  for (const scheme of ['light', 'dark'] as const) {
-    await page.emulateMedia({ colorScheme: scheme })
-    for (const route of [
-      '/projects/website/board',
-      '/tasks',
-      '/p/weekly-plan',
-      '/calendar/week/today',
-      '/settings/appearance',
-      '/search',
-    ]) {
+for (const scheme of ['light', 'dark'] as const) {
+  for (const route of [
+    '/projects/website/board',
+    '/tasks',
+    '/p/weekly-plan',
+    '/calendar/week/today',
+    '/settings/appearance',
+    '/search',
+  ]) {
+    test(`accessibility ${route} ${scheme}`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme })
       await page.goto(route)
       await page.waitForLoadState('networkidle')
       const result = await new AxeBuilder({ page }).analyze()
       expect(
         result.violations
           .filter((v) => v.impact === 'serious' || v.impact === 'critical')
-          .map((v) => `${route} ${scheme} ${v.id}: ${v.nodes[0]?.target}`),
+          .map((v) => `${v.id}: ${v.nodes[0]?.target}`),
       ).toEqual([])
-    }
+    })
   }
-})
+}

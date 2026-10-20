@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_URL: http://localhost:4173
       VITE_SUPABASE_PUBLISHABLE_KEY: test-public-key
     steps:
       - uses: actions/checkout@v4
