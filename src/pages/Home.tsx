@@ -1,5 +1,5 @@
 import { displayTime } from '@/calendar/time'
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { afterFirstPaint } from '@/lib/paint'
 import {
   ArrowRight,
@@ -34,7 +34,7 @@ const homeDateFormat = new Intl.DateTimeFormat('en-US', {
 export function Home() {
   const [detailsReady, setDetailsReady] = useState(() => window.innerWidth >= 640)
   useEffect(() => {
-    if (!detailsReady) return afterFirstPaint(() => setDetailsReady(true))
+    if (!detailsReady) return afterFirstPaint(() => startTransition(() => setDetailsReady(true)))
   }, [detailsReady])
   const { tasks, events, pages, scratchpad, setScratchpad, addPage, addTask } =
     useWorkspace()

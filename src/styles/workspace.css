@@ -1700,3 +1700,10 @@ button:disabled {
   .tasks-page .page-heading { margin-bottom: 16px; align-items: flex-start; }
   .tasks-page .task-rename { width: 24px; height: 24px; }
 }
+
+@media (max-width: 639px) {
+  .home-page .home-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 240px;
+  }
+}
