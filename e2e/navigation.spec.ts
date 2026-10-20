@@ -9,7 +9,9 @@ test('phone sidebar opens on the first tap and closes after navigation', async (
   page,
 }) => {
   let loads = 0
-  page.on('framenavigated', (frame) => { if (frame === page.mainFrame()) loads++ })
+  page.on('request', (request) => {
+    if (request.isNavigationRequest() && request.resourceType() === 'document') loads++
+  })
   await page.route('**/assets/Overlays-*.js', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 600))
     await route.continue()
