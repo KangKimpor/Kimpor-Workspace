@@ -47,8 +47,24 @@ if (
   void initialize().finally(render)
 } else {
   render()
-  const ready = () => {
+  const initializeGuest = () => {
     void initialize().catch(() => useWorkspace.setState({ storageError: true }))
+  }
+  const ready = async () => {
+    const databases = typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function'
+      ? await indexedDB.databases().catch(() => null)
+      : null
+    if (databases && !databases.some((database) => database.name === 'kimpor-workspace')) {
+      const resume = () => {
+        removeEventListener('click', resume, true)
+        removeEventListener('keydown', resume, true)
+        initializeGuest()
+      }
+      addEventListener('click', resume, { once: true, capture: true })
+      addEventListener('keydown', resume, { once: true, capture: true })
+    } else {
+      initializeGuest()
+    }
   }
   if (PerformanceObserver.supportedEntryTypes.includes('paint')) {
     const observer = new PerformanceObserver((entries) => {
