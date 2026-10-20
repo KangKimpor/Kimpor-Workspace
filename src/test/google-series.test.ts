@@ -133,6 +133,11 @@ test('following is durable across an interrupted truncate and reuses the created
   )
   await expect(pushGoogleEvent(event)).rejects.toThrow('Connection interrupted')
   const result = await pushGoogleEvent(event)
+  expect(
+    requests
+      .filter((r) => !r.url.startsWith('/api/'))
+      .every((r) => r.init.cache === 'no-store'),
+  ).toBe(true)
   expect(created).toBe(1)
   expect(truncated).toBe(2)
   expect(result.isSeriesMaster).toBe(true)

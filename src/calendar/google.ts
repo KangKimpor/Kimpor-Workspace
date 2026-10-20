@@ -96,6 +96,7 @@ async function api(accountId: string, path: string, init: RequestInit = {}) {
     `https://www.googleapis.com/calendar/v3${path}`,
     {
       ...init,
+      cache: 'no-store',
       headers: {
         Authorization: `Bearer ${await accessToken(accountId)}`,
         'Content-Type': 'application/json',

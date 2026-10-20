@@ -1,12 +1,19 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+const cors = {
+  'access-control-allow-origin': 'http://localhost:4173',
+  'access-control-allow-methods': 'GET, POST, OPTIONS',
+  'access-control-allow-headers':
+    'authorization, apikey, content-type, x-client-info, x-supabase-api-version',
+}
 
 test('email sign-in accepts existing passwords and shows server errors', async ({
   page,
 }) => {
   await page.route('**/auth/v1/token?grant_type=password', (route) =>
     route.fulfill({
-      status: 400,
+      status: route.request().method() === 'OPTIONS' ? 204 : 400,
+      headers: cors,
       contentType: 'application/json',
       body: JSON.stringify({
         code: 400,
@@ -49,7 +56,8 @@ test('create account has its own form and email-confirmation step', async ({
 }) => {
   await page.route('**/auth/v1/signup*', (route) =>
     route.fulfill({
-      status: 200,
+      status: route.request().method() === 'OPTIONS' ? 204 : 200,
+      headers: cors,
       contentType: 'application/json',
       body: JSON.stringify({
         id: 'f0000000-0000-4000-8000-000000000001',
@@ -83,6 +91,7 @@ test('Google sign-in goes to the configured provider and exact app callback', as
   await page.route('**/auth/v1/authorize?*', (route) =>
     route.fulfill({
       status: 200,
+      headers: cors,
       contentType: 'text/html',
       body: '<h1>OAuth provider handoff</h1>',
     }),

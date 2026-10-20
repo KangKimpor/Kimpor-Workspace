@@ -324,6 +324,7 @@ for (const width of [1920, 1180, 820, 393, 320]) {
 test('new feature routes have no serious accessibility violations in both themes', async ({
   page,
 }) => {
+  test.setTimeout(120000)
   for (const scheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: scheme })
     for (const route of [

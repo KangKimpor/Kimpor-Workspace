@@ -15,3 +15,4 @@ docs/verification/*trace.json
 docs/verification/*devtoolslog.json
 docs/verification/*.html
 docs/verification/*.json
+supabase/.temp/
