@@ -47,5 +47,18 @@ if (
   void initialize().finally(render)
 } else {
   render()
-  void initialize().catch(() => useWorkspace.setState({ storageError: true }))
+  const ready = () => {
+    void initialize().catch(() => useWorkspace.setState({ storageError: true }))
+  }
+  if (PerformanceObserver.supportedEntryTypes.includes('paint')) {
+    const observer = new PerformanceObserver((entries) => {
+      if (entries.getEntries().some((entry) => entry.name === 'first-contentful-paint')) {
+        observer.disconnect()
+        ready()
+      }
+    })
+    observer.observe({ type: 'paint', buffered: true })
+  } else {
+    requestAnimationFrame(() => setTimeout(ready, 0))
+  }
 }

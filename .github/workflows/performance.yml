@@ -1,12 +1,18 @@
 name: Production performance
 on:
+  workflow_dispatch:
   push:
-    branches: [main, 'codex/**']
-    paths: ['.github/workflows/performance.yml']
+    branches: [main]
+    paths: ['src/**', 'public/**', 'index.html', 'package.json', 'pnpm-lock.yaml', 'vite.config.ts', 'vercel.json', '.github/workflows/performance.yml']
 permissions:
   contents: read
+  statuses: read
+concurrency:
+  group: production-performance
+  cancel-in-progress: true
 jobs:
   lighthouse:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -16,6 +22,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Wait for this commit's Vercel deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in $(seq 1 60); do
+            state=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/status" --jq '[.statuses[] | select(.context == "Vercel")][0].state // "pending"')
+            if [ "$state" = success ]; then exit 0; fi
+            if [ "$state" = failure ] || [ "$state" = error ]; then
+              echo "Vercel deployment failed for $GITHUB_SHA"
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "Timed out waiting for Vercel deployment of $GITHUB_SHA"
+          exit 1
       - name: Measure deployed guest workspace
         run: |
           corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path=lighthouse-mobile.json --quiet
