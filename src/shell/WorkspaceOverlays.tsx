@@ -26,7 +26,7 @@ import { modKey } from './store'
 import { useWorkspaceUI } from './workspace'
 import { useCalendars, defaultCalendar } from '@/calendar/store'
 import { canParentTask } from '@/data/task-tree'
-import { contentText, searchRank } from '@/data/text'
+import { contentText, searchRank, htmlText } from '@/data/text'
 import {
   localSeriesChange,
   occurrenceDraft,
@@ -678,6 +678,7 @@ function EventEditor() {
   const [original, setOriginal] = useState<CalendarEvent | null>(null)
   const [scope, setScope] = useState<RecurrenceScope>('this')
   const [guestText, setGuestText] = useState('')
+  const [descriptionText, setDescriptionText] = useState('')
   const [error, setError] = useState('')
   useEffect(() => {
     setError('')
@@ -689,6 +690,11 @@ function EventEditor() {
       ? occurrenceDraft(existing, eventOccurrence)
       : null
     setOriginal(occurrence)
+    setDescriptionText(
+      existing?.providerEventId
+        ? htmlText(existing.description || '')
+        : existing?.description || '',
+    )
     setGuestText(
       useWorkspace
         .getState()
@@ -753,7 +759,12 @@ function EventEditor() {
       ] as const
       saveEvent({
         ...event,
-        ...(remove ? { deletedAt: new Date().toISOString() } : {}),
+        ...(remove
+          ? {
+              deletedAt: new Date().toISOString(),
+              deleteAfter: new Date(Date.now() + 8000).toISOString(),
+            }
+          : {}),
         recurrenceEdit: {
           scope,
           occurrence: event.originalStartTime || event.date,
@@ -768,6 +779,12 @@ function EventEditor() {
       })
       notify(
         remove ? 'Deletion queued for Google' : 'Changes queued for Google',
+        remove
+          ? () => {
+              const previous = before.find((item) => item.id === event.id)
+              if (previous) saveEvent(previous)
+            }
+          : undefined,
       )
     } else {
       const changed = recurring
@@ -1044,10 +1061,11 @@ function EventEditor() {
                 <label>
                   Description
                   <textarea
-                    value={draft.description || ''}
-                    onChange={(e) =>
+                    value={descriptionText}
+                    onChange={(e) => {
+                      setDescriptionText(e.target.value)
                       setDraft({ ...draft, description: e.target.value })
-                    }
+                    }}
                   />
                 </label>
                 <label>

@@ -148,6 +148,7 @@ export interface CalendarEvent {
   endInstant?: string
   isSeriesMaster?: boolean
   restoreDeleted?: boolean
+  deleteAfter?: string
   localSeriesId?: string
   excludedDates?: string[]
   recurrenceEdit?: {

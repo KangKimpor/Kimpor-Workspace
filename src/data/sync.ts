@@ -3,7 +3,13 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase, initializeSupabase, hasStoredSession } from '@/lib/supabase'
 import { useWorkspaceUI } from '@/shell/workspace'
 import { contentOf, emptyContent, useWorkspace } from './index'
-import { collections, db, flushLocal, persist } from './persistence'
+import {
+  collections,
+  db,
+  flushLocal,
+  persist,
+  eventWriteReady,
+} from './persistence'
 import type { Collection, Content } from './persistence'
 import { syncWorkspaceFiles } from './files'
 
@@ -198,6 +204,13 @@ export async function syncWorkspace() {
     )
     for (const pending of pendingItems) {
       if (!currentScope()) return
+      if (
+        pending.collection === 'events' &&
+        !eventWriteReady(
+          pending.data as unknown as import('./types').CalendarEvent,
+        )
+      )
+        continue
       const payload =
         pending.collection === 'events'
           ? await google.pushGoogleEvent(
@@ -319,7 +332,13 @@ export async function syncWorkspace() {
         scope,
         content: contentOf(useWorkspace.getState()),
       })
-      useWorkspace.setState({ sync: { kind: 'saved' } })
+      useWorkspace.setState({
+        sync: {
+          kind: (await db.outbox.where('scope').equals(scope).count())
+            ? 'saving'
+            : 'saved',
+        },
+      })
       channel?.postMessage({ scope })
       retry = 0
     }
@@ -344,7 +363,7 @@ export async function syncWorkspace() {
         ? Math.min(60000, 1000 * 2 ** retry) + Math.random() * 1000
         : (await db.outbox.where('scope').equals(scope).count())
           ? 1000
-          : 60000,
+          : 30000,
     )
   }
 }

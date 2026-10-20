@@ -1213,7 +1213,7 @@ kbd {
   font-size: var(--fs-small);
   color: var(--text-secondary);
 }
-.event-editor input {
+.event-editor input:not([type='checkbox']) {
   min-width: 0;
   width: 100%;
   min-height: var(--h-input);
@@ -1223,6 +1223,11 @@ kbd {
   background: var(--bg-raised);
   font-size: var(--fs-label);
   color: var(--text-primary);
+}
+.event-editor form label.inline {
+  display: flex;
+  align-items: center;
+  min-height: var(--h-row);
 }
 .form-columns {
   display: grid;

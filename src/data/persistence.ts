@@ -49,6 +49,10 @@ class WorkspaceDB extends Dexie {
   }
 }
 export const db = new WorkspaceDB()
+export function eventWriteReady(event: CalendarEvent, now = Date.now()) {
+  const after = Date.parse(event.deleteAfter || '')
+  return !event.deletedAt || !Number.isFinite(after) || after <= now
+}
 let writeQueue: Promise<unknown> = Promise.resolve()
 export function persist(scope: string, content: Content, previous: Content) {
   writeQueue = writeQueue
