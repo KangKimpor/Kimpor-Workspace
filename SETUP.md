@@ -27,7 +27,7 @@ Workspace Google sign-in returns through Supabase Auth to `/settings/account`. C
 
 Before moving this build to another project/domain, review the hard-coded proxy targets in `vite.config.ts`, the Supabase origin in `vercel.json`'s Content Security Policy, Auth return URLs, Google callback URLs, and server app URL together. Changing only `.env.local` does not retarget every service.
 
-The production app is https://kimpor-workspace.vercel.app and the Supabase project is nlcpjdokfvawlpzyfytx. The three migrations are applied, the private kw-files bucket is configured, and kw-google version 3 is deployed. Google OAuth remains in Testing with the two approved test accounts. Testing-mode refresh tokens may expire after seven days; broader Google verification/publishing requires a separate project-owner decision. See `docs/BUILD-STATUS.md`.
+The production app is https://kimpor-workspace.vercel.app and the Supabase project is nlcpjdokfvawlpzyfytx. The four migrations are applied, the private kw-files bucket is configured, and kw-google version 3 is deployed. Google OAuth remains in Testing with the two approved test accounts. Testing-mode refresh tokens may expire after seven days; broader Google verification/publishing requires a separate project-owner decision. See `docs/BUILD-STATUS.md`.
 
 ## Live isolation tests
 
@@ -36,3 +36,5 @@ The production app is https://kimpor-workspace.vercel.app and the Supabase proje
 ## Calendar behavior
 
 Google access tokens exist only in memory. Encrypted refresh tokens remain server-side. Sync uses polling, per-account backoff, ETags, and a durable series-change journal. This/Following/All changes preserve finite recurrence counts. Custom repeat rules support daily, weekly, monthly and yearly frequencies. Reminders appear while the app is open; background Web Push is outside v1. Week start and clock format are saved with the workspace profile. Theme, glass and motion are device preferences.
+
+App updates are user-controlled: a waiting service worker shows New version available with Reload and Later actions. When upgrading from the older automatic-update build, close all workspace tabs/installed windows once so the new worker can activate. Do not clear site data to update.
