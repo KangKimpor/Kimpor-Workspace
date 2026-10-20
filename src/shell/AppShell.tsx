@@ -1,28 +1,52 @@
-import { PanelRight } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { EmptyState } from '@/components/EmptyState'
-import { Ambient, Glass } from '@/components/glass'
+import { Ambient } from '@/components/glass/Ambient'
 import { useGlass, watchFrameTime } from '@/lib/glass'
 import { watchSystemTheme } from '@/lib/theme'
-import { BottomSheet, SideSheet } from './Overlays'
+const BottomSheet = lazy(() =>
+  import('./Overlays').then((module) => ({ default: module.BottomSheet })),
+)
+const SideSheet = lazy(() =>
+  import('./Overlays').then((module) => ({ default: module.SideSheet })),
+)
 import { Sidebar } from './Sidebar'
 import { SidebarContent } from './SidebarContent'
 import { TabBar } from './TabBar'
 import { TopBar } from './TopBar'
 import { useCrumb } from './routes'
 import { breakpointFor, useShell } from './store'
+const WorkspaceOverlays = lazy(() =>
+  import('./WorkspaceOverlays').then((module) => ({
+    default: module.WorkspaceOverlays,
+  })),
+)
+import { useWorkspaceUI } from './workspace'
+import { useWorkspace } from '@/data'
+const Reminders = lazy(() => import('@/components/Reminders'))
+const QuickAdd = lazy(() =>
+  import('@/components/QuickAdd').then((module) => ({
+    default: module.QuickAdd,
+  })),
+)
 
-function InspectorBody() {
-  return (
-    <EmptyState icon={<PanelRight size={28} strokeWidth={1.75} />} title="Nothing selected">
-      Task and event details open here.
-    </EmptyState>
-  )
-}
-
-/** App shell: sidebar, canvas and inspector at expanded and large; drawer and right sheet at medium; tab bar and bottom sheets at compact. */
+/** Floating navigation with an overlay drawer and bottom tabs on smaller screens. */
 export function AppShell() {
+  const hasOverlay = useWorkspaceUI(
+    (state) =>
+      !!(state.commandOpen || state.taskId || state.eventId || state.toast),
+  )
+  const hasReminders = useWorkspace(
+    (s) =>
+      s.tasks.some((t) => t.reminder && !t.deletedAt && t.status !== 'Done') ||
+      s.events.some((e) => e.reminders?.length && !e.deletedAt),
+  )
   const root = useRef<HTMLDivElement>(null)
   const [bp, setBp] = useState(() => breakpointFor(window.innerWidth))
   const { pathname } = useLocation()
@@ -30,11 +54,17 @@ export function AppShell() {
   const crumb = useCrumb(pathname)
   const shell = useShell()
   const persistent = bp === 'expanded' || bp === 'large'
+  const [overlaysReady, setOverlaysReady] = useState(false)
+  useEffect(() => {
+    if (shell.drawerOpen || shell.sheet) setOverlaysReady(true)
+  }, [shell.drawerOpen, shell.sheet])
 
   useEffect(() => {
     const el = root.current
     if (!el) return
-    const ro = new ResizeObserver(([entry]) => entry && setBp(breakpointFor(entry.contentRect.width)))
+    const ro = new ResizeObserver(
+      ([entry]) => entry && setBp(breakpointFor(entry.contentRect.width)),
+    )
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
@@ -57,16 +87,33 @@ export function AppShell() {
   }, [bp, persistent, setDrawerOpen, setSheet])
 
   // Ctrl or Cmd plus backslash toggles the sidebar; Ctrl or Cmd plus K opens search.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return
+      if (!(e.ctrlKey || e.metaKey)) {
+        if (
+          !e.altKey &&
+          e.key.toLowerCase() === 'c' &&
+          !(e.target as HTMLElement).closest(
+            'input,textarea,select,[contenteditable="true"]',
+          ) &&
+          !document.querySelector('[role="dialog"]')
+        ) {
+          e.preventDefault()
+          useShell.getState().setSheet('quick-add')
+        }
+        return
+      }
       if (e.key === '\\') {
         e.preventDefault()
-        if (persistent) useShell.getState().setSidebarOpen(!useShell.getState().sidebarOpen)
-        else if (bp === 'medium') useShell.getState().setDrawerOpen(!useShell.getState().drawerOpen)
+        if (persistent)
+          useShell.getState().setSidebarOpen(!useShell.getState().sidebarOpen)
+        else if (bp === 'medium')
+          useShell.getState().setDrawerOpen(!useShell.getState().drawerOpen)
       } else if (e.key.toLowerCase() === 'k') {
         e.preventDefault()
-        navigate('/search')
+        useWorkspaceUI
+          .getState()
+          .setCommandOpen(!useWorkspaceUI.getState().commandOpen)
       }
     }
     addEventListener('keydown', onKey)
@@ -79,61 +126,130 @@ export function AppShell() {
       className="shell"
       data-bp={bp}
       data-sidebar={shell.sidebarOpen ? 'open' : 'closed'}
-      data-inspector={shell.inspectorOpen ? 'open' : 'closed'}
       style={{ ['--sidebar-w' as string]: `${shell.sidebarWidth}px` }}
     >
       <a className="skip" href="#main">
         Skip to content
       </a>
       <Ambient />
+      {hasReminders && (
+        <Suspense fallback={null}>
+          <Reminders />
+        </Suspense>
+      )}
       {persistent ? <Sidebar /> : null}
 
       <div className="main">
         <TopBar crumb={crumb} bp={bp} />
-        <main id="main" tabIndex={-1} className={bp === 'compact' ? 'canvas canvas-compact-pad' : 'canvas'}>
+        <main
+          id="main"
+          tabIndex={-1}
+          className={bp === 'compact' ? 'canvas canvas-compact-pad' : 'canvas'}
+        >
           <Outlet context={crumb.meta} />
         </main>
       </div>
 
-      {persistent && shell.inspectorOpen ? (
-        <div className="inspector-slot">
-          <Glass as="aside" material="regular" className="inspector" aria-label="Details">
-            <div className="inspector-head t-label">Details</div>
-            <InspectorBody />
-          </Glass>
-        </div>
-      ) : null}
+      <Suspense
+        fallback={
+          <span className="sr-only" role="status">
+            Opening…
+          </span>
+        }
+      >
+        {overlaysReady && (bp === 'medium' || bp === 'compact') ? (
+          <>
+            <SideSheet
+              side="left"
+              className="drawer"
+              title="Sidebar"
+              open={shell.drawerOpen}
+              onOpenChange={shell.setDrawerOpen}
+            >
+              <SidebarContent onNavigate={() => shell.setDrawerOpen(false)} />
+            </SideSheet>
+          </>
+        ) : null}
 
-      {bp === 'medium' ? (
-        <>
-          <SideSheet side="left" className="drawer" title="Sidebar" open={shell.drawerOpen} onOpenChange={shell.setDrawerOpen}>
-            <SidebarContent onNavigate={() => shell.setDrawerOpen(false)} />
-          </SideSheet>
-          <SideSheet side="right" className="rsheet" title="Details" open={shell.inspectorOpen} onOpenChange={shell.setInspectorOpen}>
-            <div className="inspector-head t-label">Details</div>
-            <InspectorBody />
-          </SideSheet>
-        </>
-      ) : null}
-
-      {bp === 'compact' ? (
-        <>
-          <TabBar />
-          <BottomSheet
-            open={shell.sheet !== null}
-            onOpenChange={(o) => !o && shell.setSheet(null)}
-            title={shell.sheet === 'quick-add' ? 'Quick add' : 'Details'}
-          >
-            {shell.sheet === 'quick-add' ? (
-              <EmptyState icon={<PanelRight size={28} strokeWidth={1.75} />} title="Quick add">
-                Natural language task and event entry arrives in Phase 4.
-              </EmptyState>
-            ) : (
-              <InspectorBody />
+        {bp === 'compact' ? (
+          <>
+            <TabBar />
+            {overlaysReady && (
+              <BottomSheet
+                open={shell.sheet !== null}
+                onOpenChange={(o) => !o && shell.setSheet(null)}
+                title="Quick add"
+              >
+                <Suspense fallback={<p>Loading quick add…</p>}>
+                  <QuickAdd onDone={() => shell.setSheet(null)} />
+                </Suspense>
+                <div className="quick-add-options">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => {
+                      shell.setSheet(null)
+                      navigate(`/p/${useWorkspace.getState().addPage()}`)
+                    }}
+                  >
+                    New page
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={() => {
+                      shell.setSheet(null)
+                      useWorkspaceUI
+                        .getState()
+                        .openTask(
+                          useWorkspace
+                            .getState()
+                            .addTask({
+                              title: 'New task',
+                              projectId: 'website',
+                            }),
+                        )
+                    }}
+                  >
+                    New task
+                  </button>
+                  <button
+                    className="btn-accent"
+                    onClick={() => {
+                      shell.setSheet(null)
+                      useWorkspaceUI.getState().openEvent('new')
+                    }}
+                  >
+                    New event
+                  </button>
+                </div>
+              </BottomSheet>
             )}
-          </BottomSheet>
-        </>
-      ) : null}
+          </>
+        ) : null}
+        {overlaysReady && bp !== 'compact' && (
+          <SideSheet
+            side="right"
+            className="rsheet"
+            open={shell.sheet !== null}
+            onOpenChange={(open) => !open && shell.setSheet(null)}
+            title="Quick add"
+          >
+            <Suspense fallback={<p>Loading quick add…</p>}>
+              <QuickAdd onDone={() => shell.setSheet(null)} />
+            </Suspense>
+          </SideSheet>
+        )}
+      </Suspense>
+      {hasOverlay && (
+        <Suspense
+          fallback={
+            <span className="sr-only" role="status">
+              Opening…
+            </span>
+          }
+        >
+          <WorkspaceOverlays />
+        </Suspense>
+      )}
     </div>
   )
 }

@@ -1,0 +1,5 @@
+const encode = (value: Uint8Array) => btoa(String.fromCharCode(...value))
+const decode = (value: string) => Uint8Array.from(atob(value),c=>c.charCodeAt(0))
+async function key(raw: string) { const bytes=decode(raw);if(bytes.length!==32)throw new Error('Expected a 256-bit key');return crypto.subtle.importKey('raw',bytes,'AES-GCM',false,['encrypt','decrypt']) }
+export async function seal(value: string, owner: string, rawKey: string) { const iv=crypto.getRandomValues(new Uint8Array(12));const data=await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:new TextEncoder().encode(owner)},await key(rawKey),new TextEncoder().encode(value));return JSON.stringify({v:1,iv:encode(iv),data:encode(new Uint8Array(data))}) }
+export async function unseal(value: string, owner: string, rawKey: string) { const record=JSON.parse(value);if(record.v!==1)throw new Error('Unknown encryption key version');const data=await crypto.subtle.decrypt({name:'AES-GCM',iv:decode(record.iv),additionalData:new TextEncoder().encode(owner)},await key(rawKey),decode(record.data));return new TextDecoder().decode(data) }

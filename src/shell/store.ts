@@ -24,7 +24,7 @@ function readWidth(): number {
   }
 }
 
-export type SheetKind = 'inspector' | 'quick-add' | null
+export type SheetKind = 'quick-add' | null
 
 interface ShellState {
   sidebarWidth: number
@@ -32,12 +32,10 @@ interface ShellState {
   sidebarOpen: boolean
   /** Overlay drawer (medium) is open. */
   drawerOpen: boolean
-  inspectorOpen: boolean
   sheet: SheetKind
   setSidebarWidth: (w: number) => void
   setSidebarOpen: (open: boolean) => void
   setDrawerOpen: (open: boolean) => void
-  setInspectorOpen: (open: boolean) => void
   setSheet: (sheet: SheetKind) => void
 }
 
@@ -45,10 +43,12 @@ export const useShell = create<ShellState>((set) => ({
   sidebarWidth: readWidth(),
   sidebarOpen: true,
   drawerOpen: false,
-  inspectorOpen: false,
   sheet: null,
   setSidebarWidth: (w) => {
-    const sidebarWidth = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, Math.round(w / 4) * 4))
+    const sidebarWidth = Math.min(
+      SIDEBAR_MAX,
+      Math.max(SIDEBAR_MIN, Math.round(w / 4) * 4),
+    )
     try {
       localStorage.setItem(WIDTH_KEY, String(sidebarWidth))
     } catch {
@@ -58,9 +58,9 @@ export const useShell = create<ShellState>((set) => ({
   },
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
-  setInspectorOpen: (inspectorOpen) => set({ inspectorOpen }),
   setSheet: (sheet) => set({ sheet }),
 }))
 
-export const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform) || /Mac/.test(navigator.userAgent)
+export const isMac = () =>
+  /Mac|iPhone|iPad/.test(navigator.platform) || /Mac/.test(navigator.userAgent)
 export const modKey = () => (isMac() ? '⌘' : 'Ctrl')

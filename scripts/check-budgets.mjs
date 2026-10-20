@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+import { gzipSync } from 'node:zlib'
+const manifest = JSON.parse(await readFile('dist/.vite/manifest.json', 'utf8'))
+const files = new Set()
+function collect(key) {
+  const entry = manifest[key]
+  if (!entry || files.has(entry.file)) return
+  files.add(entry.file)
+  for (const dependency of entry.imports || []) collect(dependency)
+}
+for (const [key, entry] of Object.entries(manifest))
+  if (entry.isEntry) collect(key)
+let bytes = 0
+for (const file of files)
+  if (file.endsWith('.js'))
+    bytes += gzipSync(await readFile(`dist/${file}`)).length
+console.log(
+  `Initial app JavaScript: ${(bytes / 1024).toFixed(1)} KiB gzip (limit 200 KiB).`,
+)
+assert(bytes < 200 * 1024, 'The app shell exceeds its JavaScript budget')

@@ -81,7 +81,7 @@
   padding: 0 var(--space-8);
   border-radius: var(--radius-pill);
   background: var(--bg-hover);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-size: var(--fs-small);
   line-height: var(--lh-small);
   font-weight: 500;

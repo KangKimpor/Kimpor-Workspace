@@ -1,14 +1,26 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
+@source '../';
 @import './tokens.css';
 @import './glass.css';
 @import './components.css';
 @import './shell.css';
+@import './workspace.css';
+@import './calendar.css';
 
+@font-face {
+  font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono'; font-style: normal; font-weight: 100 800; font-display: swap;
+  src: url('@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2') format('woff2');
+}
+:root { --font-sans: 'Inter', system-ui, sans-serif; --font-mono: 'JetBrains Mono', ui-monospace, monospace; }
 html {
   font-family: var(--font-sans);
   font-size: 100%;
   -webkit-text-size-adjust: 100%;
-  background: var(--bg-canvas);
+  background: var(--bg-workspace, var(--bg-canvas));
   color: var(--text-primary);
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
@@ -19,7 +31,7 @@ body {
   min-height: 100%;
   font-size: var(--fs-body);
   line-height: var(--lh-body);
-  background: var(--bg-canvas);
+  background: var(--bg-workspace, var(--bg-canvas));
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -147,7 +159,12 @@ html.theme-fade .glass {
 /* Skeleton shimmer, 1.2 s (§11) */
 .skeleton {
   border-radius: var(--radius-control);
-  background: linear-gradient(90deg, var(--bg-hover) 0%, var(--bg-pressed) 50%, var(--bg-hover) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-hover) 0%,
+    var(--bg-pressed) 50%,
+    var(--bg-hover) 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.2s linear infinite;
 }

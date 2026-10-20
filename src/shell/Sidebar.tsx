@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { KeyboardEvent, PointerEvent } from 'react'
-import { Glass } from '@/components/glass'
+import { Glass } from '@/components/glass/Glass'
 import { SidebarContent } from './SidebarContent'
 import { SIDEBAR_MAX, SIDEBAR_MIN, useShell } from './store'
 

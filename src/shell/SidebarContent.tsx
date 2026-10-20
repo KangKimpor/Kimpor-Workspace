@@ -1,3 +1,4 @@
+/* oxlint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- Delegated link clicks include keyboard activation. */
 import {
   CalendarDays,
   CheckSquare,
@@ -9,16 +10,38 @@ import {
   Search,
   Settings,
   Trash2,
+  ChevronRight,
+  ChevronsUpDown,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { usePages, useProjects } from '@/data'
 import type { PageNode } from '@/data'
 import { modKey } from './store'
+import { Tile } from '@/components/WorkspaceUI'
+import { useWorkspaceUI } from './workspace'
+import { lazy, Suspense } from 'react'
+const PageTree = lazy(() =>
+  import('@/components/PageTree').then((module) => ({
+    default: module.PageTree,
+  })),
+)
 
 /** Lucide at 1.75 px stroke, currentColor (§9). */
 const ic = { size: 18, strokeWidth: 1.75 } as const
 
-function Item({ to, icon, label, meta, end }: { to: string; icon: React.ReactNode; label: string; meta?: React.ReactNode; end?: boolean }) {
+function Item({
+  to,
+  icon,
+  label,
+  meta,
+  end,
+}: {
+  to: string
+  icon: React.ReactNode
+  label: string
+  meta?: React.ReactNode
+  end?: boolean
+}) {
   return (
     <li>
       <NavLink to={to} end={end} className="nav-item">
@@ -33,9 +56,18 @@ function Item({ to, icon, label, meta, end }: { to: string; icon: React.ReactNod
 function PageRows({ nodes, depth = 0 }: { nodes: PageNode[]; depth?: number }) {
   return nodes.map((n) => (
     <li key={n.id}>
-      <NavLink to={`/p/${n.id}`} className="nav-item" style={{ paddingLeft: `calc(var(--space-12) + ${depth * 16}px)` }}>
+      <NavLink
+        to={`/p/${n.id}`}
+        className="nav-item"
+        style={{ paddingLeft: `calc(var(--space-12) + ${depth * 16}px)` }}
+      >
         <span className="nav-icon" aria-hidden="true">
-          {n.icon}
+          <Tile
+            name={n.isFavorite ? 'star' : n.icon}
+            color={
+              n.isFavorite ? 'yellow' : n.icon === 'book' ? 'purple' : 'blue'
+            }
+          />
         </span>
         <span className="nav-label" title={n.title}>
           {n.title}
@@ -62,18 +94,46 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <span
           className="nav-icon"
           aria-hidden="true"
-          style={{ background: 'var(--accent-fill)', color: 'var(--on-accent)', borderRadius: 'var(--radius-control)', fontWeight: 700 }}
+          style={{
+            background: 'var(--accent-fill)',
+            color: 'var(--on-accent)',
+            borderRadius: 'var(--radius-control)',
+            fontWeight: 700,
+          }}
         >
           K
         </span>
         <span className="nav-label">Kimpor Workspace</span>
+        <ChevronsUpDown size={13} className="muted" />
       </div>
 
-      <nav className="sidebar-body" aria-label="Primary" onClick={(e) => (e.target as HTMLElement).closest('a') && onNavigate?.()}>
+      <nav
+        className="sidebar-body"
+        aria-label="Primary"
+        onClick={(e) =>
+          (e.target as HTMLElement).closest('a') && onNavigate?.()
+        }
+      >
         <ul className="nav-list" style={{ marginTop: 'var(--space-8)' }}>
-          <Item to="/search" icon={<Search {...ic} />} label="Search" meta={<span className="kbd">{modKey()} K</span>} />
+          <li>
+            <button
+              className="nav-item sidebar-search"
+              onClick={() => {
+                onNavigate?.()
+                useWorkspaceUI.getState().setCommandOpen(true)
+              }}
+            >
+              <Search size={15} />
+              <span className="nav-label">Search</span>
+              <span className="kbd">{modKey()} K</span>
+            </button>
+          </li>
           <Item to="/" end icon={<Home {...ic} />} label="Home" />
-          <Item to="/calendar/week/today" icon={<CalendarDays {...ic} />} label="Calendar" />
+          <Item
+            to="/calendar/week/today"
+            icon={<CalendarDays {...ic} />}
+            label="Calendar"
+          />
           <Item to="/tasks" icon={<CheckSquare {...ic} />} label="My tasks" />
         </ul>
 
@@ -84,14 +144,22 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               <li key={p.id}>
                 <NavLink to={`/projects/${p.id}/overview`} className="nav-item">
                   <span className="nav-icon">
-                    <span className="dot" style={{ ['--dot' as string]: `var(--c-${p.color})` }} />
+                    <Tile name={p.id} color={p.color} />
                   </span>
                   <span className="nav-label">{p.name}</span>
-                  <span className="nav-meta">{Math.round(p.progress * 100)}%</span>
+                  <span className="nav-meta">
+                    {Math.round(p.progress * 100)}%
+                  </span>
                 </NavLink>
               </li>
             ))}
-            <Item to="/projects" end icon={<FolderKanban {...ic} />} label="All projects" />
+            <Item
+              to="/projects"
+              end
+              icon={<FolderKanban {...ic} />}
+              label="All projects"
+              meta={<ChevronRight size={13} />}
+            />
           </ul>
         </div>
 
@@ -104,16 +172,26 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
         <div className="nav-section">
           <div className="t-caption">Pages</div>
-          <ul className="nav-list">
-            <PageRows nodes={pages} />
-          </ul>
+          <Suspense
+            fallback={
+              <ul className="nav-list">
+                <PageRows nodes={pages} />
+              </ul>
+            }
+          >
+            <PageTree />
+          </Suspense>
         </div>
       </nav>
 
       <div className="sidebar-foot">
         <ul className="nav-list">
           <Item to="/trash" icon={<Trash2 {...ic} />} label="Trash" />
-          <Item to="/settings/appearance" icon={<Settings {...ic} />} label="Settings" />
+          <Item
+            to="/settings/appearance"
+            icon={<Settings {...ic} />}
+            label="Settings"
+          />
           <Item to="/design" icon={<Palette {...ic} />} label="Design system" />
         </ul>
         <NavLink to="/p/new" className="btn-accent" onClick={onNavigate}>

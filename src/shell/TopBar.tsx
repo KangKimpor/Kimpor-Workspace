@@ -1,14 +1,17 @@
-import { Check, MoreHorizontal, PanelLeft, PanelRight, WifiOff } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Check, MoreHorizontal, PanelLeft, Search, WifiOff } from 'lucide-react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import type { MouseEvent } from 'react'
-import { Glass, GlassPopover } from '@/components/glass'
-import { useSyncStatus } from '@/data'
+import {Glass} from '@/components/glass/Glass'
+const GlassPopover=lazy(()=>import('@/components/glass/GlassPopover').then(module=>({default:module.GlassPopover})))
+import { useSyncStatus, useWorkspace } from '@/data'
 import { useGlass } from '@/lib/glass'
 import type { GlassPref, MotionPref } from '@/lib/glass'
 import { useTheme } from '@/lib/theme'
 import type { ThemePref } from '@/lib/theme'
 import { modKey, useShell } from './store'
 import type { Breakpoint } from './store'
+import { useWorkspaceUI } from './workspace'
+import { Link } from 'react-router-dom'
 
 const ic = { size: 18, strokeWidth: 1.75 } as const
 
@@ -62,14 +65,16 @@ function Group<T extends string>({
           onClick={(e) => onChange(o.value, e)}
         >
           {o.label}
-          {value === o.value ? <Check size={16} strokeWidth={1.75} aria-hidden="true" /> : null}
+          {value === o.value ? (
+            <Check size={16} strokeWidth={1.75} aria-hidden="true" />
+          ) : null}
         </button>
       ))}
     </div>
   )
 }
 
-function Appearance() {
+export function Appearance() {
   const theme = useTheme()
   const glass = useGlass()
   return (
@@ -116,35 +121,50 @@ export interface Crumb {
 }
 
 export function TopBar({ crumb, bp }: { crumb: Crumb; bp: Breakpoint }) {
+  const [moreLoaded,setMoreLoaded]=useState(false),[moreOpen,setMoreOpen]=useState(false)
+  const moreTrigger=<button type="button" className="ibtn" aria-label="More options" aria-haspopup="dialog" aria-expanded={moreOpen} onClick={()=>{setMoreLoaded(true);setMoreOpen(true)}}><MoreHorizontal {...ic}/></button>
   const online = useOnline()
   const sync = useSyncStatus()
   const compact = bp === 'compact'
   const scrolled = useScrolled(48)
-  const { sidebarOpen, setSidebarOpen, setDrawerOpen, inspectorOpen, setInspectorOpen, setSheet } = useShell()
+  const { sidebarOpen, setSidebarOpen, setDrawerOpen } = useShell()
   const persistent = bp === 'expanded' || bp === 'large'
 
-  const toggleSidebar = () => (persistent ? setSidebarOpen(!sidebarOpen) : setDrawerOpen(true))
-  const toggleInspector = () => {
-    if (compact) setSheet('inspector')
-    else setInspectorOpen(!inspectorOpen)
-  }
+  const toggleSidebar = () =>
+    persistent ? setSidebarOpen(!sidebarOpen) : setDrawerOpen(true)
 
   return (
-    <Glass as="header" material="thin" className="topbar" data-collapsed={compact ? scrolled : true}>
-      {!compact ? (
+    <Glass
+      as="header"
+      material="thin"
+      className="topbar"
+      data-collapsed={compact ? scrolled : true}
+    >
+      {
         <button
           type="button"
           className="ibtn"
-          aria-label={persistent && sidebarOpen ? 'Collapse sidebar' : 'Open sidebar'}
+          aria-label={
+            persistent && sidebarOpen ? 'Collapse sidebar' : 'Open sidebar'
+          }
           aria-pressed={persistent ? sidebarOpen : undefined}
           title={`Sidebar (${modKey()} \\)`}
           onClick={toggleSidebar}
         >
           <PanelLeft {...ic} />
         </button>
-      ) : null}
+      }
 
-      <nav className={`crumbs ${compact ? 'collapsed-title' : ''}`} aria-label="Breadcrumb">
+      <nav
+        className={`crumbs ${compact ? 'collapsed-title' : ''}`}
+        aria-label="Breadcrumb"
+      >
+        <Link className="parent brand-crumb" to="/">
+          Kimpor
+        </Link>
+        <span className="sep brand-crumb" aria-hidden="true">
+          /
+        </span>
         {crumb.parent ? (
           <>
             <span className="parent">{crumb.parent}</span>
@@ -165,29 +185,37 @@ export function TopBar({ crumb, bp }: { crumb: Crumb; bp: Breakpoint }) {
             Offline
           </span>
         ) : null}
-        <span className="pill" role="status" data-tone={sync.kind === 'saving' ? 'busy' : undefined} data-testid="sync-pill">
+        <span
+          className="pill"
+          role="status"
+          data-tone={sync.kind === 'saving' ? 'busy' : undefined}
+          data-testid="sync-pill"
+        >
           <span className="dot" aria-hidden="true" />
-          {sync.kind === 'saved' ? 'Saved' : sync.kind === 'saving' ? 'Saving' : 'Sync paused'}
+          {sync.kind === 'saved'
+            ? useWorkspace.getState().scope === 'guest'
+              ? 'Saved locally'
+              : 'Saved to cloud'
+            : sync.kind === 'saving'
+              ? 'Saving'
+              : 'Not saved'}
         </span>
         <button
           type="button"
           className="ibtn"
-          aria-label="Toggle details"
-          aria-pressed={compact ? undefined : inspectorOpen}
-          onClick={toggleInspector}
+          aria-label="Open command palette"
+          onClick={() => useWorkspaceUI.getState().setCommandOpen(true)}
         >
-          <PanelRight {...ic} />
+          <Search {...ic} />
         </button>
-        <GlassPopover
-          label="Appearance and view options"
-          trigger={
-            <button type="button" className="ibtn" aria-label="More options">
-              <MoreHorizontal {...ic} />
-            </button>
-          }
+        {moreLoaded ? <Suspense fallback={moreTrigger}><GlassPopover label="Appearance and view options" open={moreOpen} onOpenChange={setMoreOpen} trigger={moreTrigger}><Appearance/></GlassPopover></Suspense> : moreTrigger}
+        <Link
+          to="/settings/appearance"
+          className="profile-avatar"
+          aria-label="Workspace settings"
         >
-          <Appearance />
-        </GlassPopover>
+          K
+        </Link>
       </div>
     </Glass>
   )

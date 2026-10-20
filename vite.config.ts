@@ -5,6 +5,26 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  server: {
+    proxy: {
+      '/api/google': {
+        target: 'https://nlcpjdokfvawlpzyfytx.supabase.co',
+        changeOrigin: true,
+        rewrite: (path) =>
+          path.replace('/api/google', '/functions/v1/kw-google'),
+      },
+    },
+  },
+  preview: {
+    proxy: {
+      '/api/google': {
+        target: 'https://nlcpjdokfvawlpzyfytx.supabase.co',
+        changeOrigin: true,
+        rewrite: (path) =>
+          path.replace('/api/google', '/functions/v1/kw-google'),
+      },
+    },
+  },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
@@ -27,22 +47,35 @@ export default defineConfig({
         icons: [
           { src: '/brand/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/brand/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/brand/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          {
+            src: '/brand/icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
         ],
         shortcuts: [
-          { name: 'New page', short_name: 'New page', url: '/?action=new-page' },
-          { name: 'New task', short_name: 'New task', url: '/?action=new-task' },
+          {
+            name: 'New page',
+            short_name: 'New page',
+            url: '/?action=new-page',
+          },
+          {
+            name: 'New task',
+            short_name: 'New task',
+            url: '/?action=new-task',
+          },
           { name: 'Today', short_name: 'Today', url: '/calendar/week/today' },
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest,woff2}'],
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
       },
     }),
   ],
-  build: { target: 'es2022', cssMinify: true },
+  build: { target: 'es2022', cssMinify: true, manifest: true },
   test: {
     environment: 'jsdom',
     globals: true,

@@ -1,6 +1,6 @@
 import { CalendarDays, FolderKanban, Home, Plus, Search } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
-import { Glass } from '@/components/glass'
+import { Glass } from '@/components/glass/Glass'
 import { useShell } from './store'
 
 const ic = { size: 22, strokeWidth: 1.75 } as const

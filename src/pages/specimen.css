@@ -66,6 +66,12 @@
   padding: var(--space-8) 0;
   border-bottom: 1px solid var(--border-subtle);
 }
+@media (max-width: 639px) {
+  .type-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+}
 .space-bar {
   height: var(--space-12);
   border-radius: var(--radius-chip);
@@ -121,7 +127,12 @@
   gap: var(--space-12);
   padding: var(--space-20);
   border-radius: var(--radius-card);
-  background: linear-gradient(135deg, var(--c-blue), var(--c-purple) 55%, var(--c-pink));
+  background: linear-gradient(
+    135deg,
+    var(--c-blue),
+    var(--c-purple) 55%,
+    var(--c-pink)
+  );
 }
 .cover[data-tone='bright'] {
   background: linear-gradient(135deg, var(--chip-yellow), var(--chip-orange));

@@ -15,8 +15,9 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "noEmit": true,
+    "allowJs": true,
     "types": ["vite/client", "vite-plugin-pwa/client", "node"],
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src", "e2e", "scripts", "vite.config.ts", "playwright.config.ts"]
+  "include": ["api", "src", "e2e", "scripts", "vite.config.ts", "playwright.config.ts"]
 }

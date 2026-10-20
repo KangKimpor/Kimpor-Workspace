@@ -6,7 +6,7 @@ Oct 18, 2026 · @Kimpor
 
 Paste sections 1 to 16 into your coding agent (Claude Code, Cursor or similar) as one message, and tell it to stop for your review after each phase in section 15. Replace `[Kimpor Workspace]` with your app's name, and keep your logo SVG ready for Phase 0.
 
-Everything below is written to the agent in second person. Sections 9 to 11 are the design source of truth.
+Everything below is written to the agent in second person. The current visual source of truth is the Stitch export in `C:\Users\jpkim\OneDrive\SB Documents\stitch_kimpor_workspace_design_system`, especially `quiet_glass_workspace/DESIGN.md` and the updated desktop `code.html` files. Sections 9 to 11 remain the baseline tokens; Stitch takes precedence where its updated screens differ. See `docs/DECISIONS.md` and `docs/BUILD-STATUS.md` for reconciliation and current acceptance status.
 
 ## 1. Mission and success criteria
 

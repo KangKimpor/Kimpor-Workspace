@@ -1,0 +1,6 @@
+.env*
+docs/screenshots
+test-results
+playwright-report
+.git
+docs/verification

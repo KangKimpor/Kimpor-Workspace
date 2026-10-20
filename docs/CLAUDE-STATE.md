@@ -1,6 +1,6 @@
 # Claude state
 
-**Phase 0 complete (foundation).** Phase 1 not started.
+**Superseded by the Stitch UI continuation on October 19, 2026.** See [BUILD-STATUS.md](BUILD-STATUS.md) for current implementation, validation, and remaining phase acceptance. The original Phase 0 notes below are historical; they are not the current app status.
 
 Done: tokens, theming, glass system, motion hooks, responsive shell, `/design` specimen, PWA manifest, contrast tests (16), axe tests (Chromium + WebKit), screenshots in `docs/screenshots/phase-0/`.
 

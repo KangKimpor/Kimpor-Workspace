@@ -8,4 +8,10 @@ test-results/
 .env.*
 !.env.example
 *.log
-"test-results/`nplaywright-report/"  
+.vercel
+
+docs/screenshots/
+docs/verification/*trace.json
+docs/verification/*devtoolslog.json
+docs/verification/*.html
+docs/verification/*.json
