@@ -42,3 +42,11 @@ Keep transient Google failures separate from revoked credentials. Use ETags for 
 Recover conflicting page edits into a separate page before accepting the newer cloud version. Use isolated disposable accounts for live ownership/files/offline tests. Keep credentials, user screenshots and raw performance traces outside Git and deployments.
 
 Custom recurrence accepts daily, weekly, monthly and yearly RRULEs; subdaily frequencies are outside the day-based calendar's scope. In-app reminders work while open; background Web Push remains v1.1. Device appearance stays local, while calendar display preferences sync with the workspace profile. Increase desktop page drag handles to 24 px for WCAG target sizing.
+
+## D-14 Browser CI stability and failure evidence
+
+GitHub run 39388636258 passed 118 deterministic checks but timed out waiting for the account form in two WebKit viewport checks. One failure artifact still showed the lazy-route loading screen. All 15 repeated account-layout checks passed locally with the existing two-worker CI setting, so runner contention is a hypothesis rather than a confirmed application defect.
+
+Use one CI worker, following [Playwright's CI guidance](https://playwright.dev/docs/ci#workers), and retain failure traces so another failure includes network and rendering evidence. Keep assertions and retries unchanged. CI starts its own preview server; local runs may reuse an existing preview. A 20-minute browser-suite deadline leaves time for failure artifacts within the 25-minute job limit. Live QA tests retain their explicit trace exclusion. Reject increasing assertion timeouts without evidence of an application timing requirement.
+
+The local full-suite check still encountered one intermittent WebKit timeout inside `axe.runPartial`, despite prompt page and asset loading. The same audit passed three isolated repetitions. Keep this failure explicit in BUILD-STATUS rather than claiming that worker serialization fixes every timeout or adding retries to conceal it.

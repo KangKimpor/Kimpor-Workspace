@@ -1,8 +1,20 @@
 # Build status · October 20, 2026
 
+## Continuation verification · October 20, evening
+
+Fetched GitHub and continued locally from `origin/codex/finish-workspace` at `95bb324`; at the start of this continuation, `main` was at the foundation commit `0a9d067` and [PR #1](https://github.com/KangKimpor/Kimpor-Workspace/pull/1) was a draft. The attachment is historical context, not fresh authorization to publish, change repository visibility, or modify live accounts.
+
+The last remote [Workspace checks run](https://github.com/KangKimpor/Kimpor-Workspace/actions/runs/39388636258) failed: 118 passed, two WebKit account-layout checks timed out, and four opt-in live checks were skipped. The failure artifacts show delayed rendering, including the lazy-route loading screen. All 15 repeated account-layout checks pass locally with the original two-worker setting; the precise remote cause remains unconfirmed.
+
+Local CI configuration now uses one browser worker and a fresh preview server, retains failure traces, and gives the browser suite 20 minutes inside a 25-minute job. Assertions, retries, and application code are unchanged. This is CI hardening and diagnostic coverage, not proof that the remote failures are resolved.
+
+Current local validation: lint, frontend/API types, all 67 unit tests, production build, whitespace checks, and the 103.0 KiB initial JavaScript budget pass. The complete Chromium/WebKit run with the new CI configuration finished with **119 passed, one failed, four skipped**. All account-layout checks passed. WebKit's dark `/design` audit at 820×1180 timed out inside `axe.runPartial` after navigation and asset loading completed promptly; its trace is in `test-results/a11y-axe-design-820x1180-dark-webkit/trace.zip`. That unchanged audit then passed three isolated repetitions. A single worker does not eliminate this intermittent audit timeout, and the full suite is not declared green.
+
+After local verification, the user explicitly requested all updates be pushed to `main`, including the workspace branch and these CI changes. Remote CI results for that push remain pending. No manual deployment, live cloud mutation, new production performance measurement, or physical-device acceptance was performed in this continuation. Next: investigate the retained WebKit audit trace and verify these changes on Ubuntu CI; mobile performance and the remaining device acceptance checks below stay open.
+
 ## Release verification · October 20, afternoon
 
-Production: https://kimpor-workspace.vercel.app, deployment dpl_GZ7ZvWjHh5sJAeNEVHf2PfLnQowV (READY), source 0f78928. kw-google version 3 is ACTIVE and all four database migrations are applied. Both Google accounts are connected (12 calendars total); signed-in writes reach Saved to cloud. The repository is private.
+Production: https://kimpor-workspace.vercel.app, deployment dpl_GZ7ZvWjHh5sJAeNEVHf2PfLnQowV (READY), source 0f78928. kw-google version 3 is ACTIVE and all four database migrations are applied. Both Google accounts are connected (12 calendars total); signed-in writes reach Saved to cloud. These service observations are from the previous session. GitHub reports the repository as public on October 20; the earlier private-repository statement was incorrect.
 
 Live Google acceptance completed with an attendee-free disposable four-occurrence series: create, This event, All events, This and following with finite counts, Google color readback, reverse sync from Google, and deletion. All disposable Google events were removed and an empty provider search confirmed cleanup. Existing personal events were preserved. Four isolated live Supabase browser checks passed for ownership, private files and two-client offline conflict recovery; both temporary accounts and their external credential fixture were then deleted.
 
