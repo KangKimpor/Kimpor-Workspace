@@ -1,6 +1,6 @@
 import { CalendarDays, Flag, Pencil } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { useProjects, useWorkspace } from '@/data'
+import { dateKey, useProjects, useWorkspace } from '@/data'
 import type { Task } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
 import { Badge, formatDate, statusColor } from './WorkspaceUI'
@@ -38,6 +38,8 @@ export function TaskRow({
   return (
     <div
       className={`task-row ${compact ? 'task-row-card flat-card' : ''}`}
+      data-priority={task.priority}
+      data-overdue={task.status !== 'Done' && !!task.due && task.due < dateKey()}
       data-done={task.status === 'Done'}
     >
       <label className="checkbox-target">
@@ -94,9 +96,7 @@ export function TaskRow({
             )}
             <span className="task-title">{task.title}</span>
             {!compact && (
-              <span className="task-project small muted">
-                {project?.name ?? 'Personal'}
-              </span>
+              <span className="task-project"><Badge color={project?.color ?? 'gray'}>{project?.name ?? 'Personal'}</Badge></span>
             )}
           </button>
         )}

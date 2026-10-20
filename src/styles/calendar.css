@@ -371,3 +371,23 @@
 .positioned-task button { border:0;background:transparent;color:var(--text-primary);font-size:var(--fs-caption);text-align:left;cursor:pointer; }
 
 .time-slot-row { display: contents; }
+
+.calendar-view-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.calendar-layout.calendar-layout-wide { grid-template-columns: minmax(0, 1fr); }
+.calendar-picker { width: 288px; max-width: 100%; padding: 4px; }
+.calendar-picker-trigger .pill { height: 20px; font-size: 10px; }
+.calendar-picker-search { width: 100%; min-height: 36px; margin-block: 8px; padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius-control); background: var(--bg-raised); color: var(--text-primary); font-size: var(--fs-small); }
+.calendar-picker-list { max-height: 320px; overflow: auto; }
+.calendar-picker-label { margin: 12px 8px 4px; font-size: 10px; font-weight: 600; color: var(--text-secondary); overflow-wrap: anywhere; }
+.calendar-picker .calendar-layer { padding: 6px 8px; gap: 10px; min-height: 36px; border-radius: var(--radius-control); cursor: pointer; }
+.calendar-picker .calendar-layer:hover { background: var(--bg-hover); }
+.calendar-picker .calendar-layer span { min-width: 0; overflow-wrap: anywhere; }
+.calendar-picker input[type='checkbox'] { accent-color: var(--tint, var(--accent-fill)); }
+.calendar-picker-footer { display: grid; gap: 12px; padding: 12px 8px 4px; margin-top: 12px; border-top: 1px solid var(--border-subtle); }
+.calendar-picker-footer > label { display: grid; gap: 6px; }
+@media (max-width: 639px) {
+  .calendar-toolbar { gap: 12px; }
+  .calendar-view-controls { width: 100%; gap: 8px; justify-content: space-between; }
+  .calendar-view-controls .view-tab { padding-inline: 8px; }
+}
+@media (pointer: coarse) { .calendar-picker .calendar-layer { min-height: 44px; } }

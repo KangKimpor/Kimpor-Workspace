@@ -1,3 +1,4 @@
+import { GlassSelect } from '@/components/glass/GlassSelect'
 import * as Dialog from '@radix-ui/react-dialog'
 import {
   ArrowRight,
@@ -68,7 +69,7 @@ export function SearchResults({
       title: p.name,
       body: p.description,
       type: 'Project',
-      to: `/projects/${p.id}/overview`,
+      to: `/projects/${p.id}/table`,
       icon: FileText,
     })),
     ...tasks
@@ -352,7 +353,7 @@ function TaskInspector() {
               <div className="property-list">
                 <label>
                   Status
-                  <select
+                  <GlassSelect
                     aria-label="Status"
                     value={task.status}
                     onChange={(e) =>
@@ -364,11 +365,11 @@ function TaskInspector() {
                     {statuses.map((s) => (
                       <option key={s}>{s}</option>
                     ))}
-                  </select>
+                  </GlassSelect>
                 </label>
                 <label>
                   Priority
-                  <select
+                  <GlassSelect
                     aria-label="Priority"
                     value={task.priority}
                     onChange={(e) =>
@@ -380,7 +381,7 @@ function TaskInspector() {
                     {priorities.map((p) => (
                       <option key={p}>{p}</option>
                     ))}
-                  </select>
+                  </GlassSelect>
                 </label>
                 <label>
                   Due date
@@ -395,7 +396,7 @@ function TaskInspector() {
                 </label>
                 <label>
                   Project
-                  <select
+                  <GlassSelect
                     aria-label="Project"
                     value={task.projectId}
                     onChange={(e) =>
@@ -407,7 +408,7 @@ function TaskInspector() {
                         {p.name}
                       </option>
                     ))}
-                  </select>
+                  </GlassSelect>
                 </label>
                 <label>
                   Start date
@@ -461,7 +462,7 @@ function TaskInspector() {
                 </label>
                 <label>
                   Parent task
-                  <select
+                  <GlassSelect
                     value={task.parentId || ''}
                     onChange={(e) =>
                       updateTask(task.id, { parentId: e.target.value || null })
@@ -480,11 +481,11 @@ function TaskInspector() {
                           {parent.title}
                         </option>
                       ))}
-                  </select>
+                  </GlassSelect>
                 </label>
                 <label>
                   Repeat
-                  <select
+                  <GlassSelect
                     value={task.recurrence || ''}
                     onChange={(e) =>
                       updateTask(task.id, {
@@ -497,7 +498,7 @@ function TaskInspector() {
                     <option value="FREQ=DAILY">Daily</option>
                     <option value="FREQ=WEEKLY">Weekly</option>
                     <option value="FREQ=MONTHLY">Monthly</option>
-                  </select>
+                  </GlassSelect>
                   {task.recurrence && !task.due && (
                     <span className="small muted">
                       Set a due date to start repeating.
@@ -908,9 +909,9 @@ function EventEditor() {
                 }}
               >
                 {recurring && (
-                  <label>
+                  <label htmlFor="event-scope-control">
                     Apply changes to
-                    <select
+                    <GlassSelect id="event-scope"
                       aria-label="Apply changes to"
                       value={scope}
                       onChange={(e) =>
@@ -920,7 +921,7 @@ function EventEditor() {
                       <option value="this">This event</option>
                       <option value="following">This and following</option>
                       <option value="all">All events</option>
-                    </select>
+                    </GlassSelect>
                   </label>
                 )}
                 <label>
@@ -971,9 +972,9 @@ function EventEditor() {
                     />
                   </label>
                 </div>
-                <label>
+                <label htmlFor="event-calendar-control">
                   Calendar
-                  <select
+                  <GlassSelect id="event-calendar"
                     value={draft.calendarId || draft.calendar}
                     disabled={!!draft.providerEventId}
                     onChange={(e) => {
@@ -1019,7 +1020,7 @@ function EventEditor() {
                         </optgroup>
                       ),
                     )}
-                  </select>
+                  </GlassSelect>
                 </label>
                 <label className="inline">
                   <input
@@ -1070,7 +1071,7 @@ function EventEditor() {
                 </label>
                 <label>
                   Repeat
-                  <select
+                  <GlassSelect
                     value={
                       draft.recurrence &&
                       ![
@@ -1108,7 +1109,7 @@ function EventEditor() {
                     <option value="FREQ=MONTHLY">Monthly</option>
                     <option value="FREQ=YEARLY">Yearly</option>
                     <option value="custom">Custom RRULE</option>
-                  </select>
+                  </GlassSelect>
                 </label>
                 {draft.recurrence &&
                   ![
@@ -1133,7 +1134,7 @@ function EventEditor() {
                   )}
                 <label>
                   Reminder
-                  <select
+                  <GlassSelect
                     value={
                       draft.googleReminders?.useDefault
                         ? 'default'
@@ -1160,7 +1161,7 @@ function EventEditor() {
                     <option value="10">10 minutes before</option>
                     <option value="30">30 minutes before</option>
                     <option value="60">1 hour before</option>
-                  </select>
+                  </GlassSelect>
                 </label>
                 <label>
                   Guests
@@ -1207,9 +1208,9 @@ function EventEditor() {
                       Join Google Meet ↗
                     </a>
                   )}
-                <label>
+                <label htmlFor="event-availability-control">
                   Availability
-                  <select
+                  <GlassSelect id="event-availability"
                     value={draft.busy === false ? 'free' : 'busy'}
                     onChange={(e) =>
                       setDraft({ ...draft, busy: e.target.value === 'busy' })
@@ -1217,11 +1218,11 @@ function EventEditor() {
                   >
                     <option value="busy">Busy</option>
                     <option value="free">Free</option>
-                  </select>
+                  </GlassSelect>
                 </label>
-                <label>
+                <label htmlFor="event-visibility-control">
                   Visibility
-                  <select
+                  <GlassSelect id="event-visibility"
                     value={draft.visibility || 'default'}
                     onChange={(e) =>
                       setDraft({
@@ -1234,12 +1235,12 @@ function EventEditor() {
                     <option value="default">Calendar default</option>
                     <option value="private">Private</option>
                     <option value="public">Public</option>
-                  </select>
+                  </GlassSelect>
                 </label>
                 <label>
                   Event color
                   {draft.calendarId ? (
-                    <select
+                    <GlassSelect
                       value={draft.googleColorId || ''}
                       onChange={(e) =>
                         setDraft({
@@ -1261,9 +1262,9 @@ function EventEditor() {
                           {c.name}
                         </option>
                       ))}
-                    </select>
+                    </GlassSelect>
                   ) : (
-                    <select
+                    <GlassSelect
                       value={draft.color}
                       onChange={(e) =>
                         setDraft({
@@ -1285,7 +1286,7 @@ function EventEditor() {
                       ].map((c) => (
                         <option key={c}>{c}</option>
                       ))}
-                    </select>
+                    </GlassSelect>
                   )}
                 </label>
                 <label>

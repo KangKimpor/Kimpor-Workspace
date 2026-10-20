@@ -1,3 +1,6 @@
+import { GlassSelect } from '@/components/glass/GlassSelect'
+import { GlassPopover } from '@/components/glass/GlassPopover'
+import { Columns3 } from 'lucide-react'
 import { useState, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { priorities, statuses, useWorkspace } from '@/data'
@@ -56,9 +59,9 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
       }))
   return (
     <>
-      <details className="settings-section">
-        <summary>Table columns</summary>
-        <div className="filter-controls">
+      <div className="table-options">
+      <GlassPopover label="Table columns" trigger={<button className="btn-secondary"><Columns3 size={14} />Table columns</button>}>
+        <div className="column-choices">
           {columns.map((column) => (
             <label className="inline" key={column}>
               <input
@@ -76,7 +79,8 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
             </label>
           ))}
         </div>
-      </details>
+      </GlassPopover>
+      </div>
       <div
         className="table-scroll"
         ref={parent}
@@ -199,7 +203,7 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
                             }
                           />
                         ) : (
-                          <select
+                          <GlassSelect
                             aria-label={`${names[column]} for ${task.title}`}
                             value={task[column]}
                             onChange={(e) =>
@@ -211,7 +215,7 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
                                 <option key={value}>{value}</option>
                               ),
                             )}
-                          </select>
+                          </GlassSelect>
                         )}
                       </td>
                     ))}

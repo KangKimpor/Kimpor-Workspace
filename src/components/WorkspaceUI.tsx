@@ -119,7 +119,7 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
   return (
     <Link
       className="project-card flat-card"
-      to={`/projects/${project.id}/overview`}
+      to={`/projects/${project.id}/table`}
       style={tint(project.color)}
     >
       <div className="row-between">

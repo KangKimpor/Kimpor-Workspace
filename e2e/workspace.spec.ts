@@ -40,7 +40,8 @@ test('task inspector edits status and subtasks, completion can be undone', async
   await page.goto('/projects/website/board')
   await page.getByRole('button', { name: /Finalize token contrasts/ }).click()
   const dialog = page.getByRole('dialog')
-  await dialog.getByLabel('Status', { exact: true }).selectOption('In review')
+  await dialog.getByRole('combobox', { name: 'Status', exact: true }).click()
+  await page.getByRole('option', { name: 'In review', exact: true }).click()
   await dialog
     .getByRole('textbox', { name: 'New subtask' })
     .fill('Verify on Safari')
@@ -48,15 +49,15 @@ test('task inspector edits status and subtasks, completion can be undone', async
   await expect(dialog.getByText('Verify on Safari')).toBeVisible()
   await dialog.getByRole('checkbox', { name: 'Mark task complete' }).check()
   await dialog.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(dialog.getByLabel('Status', { exact: true })).toHaveValue(
+  await expect(dialog.getByRole('combobox', { name: 'Status', exact: true })).toHaveText(
     'In review',
   )
   await dialog.getByRole('button', { name: 'Close task details' }).click()
   await page.reload()
   await page.getByRole('button', { name: /Finalize token contrasts/ }).click()
   await expect(
-    page.getByRole('dialog').getByLabel('Status', { exact: true }),
-  ).toHaveValue('In review')
+    page.getByRole('dialog').getByRole('combobox', { name: 'Status', exact: true }),
+  ).toHaveText('In review')
 })
 
 test('event validation, save, reload and delete', async ({ page }) => {
@@ -180,20 +181,21 @@ test('sidebar pages can be nested with a drag and restored with Undo', async ({
 
 test('saved task filters survive a reload', async ({ page }) => {
   await page.goto('/tasks')
-  await page
-    .getByLabel('Filter by priority', { exact: true })
-    .selectOption('High')
+  await page.getByRole('combobox', { name: 'Filter by priority', exact: true }).click()
+  await page.getByRole('option', { name: 'High', exact: true }).click()
+  await page.getByRole('button', { name: 'Saved views', exact: true }).click()
   await page
     .getByLabel('Name for saved view', { exact: true })
     .fill('High priority work')
   await page.getByRole('button', { name: 'Save view', exact: true }).click()
   await page.reload()
-  await page
-    .getByLabel('Saved task view', { exact: true })
-    .selectOption({ label: 'High priority work' })
+  await page.getByRole('button', { name: 'Saved views', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Saved task view', exact: true }).click()
+  await page.getByRole('option', { name: 'High priority work', exact: true }).click()
+  await page.keyboard.press('Escape')
   await expect(
-    page.getByLabel('Filter by priority', { exact: true }),
-  ).toHaveValue('High')
+    page.getByRole('combobox', { name: 'Filter by priority', exact: true }),
+  ).toHaveText('High')
 })
 
 test('project creation and editable, hideable, resizable task table', async ({
@@ -221,6 +223,7 @@ test('project creation and editable, hideable, resizable task table', async ({
   await expect(
     page.getByRole('columnheader', { name: 'Priority', exact: true }),
   ).toHaveCount(0)
+  await page.keyboard.press('Escape')
   const handle = page.getByRole('separator', {
     name: 'Resize Task name column',
     exact: true,

@@ -42,7 +42,8 @@ test('a later recurring occurrence opens its own date and supports This and foll
     '2026-10-21',
   )
   await dialog.getByLabel('Title', { exact: true }).fill('Changed following')
-  await dialog.getByLabel('Apply changes to').selectOption('following')
+  await dialog.getByRole('combobox', { name: 'Apply changes to' }).click()
+  await page.getByRole('option', { name: 'This and following', exact: true }).click()
   await dialog.getByRole('button', { name: 'Save event', exact: true }).click()
   await expect(
     page.getByRole('button', { name: /Recurring review/ }),
@@ -77,7 +78,8 @@ test('This event changes one occurrence and All events keeps the series anchor',
     .last()
     .click()
   dialog = page.getByRole('dialog')
-  await dialog.getByLabel('Apply changes to').selectOption('all')
+  await dialog.getByRole('combobox', { name: 'Apply changes to' }).click()
+  await page.getByRole('option', { name: 'All events', exact: true }).click()
   await dialog.getByLabel('Title', { exact: true }).fill('Whole series')
   await dialog.getByRole('button', { name: 'Save event', exact: true }).click()
   await expect(page.getByRole('button', { name: /Whole series/ })).toHaveCount(
@@ -119,8 +121,8 @@ test('15-minute grid navigation opens the selected time and event keyboard moves
   await review.focus()
   await page.keyboard.press('Alt+ArrowRight')
   await expect(
-    page.getByRole('dialog').getByLabel('Apply changes to'),
-  ).toHaveValue('this')
+    page.getByRole('dialog').getByRole('combobox', { name: 'Apply changes to' }),
+  ).toHaveText('This event')
   await expect(
     page.getByRole('dialog').getByLabel('Date', { exact: true }),
   ).toHaveValue('2026-10-20')
@@ -158,7 +160,7 @@ test('dragging across days previews an occurrence edit instead of silently chang
   await expect(dialog.getByLabel('Date', { exact: true })).toHaveValue(
     '2026-10-20',
   )
-  await expect(dialog.getByLabel('Apply changes to')).toHaveValue('this')
+  await expect(dialog.getByRole('combobox', { name: 'Apply changes to' })).toHaveText('This event')
 })
 test('touch creation waits for the long press and cancels when the finger scrolls', async ({
   page,

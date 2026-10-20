@@ -1,5 +1,7 @@
-import { CheckCircle2, Plus, Search } from 'lucide-react'
+import { GlassSelect } from '@/components/glass/GlassSelect'
+import { AlertTriangle, CalendarDays, CheckCircle2, Clock3, Folder, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
+import { GlassPopover } from '@/components/glass/GlassPopover'
 import { TaskList } from '@/components/TaskList'
 import { dateKey, useProjects, useWorkspace } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
@@ -14,11 +16,15 @@ export default function Tasks() {
   const [label, setLabel] = useState('all'),
     [viewName, setViewName] = useState(''),
     [selectedView, setSelectedView] = useState('')
+  const [scope, setScope] = useState('all')
+  const [sort, setSort] = useState('priority')
+  const activeTasks = tasks.filter((t) => !t.deletedAt)
   const labels = [...new Set(tasks.flatMap((task) => task.labels || []))].sort()
   const today = dateKey()
   const filtered = tasks.filter(
     (t) =>
       !t.deletedAt &&
+      (scope === 'all' || (scope === 'personal' ? !projects.some((p) => p.id === t.projectId) : projects.some((p) => p.id === t.projectId))) &&
       (project === 'all' || t.projectId === project) &&
       (priority === 'all' || t.priority === priority) &&
       (label === 'all' || t.labels?.includes(label)) &&
@@ -50,9 +56,8 @@ export default function Tasks() {
     <div className="workspace-surface tasks-page">
       <header className="page-heading">
         <div>
-          <span className="eyebrow">A LITTLE FOCUS GOES A LONG WAY</span>
           <h1 className="t-h1">My tasks</h1>
-          <p className="muted">Everything on your plate, in one quiet place.</p>
+          <p className="muted">Your personal agenda across {projects.length} projects. One place to focus.</p>
         </div>
         <button
           className="btn-accent"
@@ -60,7 +65,7 @@ export default function Tasks() {
             openTask(
               addTask({
                 title: 'New task',
-                projectId: project === 'all' ? 'website' : project,
+                projectId: scope === 'personal' ? '' : project === 'all' ? projects[0]?.id || '' : project,
               }),
             )
           }
@@ -69,15 +74,69 @@ export default function Tasks() {
           New task
         </button>
       </header>
-      <div className="view-toolbar">
+      <div className="tasks-topline">
+        <div className="view-tabs task-scope" role="group" aria-label="Task scope">
+          {[['all', 'All'], ['projects', 'Project tasks'], ['personal', 'Personal']].map(([key, name]) => (
+            <button key={key} className="view-tab" aria-pressed={scope === key} onClick={() => setScope(key!)}>{name}<span className="muted">{activeTasks.filter((t) => key === 'all' || (key === 'personal' ? !projects.some((p) => p.id === t.projectId) : projects.some((p) => p.id === t.projectId))).length}</span></button>
+          ))}
+        </div>
+        <label className="search-field">
+          <Search size={15} />
+          <input
+            placeholder="Search your tasks…"
+            aria-label="Search your tasks"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+      </div>
+      <div className="tasks-filterline">
+        <div className="filter-controls">
+          <GlassSelect
+            aria-label="Filter by project"
+            value={project}
+            onChange={(e) => setProject(e.target.value)}
+          >
+            <option value="all">All projects</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </GlassSelect>
+          <GlassSelect
+            aria-label="Filter by priority"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
+            <option value="all">All priorities</option>
+            {['Low', 'Medium', 'High', 'Urgent'].map((p) => (
+              <option key={p}>{p}</option>
+            ))}
+          </GlassSelect>
+          <GlassSelect
+            aria-label="Filter by label"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          >
+            <option value="all">All labels</option>
+            {labels.map((label) => (
+              <option key={label}>{label}</option>
+            ))}
+          </GlassSelect>
+        </div>
+        <div className="task-sort"><span className="small muted">Sort</span><GlassSelect aria-label="Sort tasks" value={sort} onChange={(e) => setSort(e.target.value)}><option value="priority">Priority</option><option value="date">Due date</option><option value="title">Task name</option></GlassSelect></div>
+        <GlassPopover label="Saved task views" trigger={<button className="btn-secondary"><SlidersHorizontal size={14} />Saved views</button>}>
+      <div className="task-view-settings">
         <label className="inline small">
           Saved view
-          <select
+          <GlassSelect
             aria-label="Saved task view"
             value={selectedView}
             onChange={(e) => {
               const view = taskViews.find((view) => view.id === e.target.value)
               setSelectedView(e.target.value)
+              setScope('all')
               setProject(view?.project || 'all')
               setPriority(view?.priority || 'all')
               setLabel(view?.label || 'all')
@@ -90,7 +149,7 @@ export default function Tasks() {
                 {view.name}
               </option>
             ))}
-          </select>
+          </GlassSelect>
         </label>
         <form
           className="filter-controls"
@@ -135,70 +194,22 @@ export default function Tasks() {
           )}
         </form>
       </div>
-      <div className="view-toolbar">
-        <div className="filter-controls">
-          <select
-            aria-label="Filter by project"
-            value={project}
-            onChange={(e) => setProject(e.target.value)}
-          >
-            <option value="all">All projects</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label="Filter by priority"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-          >
-            <option value="all">All priorities</option>
-            {['Low', 'Medium', 'High', 'Urgent'].map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </select>
-          <select
-            aria-label="Filter by label"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-          >
-            <option value="all">All labels</option>
-            {labels.map((label) => (
-              <option key={label}>{label}</option>
-            ))}
-          </select>
-        </div>
-        <label className="search-field">
-          <Search size={15} />
-          <input
-            placeholder="Search your tasks…"
-            aria-label="Search your tasks"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="task-summary muted small">
-        <CheckCircle2 size={15} />
-        {tasks.filter((t) => !t.deletedAt && t.status === 'Done').length}{' '}
-        completed ·{' '}
-        {tasks.filter((t) => !t.deletedAt && t.status !== 'Done').length} to go
+        </GlassPopover>
       </div>
       {groups.map((group) => (
         <details
-          open
-          className="task-group"
+          open={group.name !== 'Completed'}
+          className={`task-group agenda-group ${group.name === 'Completed' ? 'agenda-completed' : ''}`}
           key={group.name}
           data-tone={group.tone}
         >
           <summary className="section-title">
+            {group.tone === 'danger' ? <AlertTriangle size={16} /> : group.name.startsWith('Today') ? <CalendarDays size={16} /> : group.name === 'Completed' ? <CheckCircle2 size={16} /> : group.name === 'No date' ? <Folder size={16} /> : <Clock3 size={16} />}
             {group.name}
             <span className="pill">{group.tasks.length}</span>
           </summary>
           <div className="task-group-body">
-            <TaskList tasks={group.tasks} />
+            <TaskList tasks={[...group.tasks].sort((a, b) => sort === 'title' ? a.title.localeCompare(b.title) : sort === 'date' ? a.due.localeCompare(b.due) : ['Urgent', 'High', 'Medium', 'Low'].indexOf(a.priority) - ['Urgent', 'High', 'Medium', 'Low'].indexOf(b.priority))} />
             {!group.tasks.length && (
               <p className="quiet-empty small">
                 Nothing here. You’re all caught up.
@@ -207,6 +218,12 @@ export default function Tasks() {
           </div>
         </details>
       ))}
+      <div className="task-summary muted small">
+        <CheckCircle2 size={15} />
+        {tasks.filter((t) => !t.deletedAt && t.status === 'Done').length}{' '}
+        completed ·{' '}
+        {tasks.filter((t) => !t.deletedAt && t.status !== 'Done').length} to go
+      </div>
     </div>
   )
 }

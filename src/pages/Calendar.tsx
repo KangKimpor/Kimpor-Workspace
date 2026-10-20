@@ -1,10 +1,12 @@
+import { GlassSelect } from '@/components/glass/GlassSelect'
 import { displayTime } from '@/calendar/time'
 import { TZDate } from '@date-fns/tz'
 import { zonedDate } from '@/calendar/time'
 import { useCalendars, defaultCalendar } from '@/calendar/store'
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { GlassPopover } from '@/components/glass/GlassPopover'
 import { Badge, tint } from '@/components/WorkspaceUI'
 import { completeTask } from '@/components/TaskRow'
 import { dateKey, useWorkspace } from '@/data'
@@ -503,11 +505,13 @@ export default function Calendar() {
       addDays(weekStart(monthFirst, preferences?.weekStart), i),
     )
   const calendarPrefs = useCalendars((s) => s.calendars)
+  const accounts = useCalendars((s) => s.accounts)
+  const [calendarQuery, setCalendarQuery] = useState('')
   const calendarError = useCalendars((s) => s.error)
   const events = expandEvents(
     stored.filter(
       (e) =>
-        !hidden.includes(e.calendar) &&
+        (e.calendarId || !hidden.includes(e.calendar)) &&
         (!e.calendarId ||
           calendarPrefs.find((c) => c.id === e.calendarId)?.visible !== false),
     ),
@@ -520,7 +524,7 @@ export default function Calendar() {
         'Singbuild',
         'Work',
         'Personal',
-        ...stored.filter((e) => !e.deletedAt).map((e) => e.calendar),
+        ...stored.filter((e) => !e.deletedAt && !e.calendarId).map((e) => e.calendar),
       ]),
     ]
   const days = Array.from({ length: view === 'day' ? 1 : 7 }, (_, i) =>
@@ -597,7 +601,6 @@ export default function Calendar() {
     <div className="workspace-surface calendar-page">
       <header className="page-heading">
         <div>
-          <span className="eyebrow">MAKE ROOM FOR WHAT MATTERS</span>
           <h1 className="t-h1">Calendar</h1>
           <p className="muted">Your time, thoughtfully put together.</p>
         </div>
@@ -647,50 +650,22 @@ export default function Calendar() {
             })}
           </h2>
         </div>
-        <nav className="view-tabs" aria-label="Calendar views">
-          {['day', 'week', 'month', 'agenda'].map((v) => (
-            <Link
-              className="view-tab"
-              aria-current={view === v ? 'page' : undefined}
-              to={`/calendar/${v}/${date}`}
-              key={v}
-            >
-              {v[0]?.toUpperCase()}
-              {v.slice(1)}
-            </Link>
-          ))}
-        </nav>
-      </div>
-      <div className="calendar-layout">
-        <aside className="calendar-sidebar">
-          <div className="mini-month">
-            <strong>
-              {anchor.toLocaleDateString('en-US', { month: 'long' })}
-            </strong>
-            <div className="mini-grid">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                <span className="muted" key={i}>
-                  {d}
-                </span>
-              ))}
-              {monthDays.map((d) => (
-                <button
-                  key={dateKey(d)}
-                  data-today={dateKey(d) === dateKey()}
-                  aria-label={d.toDateString()}
-                  onClick={() => navigate(`/calendar/day/${dateKey(d)}`)}
-                >
-                  {d.getDate()}
-                </button>
-              ))}
-            </div>
-          </div>
-          <h3 className="eyebrow">MY CALENDARS</h3>
-          {calendars.map((name, i) => (
+        <div className="calendar-view-controls">
+        <GlassPopover label="Select calendars" trigger={<button className="btn-secondary calendar-picker-trigger"><CalendarDays size={15} />Calendars<span className="pill">{calendars.filter((name) => !hidden.includes(name)).length + calendarPrefs.filter((c) => c.visible !== false).length}</span><ChevronDown size={13} /></button>}>
+          <div className="calendar-picker">
+            <div className="row-between"><strong className="small">Visible calendars</strong><button className="btn-text" onClick={() => {
+              setHidden([])
+              setShowTasks(true)
+              useCalendars.setState({ calendars: calendarPrefs.map((c) => ({ ...c, visible: true })) })
+            }}>Show all</button></div>
+            <input className="calendar-picker-search" aria-label="Search calendars" placeholder="Find a calendar…" value={calendarQuery} onChange={(e) => setCalendarQuery(e.target.value)} />
+            <div className="calendar-picker-list">
+<p className="calendar-picker-label">Workspace</p>
+          {calendars.filter((name) => name.toLowerCase().includes(calendarQuery.toLowerCase())).map((name) => (
             <label
               className="calendar-layer"
               key={name}
-              style={tint((['orange', 'purple', 'blue'] as const)[i % 3]!)}
+              style={tint((['orange', 'purple', 'blue'] as const)[calendars.indexOf(name) % 3]!)}
             >
               <input
                 type="checkbox"
@@ -714,9 +689,17 @@ export default function Calendar() {
             />
             Tasks
           </label>
+
+              {accounts.map((account) => <div key={account.id}>
+                <p className="calendar-picker-label">{account.email}</p>
+                {calendarPrefs.filter((c) => c.accountId === account.id && c.name.toLowerCase().includes(calendarQuery.toLowerCase())).map((calendar) => <label className="calendar-layer" key={calendar.id} style={tint(calendar.color)}><input type="checkbox" checked={calendar.visible !== false} onChange={() => useCalendars.setState({ calendars: calendarPrefs.map((c) => c.id === calendar.id ? { ...c, visible: c.visible === false } : c) })} /><span>{calendar.name}</span></label>)}
+              </div>)}
+              {calendarQuery && ![...calendars, ...calendarPrefs.map((c) => c.name)].some((name) => name.toLowerCase().includes(calendarQuery.toLowerCase())) && <p className="quiet-empty small">No calendars found.</p>}
+            </div>
+            <div className="calendar-picker-footer">
           <label className="small muted">
             Second time zone
-            <select
+            <GlassSelect
               aria-label="Second time zone"
               value={secondZone}
               onChange={(e) => setSecondZone(e.target.value)}
@@ -731,12 +714,31 @@ export default function Calendar() {
               ].map((z) => (
                 <option key={z}>{z}</option>
               ))}
-            </select>
+            </GlassSelect>
           </label>
           <Link className="text-link small" to="/settings/accounts">
             Calendar accounts
           </Link>
-        </aside>
+            </div>
+          </div>
+        </GlassPopover>
+        <nav className="view-tabs" aria-label="Calendar views">
+          {['day', 'week', 'month', 'agenda'].map((v) => (
+            <Link
+              className="view-tab"
+              aria-current={view === v ? 'page' : undefined}
+              to={`/calendar/${v}/${date}`}
+              key={v}
+            >
+              {v[0]?.toUpperCase()}
+              {v.slice(1)}
+            </Link>
+          ))}
+        </nav>
+        </div>
+      </div>
+      <div className="calendar-layout calendar-layout-wide">
+
         <div
           className="calendar-content"
           onTouchStart={(e) => {

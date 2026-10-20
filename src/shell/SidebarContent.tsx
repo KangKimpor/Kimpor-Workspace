@@ -142,7 +142,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <ul className="nav-list">
             {projects.map((p) => (
               <li key={p.id}>
-                <NavLink to={`/projects/${p.id}/overview`} className="nav-item">
+                <NavLink to={`/projects/${p.id}/table`} className="nav-item">
                   <span className="nav-icon">
                     <Tile name={p.id} color={p.color} />
                   </span>
