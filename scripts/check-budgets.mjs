@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { gzipSync } from 'node:zlib'
+import { createHash } from 'node:crypto'
 const manifest = JSON.parse(await readFile('dist/.vite/manifest.json', 'utf8'))
 const files = new Set()
 function collect(key) {
@@ -19,3 +20,9 @@ console.log(
   `Initial app JavaScript: ${(bytes / 1024).toFixed(1)} KiB gzip (limit 200 KiB).`,
 )
 assert(bytes < 200 * 1024, 'The app shell exceeds its JavaScript budget')
+const html = await readFile('dist/index.html', 'utf8')
+const bootstrap = html.match(/<script id="theme-bootstrap">([\s\S]*?)<\/script>/)?.[1]
+assert(bootstrap, 'Missing pre-paint theme bootstrap')
+const hash = createHash('sha256').update(bootstrap).digest('base64')
+const config = await readFile('vercel.json', 'utf8')
+assert(config.includes(`sha256-${hash}`), 'Theme bootstrap does not match its CSP hash')

@@ -8,12 +8,23 @@ test.use({
 test('phone sidebar opens on the first tap and closes after navigation', async ({
   page,
 }) => {
+  let loads = 0
+  page.on('framenavigated', (frame) => { if (frame === page.mainFrame()) loads++ })
+  await page.route('**/assets/Overlays-*.js', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    await route.continue()
+  })
   await page.goto('/')
+  const tabs = await page.getByTestId('tabbar').elementHandle()
   const button = page.getByRole('button', { name: 'Open sidebar', exact: true })
   await expect(button).toBeVisible()
   await button.tap()
+  await expect(page.getByTestId('tabbar')).toBeVisible()
   const drawer = page.getByRole('dialog', { name: 'Sidebar', exact: true })
   await expect(drawer).toBeVisible()
+  await expect(drawer).toHaveCSS('transition-property', 'none')
+  expect(await tabs!.evaluate((element) => element.isConnected)).toBe(true)
+  expect(loads).toBe(1)
   await drawer.getByRole('link', { name: 'My tasks', exact: true }).tap()
   await expect(page).toHaveURL(/\/tasks$/)
   await expect(drawer).not.toBeVisible()

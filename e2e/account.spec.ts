@@ -1,5 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+// Auth responses are mocked; service workers must not fetch around those routes.
+test.use({ serviceWorkers: 'block' })
 const cors = {
   'access-control-allow-origin': 'http://localhost:4173',
   'access-control-allow-methods': 'GET, POST, OPTIONS',

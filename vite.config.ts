@@ -32,7 +32,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['brand/favicon.svg', 'brand/apple-touch-icon.png'],
       manifest: {
         name: 'Kimpor Workspace',

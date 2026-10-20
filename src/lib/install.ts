@@ -6,9 +6,11 @@ interface InstallPrompt extends Event {
 }
 export const useInstall = create<{
   prompt: InstallPrompt | null
+  update: (() => Promise<void>) | null
   installed: boolean
 }>(() => ({
   prompt: null,
+  update: null,
   installed: matchMedia('(display-mode: standalone)').matches,
 }))
 

@@ -9,6 +9,7 @@ import {
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Ambient } from '@/components/glass/Ambient'
 import { useGlass, watchFrameTime } from '@/lib/glass'
+import { UpdateNotice } from './UpdateNotice'
 import { watchSystemTheme } from '@/lib/theme'
 const BottomSheet = lazy(() =>
   import('./Overlays').then((module) => ({ default: module.BottomSheet })),
@@ -150,6 +151,8 @@ export function AppShell() {
         </main>
       </div>
 
+      {bp === 'compact' ? <TabBar /> : null}
+      <UpdateNotice />
       <Suspense
         fallback={
           <span className="sr-only" role="status">
@@ -173,7 +176,6 @@ export function AppShell() {
 
         {bp === 'compact' ? (
           <>
-            <TabBar />
             {overlaysReady && (
               <BottomSheet
                 open={shell.sheet !== null}

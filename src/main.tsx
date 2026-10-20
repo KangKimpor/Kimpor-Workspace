@@ -5,12 +5,17 @@ import { registerSW } from 'virtual:pwa-register'
 import { App } from './App'
 import { syncGlassToDocument } from './lib/glass'
 import './styles/index.css'
-import './lib/install'
+import { useInstall } from './lib/install'
 import { hasStoredSession } from './lib/supabase'
 import { useWorkspace } from './data'
 
 syncGlassToDocument()
-registerSW({ immediate: true })
+const updateSW = registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    useInstall.setState({ update: () => updateSW(true) })
+  },
+})
 
 const render = () =>
   createRoot(document.getElementById('root')!).render(
