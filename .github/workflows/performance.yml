@@ -39,7 +39,7 @@ jobs:
           exit 1
       - name: Measure deployed guest workspace
         run: |
-          corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path=lighthouse-mobile.json --quiet
+          corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --save-assets --additional-trace-categories=disabled-by-default-v8.cpu_profiler --output=json --output-path=lighthouse-mobile.json --quiet
           corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --preset=desktop --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path=lighthouse-desktop.json --quiet
       - name: Check release targets
         run: |
