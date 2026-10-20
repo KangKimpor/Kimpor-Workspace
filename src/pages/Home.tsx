@@ -1,4 +1,6 @@
 import { displayTime } from '@/calendar/time'
+import { useEffect, useState } from 'react'
+import { afterFirstPaint } from '@/lib/paint'
 import {
   ArrowRight,
   CalendarDays,
@@ -30,6 +32,10 @@ const homeDateFormat = new Intl.DateTimeFormat('en-US', {
 })
 
 export function Home() {
+  const [detailsReady, setDetailsReady] = useState(() => window.innerWidth >= 640)
+  useEffect(() => {
+    if (!detailsReady) return afterFirstPaint(() => setDetailsReady(true))
+  }, [detailsReady])
   const { tasks, events, pages, scratchpad, setScratchpad, addPage, addTask } =
     useWorkspace()
   const { openTask, openEvent } = useWorkspaceUI()
@@ -129,7 +135,7 @@ export function Home() {
             Full day view <ArrowRight size={14} />
           </Link>
         </section>
-        <section>
+        {detailsReady && <section>
           <SectionTitle
             action={
               <Link
@@ -167,8 +173,9 @@ export function Home() {
               onChange={(e) => setScratchpad(e.target.value)}
             />
           </div>
-        </section>
+        </section>}
       </div>
+      {detailsReady && <>
       <section className="home-section">
         <SectionTitle
           action={
@@ -209,6 +216,7 @@ export function Home() {
             ))}
         </div>
       </section>
+      </>}
     </div>
   )
 }

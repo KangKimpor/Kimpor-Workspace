@@ -44,6 +44,8 @@ test('a fresh guest initializes data on interaction and keeps the first edit', a
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   expect(await page.evaluate(() => indexedDB.databases())).toEqual([])
   expect(initialized).toBe(false)
+  await expect(page.getByRole('heading', { name: 'Active Projects', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Recent Pages & Notes', exact: true })).toBeVisible()
   const initialization = page.waitForRequest('**/assets/sync-*.js')
   await page.getByLabel('Quick Scratchpad', { exact: true }).click()
   await initialization

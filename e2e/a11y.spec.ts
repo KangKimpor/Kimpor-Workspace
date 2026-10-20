@@ -16,6 +16,9 @@ for (const route of routes) {
         await page.emulateMedia({ colorScheme: scheme })
         await page.goto(route)
         await page.waitForLoadState('networkidle')
+        if (route === '/') {
+          await expect(page.getByRole('heading', { name: 'Recent Pages & Notes', exact: true })).toBeVisible()
+        }
         const { violations } = await new AxeBuilder({ page }).analyze()
         const serious = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
         expect(serious.map((v) => `${v.id}: ${v.nodes[0]?.target}`)).toEqual([])

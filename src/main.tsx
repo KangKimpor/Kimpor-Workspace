@@ -8,6 +8,7 @@ import './styles/index.css'
 import { useInstall } from './lib/install'
 import { hasStoredSession } from './lib/supabase'
 import { useWorkspace } from './data'
+import { afterFirstPaint } from './lib/paint'
 
 syncGlassToDocument()
 const updateSW = registerSW({
@@ -47,34 +48,24 @@ if (
   void initialize().finally(render)
 } else {
   render()
+  let guestInitialized = false
   const initializeGuest = () => {
+    if (guestInitialized) return
+    guestInitialized = true
+    removeEventListener('click', initializeGuest, true)
+    removeEventListener('keydown', initializeGuest, true)
     void initialize().catch(() => useWorkspace.setState({ storageError: true }))
   }
+  addEventListener('click', initializeGuest, { once: true, capture: true })
+  addEventListener('keydown', initializeGuest, { once: true, capture: true })
   const ready = async () => {
+    if (guestInitialized) return
     const databases = typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function'
       ? await indexedDB.databases().catch(() => null)
       : null
-    if (databases && !databases.some((database) => database.name === 'kimpor-workspace')) {
-      const resume = () => {
-        removeEventListener('click', resume, true)
-        removeEventListener('keydown', resume, true)
-        initializeGuest()
-      }
-      addEventListener('click', resume, { once: true, capture: true })
-      addEventListener('keydown', resume, { once: true, capture: true })
-    } else {
+    if (!databases || databases.some((database) => database.name === 'kimpor-workspace')) {
       initializeGuest()
     }
   }
-  if (PerformanceObserver.supportedEntryTypes.includes('paint')) {
-    const observer = new PerformanceObserver((entries) => {
-      if (entries.getEntries().some((entry) => entry.name === 'first-contentful-paint')) {
-        observer.disconnect()
-        ready()
-      }
-    })
-    observer.observe({ type: 'paint', buffered: true })
-  } else {
-    requestAnimationFrame(() => setTimeout(ready, 0))
-  }
+  afterFirstPaint(ready)
 }
