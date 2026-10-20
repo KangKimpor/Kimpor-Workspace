@@ -1,0 +1,43 @@
+name: Production performance
+on:
+  push:
+    branches: [main, 'codex/**']
+    paths: ['.github/workflows/performance.yml']
+permissions:
+  contents: read
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CHROME_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Measure deployed guest workspace
+        run: |
+          corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path=lighthouse-mobile.json --quiet
+          corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --preset=desktop --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path=lighthouse-desktop.json --quiet
+      - name: Check release targets
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          for (const device of ['mobile', 'desktop']) {
+            const report = JSON.parse(readFileSync(`lighthouse-${device}.json`, 'utf8'));
+            const scores = Object.fromEntries(Object.entries(report.categories).map(([key, value]) => [key, value.score]));
+            const lcp = report.audits['largest-contentful-paint'].numericValue;
+            console.log(JSON.stringify({device, scores, lcp}));
+            assert(!report.runtimeError, 'Lighthouse runtime error');
+            assert(scores.performance >= .95, `${device} performance below 95`);
+            assert(scores.accessibility === 1, `${device} accessibility below 100`);
+            assert(lcp < 2000, `${device} LCP exceeds 2 seconds`);
+          }
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-lighthouse
+          path: lighthouse-*.json
