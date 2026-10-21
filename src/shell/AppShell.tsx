@@ -17,8 +17,12 @@ const BottomSheet = lazy(() =>
 const SideSheet = lazy(() =>
   import('./Overlays').then((module) => ({ default: module.SideSheet })),
 )
-import { Sidebar } from './Sidebar'
-import { SidebarContent } from './SidebarContent'
+const Sidebar = lazy(() =>
+  import('./Sidebar').then((module) => ({ default: module.Sidebar })),
+)
+const SidebarContent = lazy(() =>
+  import('./SidebarContent').then((module) => ({ default: module.SidebarContent })),
+)
 import { TabBar } from './TabBar'
 import { TopBar } from './TopBar'
 import { useCrumb } from './routes'
@@ -138,7 +142,7 @@ export function AppShell() {
           <Reminders />
         </Suspense>
       )}
-      {persistent ? <Sidebar /> : null}
+      {persistent ? <Suspense fallback={null}><Sidebar /></Suspense> : null}
 
       <div className="main">
         <TopBar crumb={crumb} bp={bp} />

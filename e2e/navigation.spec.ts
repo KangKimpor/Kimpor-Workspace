@@ -9,8 +9,10 @@ test('phone sidebar opens on the first tap and closes after navigation', async (
   page,
 }) => {
   let loads = 0
+  let sidebarLoads = 0
   page.on('request', (request) => {
     if (request.isNavigationRequest() && request.resourceType() === 'document') loads++
+    if (/\/assets\/SidebarContent-[^/]+\.js$/.test(request.url())) sidebarLoads++
   })
   await page.route('**/assets/Overlays-*.js', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 600))
@@ -20,10 +22,12 @@ test('phone sidebar opens on the first tap and closes after navigation', async (
   const tabs = await page.getByTestId('tabbar').elementHandle()
   const button = page.getByRole('button', { name: 'Open sidebar', exact: true })
   await expect(button).toBeVisible()
+  expect(sidebarLoads).toBe(0)
   await button.tap()
   await expect(page.getByTestId('tabbar')).toBeVisible()
   const drawer = page.getByRole('dialog', { name: 'Sidebar', exact: true })
   await expect(drawer).toBeVisible()
+  expect(sidebarLoads).toBe(1)
   await expect(drawer).toHaveCSS('transition-property', 'none')
   expect(await tabs!.evaluate((element) => element.isConnected)).toBe(true)
   expect(loads).toBe(1)
