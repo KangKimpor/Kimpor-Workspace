@@ -34,7 +34,8 @@ test('first install is offline-ready and later updates reload only on request', 
     // Exercise both the first-install session and a returning, already controlled tab.
     for (let attempt = 0; attempt < 2; attempt++) {
       revision++
-      await page.evaluate(async () => { await (await navigator.serviceWorker.getRegistration())!.update() })
+      // Returning to an open desktop app or reconnecting must discover deployments.
+      await page.evaluate((event) => window.dispatchEvent(new Event(event)), attempt === 0 ? 'focus' : 'online')
       await expect(page.getByText('New version available', { exact: true })).toBeVisible()
       expect(loads).toBe(attempt)
       await Promise.all([

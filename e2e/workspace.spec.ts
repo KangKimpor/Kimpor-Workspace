@@ -218,7 +218,7 @@ test('project creation and editable, hideable, resizable task table', async ({
     .filter({ hasText: 'Task name' })
     .getByRole('button')
     .click()
-  await page.getByText('Table columns', { exact: true }).click()
+  await page.getByRole('button', { name: 'Table columns', exact: true }).click()
   await page.getByRole('checkbox', { name: 'Priority', exact: true }).uncheck()
   await expect(
     page.getByRole('columnheader', { name: 'Priority', exact: true }),

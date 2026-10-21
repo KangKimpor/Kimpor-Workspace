@@ -11,8 +11,28 @@ import { useWorkspace } from './data'
 import { afterFirstPaint } from './lib/paint'
 
 syncGlassToDocument()
+// Keep app gestures at a fixed scale; browser menu and OS magnification remain available.
+document.addEventListener('wheel', (event) => {
+  if (event.ctrlKey || event.metaKey) event.preventDefault()
+}, { passive: false })
+document.addEventListener('gesturestart', (event) => event.preventDefault(), { passive: false })
+document.addEventListener('keydown', (event) => {
+  if ((event.ctrlKey || event.metaKey) && ['+', '-', '=', '0'].includes(event.key)) event.preventDefault()
+})
 const updateSW = registerSW({
   immediate: true,
+  onRegisteredSW(_url, registration) {
+    if (!registration) return
+    const check = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine && !registration.installing)
+        void registration.update().catch(() => {})
+    }
+    addEventListener('focus', check)
+    addEventListener('online', check)
+    document.addEventListener('visibilitychange', check)
+    setInterval(check, 60_000)
+    check()
+  },
   // Reload only the tab that requested it, including its first installation session.
   onNeedReload() {},
   onNeedRefresh() {

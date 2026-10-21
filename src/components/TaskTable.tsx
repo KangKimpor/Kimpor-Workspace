@@ -2,10 +2,12 @@ import { GlassSelect } from '@/components/glass/GlassSelect'
 import { GlassPopover } from '@/components/glass/GlassPopover'
 import { Columns3 } from 'lucide-react'
 import { useState, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { priorities, statuses, useWorkspace } from '@/data'
 import type { Task } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
+import { statusColor, tint } from '@/components/WorkspaceUI'
 
 const columns = ['title', 'status', 'priority', 'due'] as const
 type Column = (typeof columns)[number]
@@ -15,17 +17,23 @@ const names = {
   priority: 'Priority',
   due: 'Due date',
 }
-export function TaskTable({ tasks }: { tasks: Task[] }) {
+export function TaskTable({ tasks, mobile, toolbar, actions }: {
+  tasks: Task[]
+  mobile: boolean
+  toolbar: ReactNode
+  actions: ReactNode
+}) {
   const update = useWorkspace((s) => s.updateTask)
   const [sort, setSort] = useState<Column>('title'),
     [descending, setDescending] = useState(false)
   const [hidden, setHidden] = useState<Column[]>([]),
     [widths, setWidths] = useState<Record<Column, number>>({
-      title: 300,
+      title: mobile ? Math.min(360, innerWidth - 32) : 300,
       status: 170,
       priority: 140,
       due: 170,
     })
+  const visibleColumns = columns.filter((column) => (mobile && column === 'title') || !hidden.includes(column))
   const resize = (column: Column, width: number) =>
     setWidths((current) => ({
       ...current,
@@ -59,14 +67,16 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
       }))
   return (
     <>
-      <div className="table-options">
-      <GlassPopover label="Table columns" trigger={<button className="btn-secondary"><Columns3 size={14} />Table columns</button>}>
+      <div className={mobile ? 'project-table-toolbar' : 'table-options'}>
+      {mobile && toolbar}
+      <GlassPopover label="Table columns" trigger={<button className={mobile ? 'ibtn' : 'btn-secondary'} aria-label="Table columns" title="Table columns"><Columns3 size={mobile ? 18 : 14} />{!mobile && 'Table columns'}</button>}>
         <div className="column-choices">
           {columns.map((column) => (
             <label className="inline" key={column}>
               <input
                 type="checkbox"
-                checked={!hidden.includes(column)}
+                disabled={mobile && column === 'title'}
+                checked={visibleColumns.includes(column)}
                 onChange={(e) =>
                   setHidden(
                     e.target.checked
@@ -80,6 +90,7 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
           ))}
         </div>
       </GlassPopover>
+      {mobile && actions}
       </div>
       <div
         className="table-scroll"
@@ -90,15 +101,13 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
           className="task-table"
           style={{
             tableLayout: 'fixed',
-            width: columns
-              .filter((c) => !hidden.includes(c))
-              .reduce((sum, c) => sum + widths[c], 44),
+            width: visibleColumns
+              .reduce((sum, c) => sum + widths[c], mobile ? 0 : 44),
           }}
         >
           <thead>
             <tr>
-              {columns
-                .filter((c) => !hidden.includes(c))
+              {visibleColumns
                 .map((column) => (
                   <th
                     key={column}
@@ -120,7 +129,7 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
                         }
                       }}
                     >
-                      {names[column]}{' '}
+                      {mobile && column === 'title' && <span className="table-text-icon" aria-hidden="true">Aa </span>}{names[column]}{' '}
                       {sort === column ? (descending ? '↓' : '↑') : ''}
                     </button>
                     <span
@@ -159,7 +168,7 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
                     />
                   </th>
                 ))}
-              <th aria-label="Details" />
+              {!mobile && <th aria-label="Details" />}
             </tr>
           </thead>
           <tbody>
@@ -167,7 +176,7 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
               <tr aria-hidden="true">
                 <td
                   aria-hidden="true"
-                  colSpan={columns.length + 1}
+                  colSpan={visibleColumns.length + (mobile ? 0 : 1)}
                   style={{ height: items[0].start, padding: 0, border: 0 }}
                 />
               </tr>
@@ -181,11 +190,11 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
                   ref={large ? virtual.measureElement : undefined}
                   aria-rowindex={item.index + 2}
                 >
-                  {columns
-                    .filter((c) => !hidden.includes(c))
+                  {visibleColumns
                     .map((column) => (
-                      <td key={column}>
+                      <td key={column} data-column={column}>
                         {column === 'title' ? (
+                          <div className="table-task-name">
                           <input
                             aria-label={`Title for ${task.title}`}
                             value={task.title}
@@ -193,6 +202,8 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
                               update(task.id, { title: e.target.value })
                             }
                           />
+                          {mobile && <button className="table-open" aria-label={`Open ${task.title}`} onClick={() => useWorkspaceUI.getState().openTask(task.id)}>Open</button>}
+                          </div>
                         ) : column === 'due' ? (
                           <input
                             type="date"
@@ -203,6 +214,7 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
                             }
                           />
                         ) : (
+                          <div className={mobile && column === 'status' ? 'table-status' : undefined} style={mobile && column === 'status' ? tint(statusColor[task.status]) : undefined}>
                           <GlassSelect
                             aria-label={`${names[column]} for ${task.title}`}
                             value={task[column]}
@@ -216,20 +228,11 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
                               ),
                             )}
                           </GlassSelect>
+                          </div>
                         )}
                       </td>
                     ))}
-                  <td>
-                    <button
-                      className="ibtn"
-                      aria-label={`Open ${task.title}`}
-                      onClick={() =>
-                        useWorkspaceUI.getState().openTask(task.id)
-                      }
-                    >
-                      ↗
-                    </button>
-                  </td>
+                  {!mobile && <td><button className="ibtn" aria-label={`Open ${task.title}`} onClick={() => useWorkspaceUI.getState().openTask(task.id)}>↗</button></td>}
                 </tr>
               )
             })}
@@ -237,7 +240,7 @@ export function TaskTable({ tasks }: { tasks: Task[] }) {
               <tr aria-hidden="true">
                 <td
                   aria-hidden="true"
-                  colSpan={columns.length + 1}
+                  colSpan={visibleColumns.length + (mobile ? 0 : 1)}
                   style={{
                     height: Math.max(
                       0,

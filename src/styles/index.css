@@ -16,6 +16,7 @@
 }
 :root { --font-sans: 'Inter', system-ui, sans-serif; --font-mono: 'JetBrains Mono', ui-monospace, monospace; }
 html {
+  touch-action: pan-x pan-y;
   font-family: var(--font-sans);
   font-size: 100%;
   -webkit-text-size-adjust: 100%;
@@ -49,6 +50,10 @@ textarea {
 button {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+/* Keep iOS input focus from enlarging the whole app. */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']), textarea, select { font-size: max(16px, 1em); }
 }
 ::selection {
   background: var(--selection);
