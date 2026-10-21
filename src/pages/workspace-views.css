@@ -100,6 +100,8 @@
 .column-choices label { padding: 8px; font-size: var(--fs-small); border-radius: 8px; cursor: pointer; }
 .column-choices label:hover { background: var(--bg-hover); }
 .task-table .glass-select { min-height: 28px; padding: 4px 8px; border-radius: 10px; box-shadow: inset 0 1px 0 var(--glass-highlight); font-size: var(--fs-small); width: 100%; }
+/* The table canvas is solid; avoid a redundant backdrop layer for every cell. */
+.task-table .glass-select { backdrop-filter: none; -webkit-backdrop-filter: none; }
 .task-table td { padding: 8px 12px; }
 
 
