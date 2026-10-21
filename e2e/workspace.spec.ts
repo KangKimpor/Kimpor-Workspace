@@ -230,7 +230,7 @@ test('project creation and editable, hideable, resizable task table', async ({
   })
   await handle.focus()
   await page.keyboard.press('ArrowRight')
-  await expect(handle).toHaveAttribute('aria-valuenow', '316')
+  await expect(handle).toHaveAttribute('aria-valuenow', '416')
   await page.reload()
   await expect(
     page.getByLabel('Title for Verify release contrasts', { exact: true }),

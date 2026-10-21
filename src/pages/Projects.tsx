@@ -97,12 +97,16 @@ export default function Projects() {
   const add = (status: TaskStatus = 'Not started') =>
     openTask(addTask({ title: 'New task', projectId: id, status }))
   const toolbar = <>
-    <GlassPopover label="Project views" align="start" trigger={<button className="project-view-picker"><Star size={18} />{view === 'board' ? 'Board' : 'All Tasks'}<ChevronDown size={16} /></button>}>
+    {!mobile && <nav className="view-tabs" aria-label="Project views">
+      <NavLink to={`/projects/${id}/table`} className="view-tab"><Star size={16} />All Tasks</NavLink>
+      <NavLink to={`/projects/${id}/board`} className="view-tab"><Kanban size={16} />By Status</NavLink>
+    </nav>}
+    {mobile && <GlassPopover label="Project views" align="start" trigger={<button className="project-view-picker"><Star size={18} />{view === 'board' ? 'Board' : 'All Tasks'}<ChevronDown size={16} /></button>}>
       <nav className="project-view-menu" aria-label="Project views">
         <NavLink to={`/projects/${id}/table`} className="view-tab"><Table2 size={16} />All Tasks</NavLink>
         <NavLink to={`/projects/${id}/board`} className="view-tab"><Kanban size={16} />Board</NavLink>
       </nav>
-    </GlassPopover>
+    </GlassPopover>}
     <div className="project-toolbar-spacer" />
     <GlassPopover label="Search tasks" trigger={<button className="ibtn" aria-label="Search project tasks" title="Search tasks" data-active={!!query}><Search size={19} /></button>}>
       <label className="search-field"><Search size={16} /><input aria-label="Search project tasks" placeholder="Search tasks…" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
@@ -113,7 +117,7 @@ export default function Projects() {
       </GlassSelect>
     </GlassPopover>
   </>
-  const actions = <button className="btn-accent project-add-task" aria-label="New task" title="New task" onClick={() => add()}><Plus size={21} /></button>
+  const actions = <button className="btn-accent project-add-task" aria-label="New task" title="New task" onClick={() => add()}><Plus size={mobile ? 21 : 15} />{!mobile && 'New'}</button>
   return (
     <div className="workspace-surface project-page" data-view={view}>
       {mobile && view === 'table' && <div className="project-topbar">
@@ -125,12 +129,12 @@ export default function Projects() {
           <Tile name={project.icon || project.id} color={project.color} />
           <div>
             <h1 className="t-h1">{project.name}</h1>
-            <p className="muted">{project.description || (mobile && view === 'table' ? 'Stay organized with tasks, your way.' : '')}</p>
+            <p className="muted">{project.description || (view === 'table' ? 'Stay organized with tasks, your way.' : '')}</p>
           </div>
         </div>
         {(!mobile || view !== 'table') && <div className="heading-actions">
           <button className="btn-secondary" onClick={() => setEditing(true)}><Pencil size={14} />Edit project</button>
-          <button className="btn-accent" onClick={() => add()}><Plus size={16} />New task</button>
+          {view !== 'table' && <button className="btn-accent" onClick={() => add()}><Plus size={16} />New task</button>}
         </div>}
       </header>
       <div className="project-properties">
@@ -144,7 +148,7 @@ export default function Projects() {
         <span className="small muted">{allTasks.length} tasks</span>
       </div>
       {editing && <ProjectEditor key={project.id} project={project} onClose={() => setEditing(false)} />}
-      {(!mobile || view !== 'table') && <div className="view-toolbar">
+      {view !== 'table' && <div className="view-toolbar">
         <nav className="view-tabs" aria-label="Project views">
           <NavLink to={`/projects/${id}/table`} className="view-tab"><Table2 size={15} />Table</NavLink>
           <NavLink to={`/projects/${id}/board`} className="view-tab"><Kanban size={15} />Board</NavLink>

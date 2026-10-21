@@ -1,15 +1,38 @@
 import { expect, test } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
-test('desktop retains the project header, views and table arrangement', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 })
-  await page.goto('/projects/website/table')
-  await expect(page.getByRole('button', { name: 'Edit project', exact: true })).toHaveText('Edit project')
-  await expect(page.getByRole('navigation', { name: 'Project views' }).getByRole('link', { name: 'Table', exact: true })).toBeVisible()
-  await expect(page.getByRole('textbox', { name: 'Search project tasks' })).toBeVisible()
-  await expect(page.getByRole('columnheader', { name: 'Details', exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'All Tasks', exact: true })).toHaveCount(0)
-})
+for (const theme of ['light', 'dark']) {
+  test(`desktop reference table layout and editing in ${theme}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1605, height: 1000 })
+    await page.addInitScript((value) => localStorage.setItem('kw-theme', value), theme)
+    await page.goto('/projects/website/table')
+    await expect(page.getByRole('button', { name: 'Edit project', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'All Tasks', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'By Status', exact: true })).toHaveAttribute('href', '/projects/website/board')
+    const table = page.locator('.task-table')
+    await expect(table.getByRole('columnheader', { name: /Description/ })).toBeVisible()
+    expect(await table.locator('tbody tr').first().evaluate((row) => row.getBoundingClientRect().height)).toBeLessThanOrEqual(40)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await page.screenshot({ path: `test-results/project-desktop-${theme}.png`, animations: 'disabled' })
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
+    const status = table.getByRole('combobox').first()
+    await status.click()
+    await page.getByRole('option', { name: 'Done', exact: true }).click()
+    await expect(status).toHaveText('Done')
+    await page.reload()
+    await expect(table.getByRole('combobox').first()).toHaveText('Done')
+    await page.getByRole('button', { name: 'Search project tasks', exact: true }).click()
+    await page.getByRole('textbox', { name: 'Search project tasks' }).fill('Finalize token')
+    await page.keyboard.press('Escape')
+    await expect(table.locator('tbody tr')).toHaveCount(1)
+    await page.getByRole('button', { name: 'Table columns', exact: true }).click()
+    await page.getByRole('checkbox', { name: 'Description', exact: true }).uncheck()
+    await page.keyboard.press('Escape')
+    await expect(table.getByRole('columnheader', { name: /Description/ })).toHaveCount(0)
+    await page.getByRole('button', { name: 'New task', exact: true }).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+  })
+}
 
 for (const theme of ['light', 'dark']) {
   test(`project table mobile layout and controls in ${theme}`, async ({ page }) => {

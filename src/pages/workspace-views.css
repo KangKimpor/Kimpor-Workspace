@@ -94,8 +94,6 @@
   .tasks-page .task-row { flex-wrap: nowrap; }
   .tasks-page .task-priority { margin-left: 0; }
 }
-.table-options { display: flex; justify-content: flex-end; margin: -8px 0 12px; }
-.table-options > button { border-radius: var(--radius-pill); background: var(--glass-thin-bg); box-shadow: inset 0 1px 0 var(--glass-highlight); }
 @media (max-width: 639px) {
   .project-page[data-view='table'] { border: 0; border-radius: 0; margin: 0; background: transparent; }
   .project-topbar { display: flex; justify-content: space-between; align-items: center; margin: 0 -8px 8px; }
@@ -151,3 +149,38 @@
   .tasks-page .task-rename { width: 24px; height: 24px; }
 }
 
+
+@media (min-width: 640px) {
+  .project-page[data-view='table'] { border: 0; border-radius: 0; padding: 32px 40px; }
+  .project-page[data-view='table'] .page-heading { margin-bottom: 8px; }
+  .project-page[data-view='table'] .project-heading { gap: 12px; }
+  .project-page[data-view='table'] .project-heading h1 { font-size: 30px; letter-spacing: -.03em; }
+  .project-page[data-view='table'] .project-heading p { margin-top: 6px; font-size: 13px; }
+  .project-page[data-view='table'] .project-heading > .icon-tile { width: 30px; height: 30px; border-radius: 50%; }
+  .project-page[data-view='table'] .project-properties { padding-block: 8px 20px; gap: 16px; }
+  .project-table-toolbar { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .project-toolbar-spacer { flex: 1; }
+  .project-table-toolbar .view-tabs { padding: 0; border: 0; background: transparent; gap: 4px; }
+  .project-table-toolbar .view-tab { min-height: 32px; padding: 6px 12px; border-radius: var(--radius-pill); box-shadow: none; }
+  .project-table-toolbar .view-tab[aria-current='page'] { background: var(--bg-hover); }
+  .project-table-toolbar > .ibtn { width: 30px; height: 30px; color: var(--text-secondary); }
+  .project-table-toolbar > .ibtn[data-active='true'] { color: var(--accent-text); background: var(--bg-hover); }
+  .project-table-toolbar .project-add-task { min-height: 30px; padding: 5px 10px; border-radius: 6px; gap: 4px; }
+  .project-page[data-view='table'] .task-table { min-width: 100%; font-size: 13px; }
+  .project-page[data-view='table'] .task-table th { height: 36px; padding: 6px 8px; }
+  .project-page[data-view='table'] .task-table th > button { display: flex; align-items: center; gap: 8px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; white-space: nowrap; }
+  .project-page[data-view='table'] .task-table td { height: 37px; padding: 4px 8px; border-right: 1px solid var(--border-subtle); }
+  .project-page[data-view='table'] .task-table td:last-child { border-right: 0; }
+  .project-page[data-view='table'] .task-table tbody tr:hover { background: var(--bg-hover); }
+  .project-page[data-view='table'] .task-table input { padding: 0; height: 28px; font: inherit; text-overflow: ellipsis; }
+  .project-page[data-view='table'] .task-table input:focus { outline: 2px solid var(--accent-text); outline-offset: 1px; }
+  .project-page[data-view='table'] .task-table .glass-select { width: auto; max-width: 100%; min-height: 22px; padding: 2px 7px; border: 0; border-radius: var(--radius-pill); box-shadow: none; background: transparent; font-size: 12px; }
+  .project-page[data-view='table'] .table-status .glass-select { background: var(--tint-bg); color: var(--text-primary); }
+  .project-page[data-view='table'] .table-status .glass-select > span { display: flex; align-items: center; gap: 5px; }
+  .project-page[data-view='table'] .table-status .glass-select > span::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--tint); flex: none; }
+  .project-page[data-view='table'] .task-table .glass-select > svg { display: none; }
+  .project-page[data-view='table'] .task-table .glass-select:hover > svg,
+  .project-page[data-view='table'] .task-table .glass-select:focus-visible > svg { display: block; }
+  .project-page[data-view='table'] .table-description { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0; font: inherit; color: var(--text-secondary); }
+  .project-page[data-view='table'] .task-table td > .ibtn { width: 24px; height: 24px; color: var(--text-secondary); }
+}

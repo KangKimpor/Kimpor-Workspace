@@ -1,6 +1,6 @@
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { GlassPopover } from '@/components/glass/GlassPopover'
-import { Columns3 } from 'lucide-react'
+import { AlignLeft, CalendarDays, CircleDot, Columns3, Flag } from 'lucide-react'
 import { useState, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -9,13 +9,14 @@ import type { Task } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
 import { statusColor, tint } from '@/components/WorkspaceUI'
 
-const columns = ['title', 'status', 'priority', 'due'] as const
+const columns = ['title', 'status', 'due', 'priority', 'notes'] as const
 type Column = (typeof columns)[number]
 const names = {
   title: 'Task name',
   status: 'Status',
   priority: 'Priority',
   due: 'Due date',
+  notes: 'Description',
 }
 export function TaskTable({ tasks, mobile, toolbar, actions }: {
   tasks: Task[]
@@ -23,17 +24,19 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
   toolbar: ReactNode
   actions: ReactNode
 }) {
+  const availableColumns = mobile ? (['title', 'status', 'priority', 'due'] as const) : columns
   const update = useWorkspace((s) => s.updateTask)
   const [sort, setSort] = useState<Column>('title'),
     [descending, setDescending] = useState(false)
   const [hidden, setHidden] = useState<Column[]>([]),
     [widths, setWidths] = useState<Record<Column, number>>({
-      title: mobile ? Math.min(360, innerWidth - 32) : 300,
-      status: 170,
-      priority: 140,
-      due: 170,
+      title: mobile ? Math.min(360, innerWidth - 32) : 400,
+      status: mobile ? 170 : 150,
+      priority: mobile ? 140 : 110,
+      due: mobile ? 170 : 145,
+      notes: 220,
     })
-  const visibleColumns = columns.filter((column) => (mobile && column === 'title') || !hidden.includes(column))
+  const visibleColumns = availableColumns.filter((column) => (mobile && column === 'title') || !hidden.includes(column))
   const resize = (column: Column, width: number) =>
     setWidths((current) => ({
       ...current,
@@ -67,11 +70,11 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
       }))
   return (
     <>
-      <div className={mobile ? 'project-table-toolbar' : 'table-options'}>
-      {mobile && toolbar}
-      <GlassPopover label="Table columns" trigger={<button className={mobile ? 'ibtn' : 'btn-secondary'} aria-label="Table columns" title="Table columns"><Columns3 size={mobile ? 18 : 14} />{!mobile && 'Table columns'}</button>}>
+      <div className="project-table-toolbar">
+      {toolbar}
+      <GlassPopover label="Table columns" trigger={<button className="ibtn" aria-label="Table columns" title="Table columns"><Columns3 size={18} /></button>}>
         <div className="column-choices">
-          {columns.map((column) => (
+          {availableColumns.map((column) => (
             <label className="inline" key={column}>
               <input
                 type="checkbox"
@@ -90,7 +93,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
           ))}
         </div>
       </GlassPopover>
-      {mobile && actions}
+      {actions}
       </div>
       <div
         className="table-scroll"
@@ -129,7 +132,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
                         }
                       }}
                     >
-                      {mobile && column === 'title' && <span className="table-text-icon" aria-hidden="true">Aa </span>}{names[column]}{' '}
+                      {column === 'title' ? <span className="table-text-icon" aria-hidden="true">Aa</span> : column === 'status' ? <CircleDot size={14} aria-hidden="true" /> : column === 'due' ? <CalendarDays size={14} aria-hidden="true" /> : column === 'priority' ? <Flag size={14} aria-hidden="true" /> : <AlignLeft size={14} aria-hidden="true" />}{names[column]}{' '}
                       {sort === column ? (descending ? '↓' : '↑') : ''}
                     </button>
                     <span
@@ -168,7 +171,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
                     />
                   </th>
                 ))}
-              {!mobile && <th aria-label="Details" />}
+              {!mobile && <th style={{ width: 44 }}><span className="sr-only">Details</span></th>}
             </tr>
           </thead>
           <tbody>
@@ -204,6 +207,8 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
                           />
                           {mobile && <button className="table-open" aria-label={`Open ${task.title}`} onClick={() => useWorkspaceUI.getState().openTask(task.id)}>Open</button>}
                           </div>
+                        ) : column === 'notes' ? (
+                          <button className="table-description" aria-label={task.notes ? undefined : `Description for ${task.title}`} onClick={() => useWorkspaceUI.getState().openTask(task.id)}>{task.notes || '\u00a0'}</button>
                         ) : column === 'due' ? (
                           <input
                             type="date"
@@ -214,7 +219,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
                             }
                           />
                         ) : (
-                          <div className={mobile && column === 'status' ? 'table-status' : undefined} style={mobile && column === 'status' ? tint(statusColor[task.status]) : undefined}>
+                          <div className={column === 'status' ? 'table-status' : undefined} style={column === 'status' ? tint(statusColor[task.status]) : undefined}>
                           <GlassSelect
                             aria-label={`${names[column]} for ${task.title}`}
                             value={task[column]}
