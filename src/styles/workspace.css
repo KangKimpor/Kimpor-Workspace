@@ -1639,3 +1639,46 @@ button:disabled {
     contain-intrinsic-size: auto 240px;
   }
 }
+
+/* Keep press feedback on controls, so page and overlay positioning never moves. */
+:is(.ibtn, .btn-secondary, .btn-text, .tab, .view-tab, .icon-link,
+    .project-view-picker, .project-card, .recent-card, .event-card, .theme-choice) {
+  transition:
+    scale var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+:is(.ibtn, .btn-secondary, .btn-text, .tab, .view-tab, .icon-link,
+    .project-view-picker, .project-card, .recent-card, .event-card, .theme-choice):where(:not(:disabled):not([aria-disabled='true'])):active {
+  scale: .97;
+}
+.task-title {
+  transition: color var(--duration-base) var(--ease-standard);
+}
+.pill[data-tone='busy'] .dot {
+  animation: saving-pulse 1.2s ease-in-out infinite;
+}
+@keyframes saving-pulse {
+  50% { opacity: .35; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion='reduced']) .workspace-toast {
+    animation: toast-in var(--duration-base) var(--ease-enter);
+  }
+}
+@keyframes toast-in {
+  from { opacity: 0; translate: 0 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.ibtn, .btn-secondary, .btn-text, .tab, .view-tab, .icon-link,
+      .project-view-picker, .project-card, .recent-card, .event-card, .theme-choice):active {
+    scale: none;
+  }
+  .pill[data-tone='busy'] .dot { animation: none; }
+}
+html[data-motion='reduced'] :is(.ibtn, .btn-secondary, .btn-text, .tab, .view-tab, .icon-link,
+    .project-view-picker, .project-card, .recent-card, .event-card, .theme-choice):active {
+  scale: none;
+}
+html[data-motion='reduced'] .pill[data-tone='busy'] .dot { animation: none; }
