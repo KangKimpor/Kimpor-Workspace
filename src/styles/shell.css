@@ -425,6 +425,17 @@
 .shell[data-bp='medium'] .topbar {
   margin-inline: max(var(--gutter), var(--safe-left)) max(var(--gutter), var(--safe-right));
 }
+.shell[data-bp='compact'] .topbar {
+  gap: var(--space-4);
+  padding-inline: var(--space-4);
+  height: 48px;
+  flex-shrink: 0;
+}
+.shell[data-bp='compact'] .topbar .ibtn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
 
 /* Explicit grid placement so hidden slots never shift the main column */
 .shell[data-bp='expanded'] .sidebar-slot,

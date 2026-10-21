@@ -349,9 +349,11 @@
   }
   .calendar-toolbar {
     gap: var(--space-12);
+    padding-bottom: var(--space-12);
   }
   .calendar-layout {
     gap: var(--space-16);
+    padding-top: var(--space-12);
   }
   .calendar-layer {
     min-height: var(--space-32);

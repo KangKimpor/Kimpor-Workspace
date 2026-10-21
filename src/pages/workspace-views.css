@@ -69,7 +69,7 @@
   .project-page .view-toolbar > .filter-controls { width: 100%; }
 }
 @media (max-width: 639px) {
-  .tasks-page, .project-page, .calendar-page { padding: 16px; margin-inline: 0; }
+  .tasks-page, .project-page, .calendar-page { padding: 0 calc(16px + var(--safe-right)) 0 calc(16px + var(--safe-left)); margin-inline: 0; }
   .tasks-topline { flex-wrap: wrap; }
   .tasks-topline .search-field { max-width: none; width: 100%; }
   .tasks-filterline .filter-controls { width: 100%; }
@@ -98,19 +98,19 @@
 .table-options > button { border-radius: var(--radius-pill); background: var(--glass-thin-bg); box-shadow: inset 0 1px 0 var(--glass-highlight); }
 @media (max-width: 639px) {
   .project-page[data-view='table'] { border: 0; border-radius: 0; margin: 0; background: transparent; }
-  .project-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-  .project-page[data-view='table'] .project-heading { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
-  .project-page[data-view='table'] .project-heading > .icon-tile { width: 40px; height: 40px; border-radius: 50%; }
+  .project-topbar { display: flex; justify-content: space-between; align-items: center; margin: 0 -8px 8px; }
+  .project-page[data-view='table'] .project-heading { display: flex; align-items: flex-start; gap: 12px; }
+  .project-page[data-view='table'] .project-heading > .icon-tile { width: 32px; height: 32px; border-radius: 8px; }
   .project-heading > .icon-tile > svg { width: 24px; height: 24px; }
-  .project-page[data-view='table'] .project-heading h1 { font-size: clamp(32px, 4vw, 44px); line-height: 1.15; letter-spacing: -.03em; }
-  .project-page[data-view='table'] .project-heading p { margin-top: 12px; font-size: 16px; line-height: 1.5; }
+  .project-page[data-view='table'] .project-heading h1 { font-size: 26px; line-height: 1.2; letter-spacing: -.03em; }
+  .project-page[data-view='table'] .project-heading p { margin-top: 6px; font-size: 14px; line-height: 1.5; }
   .project-page[data-view='table'] .page-heading { margin-bottom: 12px; }
-  .project-page[data-view='table'] .project-properties { padding: 0 0 24px; gap: 8px; }
+  .project-page[data-view='table'] .project-properties { padding: 0 0 12px; gap: 8px; }
   .project-table-toolbar { display: flex; align-items: center; gap: 2px; margin-bottom: 8px; }
   .project-toolbar-spacer { flex: 1; }
   .project-view-picker { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: var(--radius-pill); background: var(--bg-hover); color: var(--text-primary); padding: 10px; font-size: 14px; min-height: 44px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .project-view-menu { display: grid; gap: 4px; min-width: 160px; }
-  .project-table-toolbar > .ibtn { flex: none; width: 36px; height: 44px; }
+  .project-table-toolbar > .ibtn { flex: none; width: 44px; height: 44px; }
   .project-table-toolbar > .ibtn[data-active='true'] { color: var(--accent-text); background: var(--bg-hover); }
   .project-add-task { width: 44px; min-height: 44px; flex: none; padding: 8px; justify-content: center; border-radius: 8px; }
   .project-page[data-view='table'] .table-scroll { max-width: 100%; }
@@ -134,6 +134,11 @@
 /* The table canvas is solid; avoid a redundant backdrop layer for every cell. */
 .task-table .glass-select { backdrop-filter: none; -webkit-backdrop-filter: none; }
 .task-table td { padding: 8px 12px; }
+
+@media (max-width: 359px) {
+  .project-view-picker { gap: 4px; padding-inline: 8px; font-size: 12px; }
+  .project-view-picker > svg:first-child { display: none; }
+}
 
 
 .tasks-page .agenda-group { margin-top: 0; }
