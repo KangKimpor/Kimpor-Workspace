@@ -197,7 +197,8 @@
   align-items: center;
   gap: var(--space-8);
   height: var(--h-topbar);
-  margin: var(--gutter) var(--gutter) 0;
+  /* Reserve the same space in flow as the sticky inset on standalone iOS. */
+  margin: max(var(--gutter), var(--safe-top)) var(--gutter) 0;
   padding: 0 var(--space-8);
 }
 .topbar .crumbs {

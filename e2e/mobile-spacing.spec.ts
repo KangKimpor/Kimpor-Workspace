@@ -2,6 +2,28 @@ import { expect, test } from '@playwright/test'
 
 test.use({ hasTouch: true, isMobile: true })
 
+test('mobile safe area reserves space above the header and page content', async ({ page }) => {
+  await page.setViewportSize({ width: 393, height: 852 })
+  for (const route of ['/', '/projects/website/table']) {
+    await page.goto(route)
+    const surface = page.locator('main > .page, main > .workspace-surface')
+    await expect(surface).toBeVisible()
+    for (const inset of [0, 59]) {
+      await page.evaluate((value) => {
+        document.documentElement.style.setProperty('--safe-top', `${value}px`)
+        window.scrollTo(0, 0)
+      }, inset)
+      const header = await page.locator('.topbar').boundingBox()
+      const content = await surface.boundingBox()
+      expect(header!.y).toBe(Math.max(8, inset))
+      expect(content!.y - header!.y - header!.height).toBe(12)
+      await expect(surface.locator('h1')).toBeInViewport()
+      await page.evaluate(() => window.scrollTo(0, 160))
+      await expect.poll(async () => (await page.locator('.topbar').boundingBox())!.y).toBe(Math.max(8, inset))
+    }
+  }
+})
+
 for (const width of [320, 393, 639]) {
   test(`mobile screens use the available width at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 852 })
