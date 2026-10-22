@@ -393,3 +393,109 @@
   .calendar-view-controls .view-tab { padding-inline: 8px; }
 }
 @media (pointer: coarse) { .calendar-picker .calendar-layer { min-height: 44px; } }
+
+/* iPhone Safari (<640px): compact header, thumb-reach "New event", ~3-day week
+   columns, tap-to-open month. Scoped to the phone breakpoint; desktop is unchanged. */
+@media (max-width: 639px) {
+  .workspace-surface.calendar-page {
+    --calendar-hour: 72px;
+    --calendar-label: 64px;
+    --calendar-tasks: 48px;
+    --gutter-w: 44px;
+    --day-col: calc((100vw - 32px - var(--safe-left) - var(--safe-right) - var(--gutter-w)) / 3.4);
+  }
+  .workspace-surface.calendar-page:has(.month-grid, .agenda) {
+    padding-bottom: calc(88px + var(--safe-bottom));
+  }
+  .workspace-surface.calendar-page .page-heading { flex-wrap: nowrap; margin-bottom: 4px; }
+  .workspace-surface.calendar-page .page-heading p { display: none; }
+  .workspace-surface.calendar-page .page-heading h1 { font-size: 1.5rem; line-height: 2rem; }
+  .workspace-surface.calendar-page .page-heading .btn-accent {
+    position: fixed; z-index: 15;
+    right: calc(16px + var(--safe-right));
+    bottom: calc(max(var(--space-8), var(--safe-bottom)) + var(--h-tabbar) + 12px); /* clears the tab bar */
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 56px; height: 56px; min-height: 0; padding: 0; gap: 0;
+    border-radius: 50%; font-size: 0;
+    box-shadow: 0 6px 20px rgb(0 0 0 / 0.22);
+  }
+  .workspace-surface.calendar-page .page-heading .btn-accent svg { width: 24px; height: 24px; }
+
+  .workspace-surface.calendar-page .calendar-toolbar { gap: 8px; padding-bottom: 8px; border-bottom: 0; }
+  .workspace-surface.calendar-page .calendar-toolbar .inline { flex: 1 1 100%; flex-wrap: nowrap; gap: 4px; }
+  .workspace-surface.calendar-page .calendar-toolbar h2 {
+    order: -1; flex: 1; min-width: 0; font-size: 1.25rem; font-weight: 700;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .workspace-surface.calendar-page .calendar-toolbar .ibtn { width: 44px; height: 44px; }
+  .workspace-surface.calendar-page .calendar-view-controls { flex: 1 1 100%; flex-wrap: nowrap; gap: 8px; }
+  .workspace-surface.calendar-page .calendar-picker-trigger {
+    order: 2; width: 44px; height: 44px; min-height: 0; padding: 0; gap: 0;
+    justify-content: center; font-size: 0;
+  }
+  .workspace-surface.calendar-page .calendar-picker-trigger .pill,
+  .workspace-surface.calendar-page .calendar-picker-trigger > svg:last-child { display: none; }
+  .workspace-surface.calendar-page .view-tabs { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .workspace-surface.calendar-page .view-tab { padding-inline: 4px; }
+  /* 16px stops Safari zooming the page when the calendar search is focused. */
+  .calendar-picker-search { font-size: 16px; }
+  .workspace-surface.calendar-page .calendar-toolbar .btn-secondary { min-height: 44px; }
+  .workspace-surface.calendar-page .view-tabs .view-tab {
+    min-height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* Week / day: ~3.4 day columns so the next day peeks in; hour labels stay pinned. */
+  .workspace-surface.calendar-page .week-scroll {
+    max-height: calc(100dvh - 320px); min-height: 320px;
+    overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  }
+  .workspace-surface.calendar-page .week-grid {
+    grid-template-columns: var(--gutter-w) repeat(7, var(--day-col)); width: max-content;
+  }
+  .workspace-surface.calendar-page .week-grid[data-day='true'] {
+    grid-template-columns: var(--gutter-w) minmax(0, 1fr); width: auto;
+  }
+  .workspace-surface.calendar-page .time-gutter {
+    position: sticky; left: 0; z-index: 13; background: var(--bg-canvas);
+    font-size: 10px; white-space: nowrap;
+  }
+  .workspace-surface.calendar-page .week-day > header .text-link { display: none; }
+  .workspace-surface.calendar-page .week-day .day-number { width: 36px; height: 36px; }
+  .workspace-surface.calendar-page .positioned-event .calendar-event { padding: 4px 6px; gap: 2px; }
+  .workspace-surface.calendar-page .positioned-event .calendar-event span + span { display: none; }
+  .workspace-surface.calendar-page .event-resize { height: 16px; }
+  /* Stops the iOS long-press callout from fighting the 350ms hold-to-create gesture. */
+  .workspace-surface.calendar-page .time-slot,
+  .workspace-surface.calendar-page .calendar-event,
+  .workspace-surface.calendar-page .event-resize {
+    -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Month: fits the screen, events become colour bars, tapping a cell opens that day. */
+  .workspace-surface.calendar-page .calendar-content:has(.month-grid) { overflow: visible; }
+  .workspace-surface.calendar-page .month-grid { min-width: 0; }
+  .workspace-surface.calendar-page .month-label {
+    padding: 8px 0; font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  }
+  .workspace-surface.calendar-page .month-cell {
+    position: relative; min-height: 64px; padding: 4px 2px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .workspace-surface.calendar-page .month-cell:active { background: var(--bg-hover); }
+  .workspace-surface.calendar-page .month-cell .day-number { width: 28px; height: 28px; font-size: 13px; }
+  .workspace-surface.calendar-page .month-cell .day-number::after { content: ''; position: absolute; inset: 0; }
+  .workspace-surface.calendar-page .month-cell details { display: none; }
+  .workspace-surface.calendar-page .month-cell .calendar-event,
+  .workspace-surface.calendar-page .month-cell .calendar-task {
+    width: calc(100% - 6px); height: 5px; min-height: 0; margin: 0; padding: 0;
+    border: 0; border-radius: 3px; font-size: 0; overflow: hidden; pointer-events: none;
+  }
+  .workspace-surface.calendar-page .month-cell .calendar-event { background: var(--tint, var(--accent-fill)); }
+  .workspace-surface.calendar-page .month-cell .calendar-task { background: var(--border-strong); }
+
+  /* Agenda: roomier tap targets. */
+  .workspace-surface.calendar-page .agenda .calendar-event { padding: 12px 14px; }
+  .workspace-surface.calendar-page .agenda-task { min-height: 44px; }
+  .workspace-surface.calendar-page .agenda-task input { width: 20px; height: 20px; }
+}

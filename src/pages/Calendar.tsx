@@ -538,7 +538,22 @@ export default function Calendar() {
     )
   const swipe = useRef<number | null>(null)
   useEffect(() => {
-    if (scroll.current) scroll.current.scrollTop = 7 * 64
+    const el = scroll.current
+    if (!el) return
+    el.scrollTop = 7 * 64
+    // Phone only: the week scrolls sideways, so open on today's column.
+    if (!matchMedia('(max-width: 639px)').matches) return
+    const today = el.querySelector<HTMLElement>(
+      `.week-day[data-date="${dateKey()}"]`,
+    )
+    if (today)
+      el.scrollLeft = Math.max(
+        0,
+        today.getBoundingClientRect().left -
+          el.getBoundingClientRect().left +
+          el.scrollLeft -
+          44,
+      )
   }, [view, date])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -747,6 +762,11 @@ export default function Calendar() {
             swipe.current = e.touches[0]?.clientX ?? null
           }}
           onTouchEnd={(e) => {
+            // The phone week grid scrolls sideways, so don't also page the week.
+            if (view === 'week' && (e.target as HTMLElement).closest('.week-scroll')) {
+              swipe.current = null
+              return
+            }
             if (swipe.current !== null) {
               const delta =
                 (e.changedTouches[0]?.clientX ?? swipe.current) - swipe.current
