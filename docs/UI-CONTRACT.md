@@ -1,21 +1,15 @@
-# UI Contract (Stitch UI continuation)
+# Workspace UI and data contract
 
-The initial Phase 0 hooks below remain available. `ProjectSummary` now also includes `description` and `target`; progress derives from local tasks. `src/data/types.ts` additionally defines `WorkspacePage`, `Block`, `Task`, and `CalendarEvent`. `useWorkspace` exposes the browser persistence store and mutations; failures keep edits in memory and set `storageError` for a visible banner. `useSyncStatus` reports local persistence only. No remote provider is implemented. Current mutation methods return an ID or void, so the previously proposed result union below is a future backend contract, not implemented behavior.
+Screens import data and mutations from `src/data`. `src/data/types.ts` is the source of truth.
 
-Screens import only from `src/data`. Codex replaces `src/data/index.ts` with real providers behind these shapes. Source of truth today: `src/data/types.ts`.
+- `ProjectSummary.workspace` is `team` or `personal`; missing legacy values normalize to Personal. These are private project groups, with the existing owner-only RLS model. Cross-account sharing requires a separate membership and permission model.
+- `/` opens the current account's last selected project table or project group. Home is removed. Calendar, My tasks, Pages and Favorites are absent from navigation; existing data and direct routes remain available where applicable.
+- Task title, status, priority, due date and description edit inline. Native expandable field controls retain other task properties and a link to the existing rich notes editor. There is no task detail modal or detail-opening state.
+- Table columns default to Task name, Status, Priority, Due date, Description. Visibility, sorting, resizing and bounded rendering of large lists remain supported. Mobile tables scroll horizontally inside the canvas.
+- Signed-in mutations update Zustand immediately, then enter an in-memory server writer. Local caching/recovery never gates an online write. `saving`, `offline` and `error` mean unconfirmed work; `saved` requires successful cloud reconciliation and an active subscription.
+- Authenticated Supabase Postgres Changes subscriptions and private owner-scoped delete notifications trigger reconciliation; subscribe/reconnect and explicit retry fetch authoritative snapshots. No routine workspace polling runs. Google Calendar retains its separate polling/backoff and durable series-change journal.
+- Independent concurrent fields rebase using the existing compare-and-swap RPC. Overlapping drafts are preserved in searchable Recovered edit pages. Stale writes cannot recreate hard-deleted records after the migration is applied. Pending records overlay fetched data until a server decision is received.
+- Account changes clear displayed data synchronously, invalidate old async work, remove the previous subscription and clear Google session caches. Recovery journals and opening preferences are scoped to account IDs; existing storage IDs are preserved.
+- Guest editing is a clearly labeled local demo. Sign-in is required for a persistent cloud workspace; import the demo explicitly through Account settings.
 
-```ts
-type PaletteColor = 'gray'|'brown'|'orange'|'yellow'|'green'|'blue'|'purple'|'pink'|'red'
-interface ProjectSummary { id: string; name: string; color: PaletteColor; progress: number /* 0..1 */ }
-interface PageNode { id: string; title: string; icon: string; isFavorite: boolean; children: PageNode[] }
-type SyncState =
-  | { kind: 'saved' } | { kind: 'saving' }
-  | { kind: 'offline'; pending: number } | { kind: 'error'; reason: string }
-
-useProjects(): ProjectSummary[]
-usePages(): PageNode[]
-useSyncStatus(): SyncState
-```
-
-Mutations will return `{ ok: true } | { ok: false; reason: string }`; screens never catch.
-Page, Block, Task, Event, Calendar and provider interfaces are added in Phases 1 to 3.
+Apply the cloud-first migration before accepting live synchronization. Local regression tests do not establish remote publication configuration or two-session delivery.

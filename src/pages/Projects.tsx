@@ -5,12 +5,12 @@ import { TaskTable } from '@/components/TaskTable'
 import { ProjectBoard } from '@/components/ProjectBoard'
 import { ProjectEditor } from '@/components/ProjectEditor'
 import { ArrowLeft, CalendarDays, ChevronDown, Kanban, Pencil, Plus, Search, SlidersHorizontal, Star, Table2 } from 'lucide-react'
-import { useState } from 'react'
-import { Link, NavLink, Navigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { Badge, ProjectCards, Tile } from '@/components/WorkspaceUI'
 import { useProjects, useWorkspace } from '@/data'
 import type { TaskStatus } from '@/data'
-import { useWorkspaceUI } from '@/shell/workspace'
+import { rememberWorkspace } from '@/shell/landing'
 import { useMediaQuery } from '@/motion/hooks'
 
 export default function Projects() {
@@ -21,15 +21,21 @@ export default function Projects() {
   const { tasks, addTask, addProject, updateProject } = useWorkspace()
   const [editing, setEditing] = useState(false)
   const [newName, setNewName] = useState('')
-  const { openTask } = useWorkspaceUI()
+  const [params, setParams] = useSearchParams()
+  const workspace = params.get('workspace') === 'team' ? 'team' : 'personal'
   const [query, setQuery] = useState('')
   const [priority, setPriority] = useState('All priorities')
+  const scope = useWorkspace((s) => s.scope)
+  const projectId = project?.id, projectWorkspace = project?.workspace
+  useEffect(() => {
+    if (!id || projectId) rememberWorkspace(scope, { workspace: projectWorkspace ?? workspace, projectId })
+  }, [id, projectId, projectWorkspace, scope, workspace])
   if (!id)
     return (
       <div className="page workspace-page" data-wide="true">
         <header className="page-heading">
           <div>
-            <h1 className="t-title">Projects</h1>
+            <h1 className="t-title">{workspace === 'team' ? 'Team Workspace' : 'Personal Workspace'}</h1>
             <p className="muted">
               A home for every idea you’re bringing to life.
             </p>
@@ -40,7 +46,7 @@ export default function Projects() {
           onSubmit={(e) => {
             e.preventDefault()
             if (newName.trim()) {
-              addProject(newName)
+              addProject(newName, workspace)
               setNewName('')
             }
           }}
@@ -53,12 +59,15 @@ export default function Projects() {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
           />
+          <GlassSelect aria-label="Project workspace" value={workspace} onChange={(e) => setParams({ workspace: e.target.value })}><option value="team">Team Workspace</option><option value="personal">Personal Workspace</option></GlassSelect>
+          <GlassSelect aria-label="Project workspace" value={workspace} onChange={(e) => setParams({ workspace: e.target.value })}><option value="team">Team Workspace</option><option value="personal">Personal Workspace</option></GlassSelect>
           <button className="btn-accent">
             <Plus size={16} />
             New project
           </button>
         </form>
-        <ProjectCards />
+        <p className="small muted">Team and Personal are private project groups. Sharing between accounts is not enabled.</p>
+        <ProjectCards workspace={workspace} />
         {projects.some((p) => p.status === 'Archived') && (
           <details className="flat-card settings-section">
             <summary>Archived projects</summary>
@@ -95,7 +104,7 @@ export default function Projects() {
   if (!['table', 'board'].includes(view))
     return <Navigate to={`/projects/${id}/table`} replace />
   const add = (status: TaskStatus = 'Not started') =>
-    openTask(addTask({ title: 'New task', projectId: id, status }))
+    addTask({ title: 'New task', projectId: id, status })
   const toolbar = <>
     {!mobile && <nav className="view-tabs" aria-label="Project views">
       <NavLink to={`/projects/${id}/table`} className="view-tab"><Star size={16} />All Tasks</NavLink>
@@ -138,6 +147,7 @@ export default function Projects() {
         </div>}
       </header>
       <div className="project-properties">
+        <span className="small muted">Private · {project.workspace === 'team' ? 'Team Workspace' : 'Personal Workspace'}</span>
         <Badge color="green">{project.status || 'Active'}</Badge>
         <span className="inline small muted">
           <CalendarDays size={14} /> Target{' '}
@@ -168,9 +178,6 @@ export default function Projects() {
       {filtered.length === 0 && (
         <p className="quiet-empty">No tasks match these filters.</p>
       )}
-      <footer className="workspace-footer">
-        Your personal workspace · Changes saved on this device
-      </footer>
     </div>
   )
 }

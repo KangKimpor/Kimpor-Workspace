@@ -25,8 +25,8 @@ export function TaskList({
   const items = virtual.getVirtualItems()
   useLayoutEffect(() => {
     if (focusIndex === null) return
-    const button = parent.current?.querySelector<HTMLButtonElement>(
-      `[data-index="${focusIndex}"] .task-open`,
+    const button = parent.current?.querySelector<HTMLInputElement>(
+      `[data-index="${focusIndex}"] .task-title-input`,
     )
     if (button) {
       button.focus({ preventScroll: true })

@@ -11,7 +11,7 @@ for (const theme of ['light', 'dark']) {
     await expect(page.getByRole('link', { name: 'By Status', exact: true })).toHaveAttribute('href', '/projects/website/board')
     const table = page.locator('.task-table')
     await expect(table.getByRole('columnheader', { name: /Description/ })).toBeVisible()
-    expect(await table.locator('tbody tr').first().evaluate((row) => row.getBoundingClientRect().height)).toBeLessThanOrEqual(40)
+    expect(await table.locator('tbody tr').first().evaluate((row) => row.getBoundingClientRect().height)).toBeLessThanOrEqual(110)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.screenshot({ path: `test-results/project-desktop-${theme}.png`, animations: 'disabled' })
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
@@ -30,7 +30,7 @@ for (const theme of ['light', 'dark']) {
     await page.keyboard.press('Escape')
     await expect(table.getByRole('columnheader', { name: /Description/ })).toHaveCount(0)
     await page.getByRole('button', { name: 'New task', exact: true }).click()
-    await expect(page.getByRole('dialog')).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
   })
 }
 
@@ -41,7 +41,8 @@ for (const theme of ['light', 'dark']) {
     await page.goto('/projects/website/table')
     await expect(page.getByRole('heading', { name: 'Website Redesign' })).toBeVisible()
     const table = page.locator('.table-scroll')
-    await expect(table.locator('tbody tr').first().getByRole('button', { name: /^Open / })).toBeVisible()
+    await expect(table.locator('tbody tr').first().getByRole('button', { name: /^Open / })).toHaveCount(0)
+    await expect(table.locator('tbody tr').first().getByRole('textbox').first()).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await table.evaluate((element) => { element.scrollLeft = element.scrollWidth })
     await expect(table.getByRole('columnheader', { name: /Due date/ })).toBeVisible()
@@ -62,16 +63,17 @@ for (const theme of ['light', 'dark']) {
     await page.getByRole('heading', { name: 'Website Redesign' }).waitFor()
     await page.screenshot({ path: `docs/screenshots/project-reference-${theme}.png`, animations: 'disabled' })
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
-    await table.locator('tbody tr').first().getByRole('button', { name: /^Open / }).click()
-    await expect(page.getByRole('dialog')).toBeVisible()
+    await table.locator('tbody tr').first().getByText('More fields', { exact: true }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(table.locator('tbody tr').first().getByLabel('Reminder')).toBeVisible()
   })
 }
 
-test('mobile task names and Open controls fit on a narrow phone', async ({ page }) => {
+test('mobile task names and inline controls fit on a narrow phone', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 })
   await page.goto('/projects/website/table')
-  const open = page.locator('.table-scroll tbody tr').first().getByRole('button', { name: /^Open / })
-  await expect(open).toBeInViewport()
+  const title = page.locator('.table-scroll tbody tr').first().getByRole('textbox').first()
+  await expect(title).toBeInViewport()
   await page.getByRole('button', { name: 'All Tasks', exact: true }).click()
   await page.getByRole('link', { name: 'Board', exact: true }).click()
   await expect(page).toHaveURL(/\/board$/)

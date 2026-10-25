@@ -24,10 +24,11 @@ export function ProjectEditor({ project, onClose }: { project: ProjectSummary; o
             e.preventDefault()
             if (!draft.name.trim()) { setError('Enter a project name.'); return }
             if (draft.startDate && draft.target && draft.target < draft.startDate) { setError('Target date must be on or after the start date.'); return }
-            useWorkspace.getState().updateProject(project.id, { name: draft.name.trim(), description: draft.description, icon: draft.icon, color: draft.color, status: draft.status, startDate: draft.startDate, target: draft.target })
+            useWorkspace.getState().updateProject(project.id, { workspace: draft.workspace ?? 'personal', name: draft.name.trim(), description: draft.description, icon: draft.icon, color: draft.color, status: draft.status, startDate: draft.startDate, target: draft.target })
             onClose()
           }}>
             <label>Project name<input autoFocus required maxLength={200} value={draft.name} onChange={(e) => update({ name: e.target.value })} /></label>
+            <label htmlFor="project-workspace">Workspace<GlassSelect id="project-workspace" value={draft.workspace ?? 'personal'} onChange={(e) => update({ workspace: e.target.value as 'team' | 'personal' })}><option value="team">Team Workspace</option><option value="personal">Personal Workspace</option></GlassSelect></label>
             <label>Description<textarea rows={3} maxLength={2000} placeholder="What are you working toward?" value={draft.description} onChange={(e) => update({ description: e.target.value })} /></label>
             <div className="form-columns">
               <label>Status<GlassSelect value={draft.status || 'Active'} onChange={(e) => update({ status: e.target.value as ProjectSummary['status'] })}>{['Planned', 'Active', 'On hold', 'Completed', 'Archived'].map((s) => <option key={s}>{s}</option>)}</GlassSelect></label>

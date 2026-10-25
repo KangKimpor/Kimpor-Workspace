@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { dateKey } from '@/data'
 import type { Task } from '@/data'
-import { useWorkspaceUI } from '@/shell/workspace'
+import { useNavigate } from 'react-router-dom'
 
 export function ProjectCalendar({ tasks }: { tasks: Task[] }) {
+  const navigate = useNavigate()
   const [month, setMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1, 12),
   )
@@ -67,7 +68,7 @@ export function ProjectCalendar({ tasks }: { tasks: Task[] }) {
                   <button
                     key={task.id}
                     className="calendar-task"
-                    onClick={() => useWorkspaceUI.getState().openTask(task.id)}
+                    onClick={() => navigate(`/projects/${task.projectId}/table?task=${task.id}`)}
                   >
                     {task.title}
                   </button>

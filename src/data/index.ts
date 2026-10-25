@@ -30,7 +30,7 @@ export interface Workspace extends Content {
   updateTask: (id: string, patch: Partial<Task>) => void
   moveTask: (id: string, status: Task['status'], beforeId?: string) => void
   addTask: (input: Pick<Task, 'title' | 'projectId'> & Partial<Task>) => string
-  addProject: (name: string) => string
+  addProject: (name: string, workspace?: 'team' | 'personal') => string
   updateProject: (id: string, patch: Partial<ProjectSummary>) => void
   saveEvent: (event: CalendarEvent) => void
   deleteEvent: (id: string) => void
@@ -73,7 +73,7 @@ function read(): Content {
     return {
       ...data,
       taskViews: data.taskViews ?? [],
-      projects: data.projects ?? projectSeed,
+      projects: (data.projects ?? projectSeed).map((p: ProjectSummary) => ({ ...p, workspace: p.workspace === 'team' ? 'team' : 'personal' })),
     }
   } catch {
     return sampleContent
@@ -84,6 +84,10 @@ export const useWorkspace = create<Workspace>((set, get) => {
     const previous = contentOf(get())
     const next = { ...previous, ...patch }
     const scope = get().scope
+    if (scope !== 'guest') {
+      set({ ...patch, sync: { kind: 'saving' } })
+      return
+    }
     const recoveryKey = scope === 'guest' ? KEY : `kw-recovery:${scope}`
     const serialized = JSON.stringify(next)
     try {
@@ -408,7 +412,7 @@ export const useWorkspace = create<Workspace>((set, get) => {
       })
       return id
     },
-    addProject: (name) => {
+    addProject: (name, workspace = 'personal') => {
       const id = crypto.randomUUID()
       commit({
         projects: [
@@ -416,6 +420,7 @@ export const useWorkspace = create<Workspace>((set, get) => {
           {
             id,
             name: name.trim() || 'Untitled project',
+            workspace,
             color: 'blue',
             description: '',
             target: '',

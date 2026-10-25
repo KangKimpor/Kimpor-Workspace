@@ -1,24 +1,20 @@
-// Generates favicons and PWA icons from public/brand/logo.svg. Swap the logo, run `pnpm icons`.
-import { copyFile, readFile } from 'node:fs/promises'
+// SingBuild supplied artwork. Keep the full wordmark and use its symbol for app icons.
+import { readFile, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
-
 const dir = new URL('../public/brand/', import.meta.url)
-const logo = await readFile(new URL('logo.svg', dir), 'utf8')
-
-// Full-bleed variant for maskable icons and iOS: the logo glyph sits inside the 80% safe zone.
-const bleed = logo
-  .replace(/<rect[^>]*\/>/, '<rect width="512" height="512" fill="#1A73D9"/>')
-  .replace('<path', '<g transform="translate(51.2 51.2) scale(0.8)"><path')
-  .replace('</svg>', '</g></svg>')
-
-const png = (svg, size, name) => sharp(Buffer.from(svg)).resize(size, size).png().toFile(fileURLToPath(new URL(name, dir)))
-
+const artwork = await readFile(new URL('logo.png', dir))
+const symbol = await sharp(artwork).extract({ left: 0, top: 0, width: 188, height: 185 }).png().toBuffer()
+const svg = (image, width, height) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"><image width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet" href="data:image/png;base64,${image.toString('base64')}"/></svg>`
+const icon = async (size, name, safe = .84) => {
+  const inner = Math.round(size * safe)
+  const mark = await sharp(symbol).resize(inner, inner, { fit: 'contain', background: '#fff' }).png().toBuffer()
+  return sharp({ create: { width: size, height: size, channels: 4, background: '#fff' } }).composite([{ input: mark, gravity: 'centre' }]).png().toFile(fileURLToPath(new URL(name, dir)))
+}
 await Promise.all([
-  png(logo, 192, 'icon-192.png'),
-  png(logo, 512, 'icon-512.png'),
-  png(bleed, 512, 'icon-maskable-512.png'),
-  png(bleed, 180, 'apple-touch-icon.png'),
-  copyFile(new URL('logo.svg', dir), new URL('favicon.svg', dir)),
+  writeFile(new URL('logo.svg', dir), svg(artwork, 679, 185)),
+  writeFile(new URL('favicon.svg', dir), svg(symbol, 188, 185)),
+  icon(192, 'icon-192.png'), icon(512, 'icon-512.png'),
+  icon(512, 'icon-maskable-512.png', .72), icon(180, 'apple-touch-icon.png', .78),
 ])
-console.log('icons generated')
+console.log('SingBuild icons generated')

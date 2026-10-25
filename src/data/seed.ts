@@ -17,6 +17,7 @@ export const projectSeed: ProjectSummary[] = [
   {
     id: 'website',
     name: 'Website Redesign',
+    workspace: 'personal',
     color: 'blue',
     progress: 0.62,
     description: 'Design system unification and performance refresh.',
@@ -25,6 +26,7 @@ export const projectSeed: ProjectSummary[] = [
   {
     id: 'mobile',
     name: 'Mobile App',
+    workspace: 'personal',
     color: 'orange',
     progress: 0.35,
     description: 'A thoughtful companion workspace for life on the go.',
@@ -33,6 +35,7 @@ export const projectSeed: ProjectSummary[] = [
   {
     id: 'planning',
     name: 'Q4 Planning',
+    workspace: 'personal',
     color: 'green',
     progress: 0.8,
     description: 'Strategic roadmap, priorities, and resource allocation.',

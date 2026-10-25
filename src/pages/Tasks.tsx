@@ -5,12 +5,10 @@ import { useState } from 'react'
 import { GlassPopover } from '@/components/glass/GlassPopover'
 import { TaskList } from '@/components/TaskList'
 import { dateKey, useProjects, useWorkspace } from '@/data'
-import { useWorkspaceUI } from '@/shell/workspace'
 
 export default function Tasks() {
   const { tasks, addTask, taskViews, setTaskViews } = useWorkspace()
   const projects = useProjects()
-  const openTask = useWorkspaceUI((s) => s.openTask)
   const [project, setProject] = useState('all')
   const [query, setQuery] = useState('')
   const [priority, setPriority] = useState('all')
@@ -63,12 +61,10 @@ export default function Tasks() {
         <button
           className="btn-accent"
           onClick={() =>
-            openTask(
-              addTask({
+            addTask({
                 title: 'New task',
                 projectId: scope === 'personal' ? '' : project === 'all' ? projects[0]?.id || '' : project,
-              }),
-            )
+              })
           }
         >
           <Plus size={16} />

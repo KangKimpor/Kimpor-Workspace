@@ -160,7 +160,7 @@ export function TopBar({ crumb, bp }: { crumb: Crumb; bp: Breakpoint }) {
         aria-label="Breadcrumb"
       >
         <Link className="parent brand-crumb" to="/">
-          Kimpor
+          SingBuild
         </Link>
         <span className="sep brand-crumb" aria-hidden="true">
           /
@@ -188,18 +188,21 @@ export function TopBar({ crumb, bp }: { crumb: Crumb; bp: Breakpoint }) {
         <span
           className="pill"
           role="status"
-          data-tone={sync.kind === 'saving' ? 'busy' : undefined}
+          data-tone={sync.kind === 'saving' ? 'busy' : sync.kind === 'error' || sync.kind === 'offline' ? 'error' : undefined}
+          title={sync.kind === 'error' ? sync.reason : undefined}
+          aria-label={sync.kind === 'error' ? `Save failed: ${sync.reason}` : undefined}
           data-testid="sync-pill"
         >
           <span className="dot" aria-hidden="true" />
           {sync.kind === 'saved'
             ? useWorkspace.getState().scope === 'guest'
-              ? 'Saved locally'
+              ? 'Demo · local'
               : 'Saved to cloud'
             : sync.kind === 'saving'
               ? 'Saving'
-              : 'Not saved'}
+              : sync.kind === 'offline' ? `Pending · ${sync.pending}` : 'Save failed'}
         </span>
+        {sync.kind === 'error' && <Link className="text-link small" to="/settings/account">Retry</Link>}
         <button
           type="button"
           className="ibtn"
@@ -214,7 +217,7 @@ export function TopBar({ crumb, bp }: { crumb: Crumb; bp: Breakpoint }) {
           className="profile-avatar"
           aria-label="Workspace settings"
         >
-          K
+          <img className="brand-logo" src="/brand/favicon.svg" width={28} height={28} alt="" />
         </Link>
       </div>
     </Glass>

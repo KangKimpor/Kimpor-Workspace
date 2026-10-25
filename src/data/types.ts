@@ -17,6 +17,7 @@ export type PaletteColor =
 export interface ProjectSummary {
   id: string
   name: string
+  workspace?: 'team' | 'personal'
   color: PaletteColor
   /** 0 to 1, derived from the project's tasks. */
   progress: number

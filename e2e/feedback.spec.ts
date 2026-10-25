@@ -23,9 +23,11 @@ for (const preference of ['system', 'os-reduced', 'app-reduced']) {
     await expect(status.locator('.dot')).toHaveCSS('animation-name', preference === 'system' ? 'saving-pulse' : 'none')
     await status.evaluate((element) => { element.removeAttribute('data-tone') })
 
-    await page.locator('.task-row input[type="checkbox"]').first().click()
+    await page.getByRole('button', { name: 'New task', exact: true }).click()
+    await page.getByText('More fields', { exact: true }).first().click()
+    await page.getByRole('button', { name: 'Delete task', exact: true }).first().click()
     const toast = page.locator('.workspace-toast')
-    await expect(toast).toContainText(/Task completed|Task reopened/)
+    await expect(toast).toContainText(/Task deleted/)
     await expect(toast).toHaveCSS('animation-name', preference === 'system' ? 'toast-in' : 'none')
     await toast.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect(toast).not.toBeVisible()

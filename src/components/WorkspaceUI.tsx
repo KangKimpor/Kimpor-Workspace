@@ -144,10 +144,10 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
     </Link>
   )
 }
-export function ProjectCards() {
+export function ProjectCards({ workspace }: { workspace?: 'team' | 'personal' } = {}) {
   return (
     <div className="project-grid">
-      {useProjects().map((p) => (
+      {useProjects().filter((p) => !workspace || (p.workspace ?? 'personal') === workspace).map((p) => (
         <ProjectCard key={p.id} project={p} />
       ))}
     </div>

@@ -96,6 +96,37 @@ test('live isolated accounts enforce ownership and private attachment access', a
     (await a.client.storage.from('kw-files').remove([path])).error,
   ).toBeNull()
 })
+test('two signed-in sessions receive task writes and deletions without focus or reload', async ({ browser }) => {
+  const actorA = await actor(0)
+  const first = await browser.newContext(), second = await browser.newContext()
+  const projectId = `qa-live-${crypto.randomUUID()}`, taskId = crypto.randomUUID()
+  try {
+    const created = await actorA.client.rpc('kw_workspace_write', { collection: 'projects', record_id: projectId, expected: null, payload: { id: projectId, name: 'QA live project', workspace: 'personal', color: 'blue', description: '', target: '', progress: 0 } })
+    expect(created.error).toBeNull()
+    const task = { id: taskId, projectId, title: 'QA live task', status: 'Not started', priority: 'Medium', due: '', notes: '', subtasks: [] }
+    expect((await actorA.client.rpc('kw_workspace_write', { collection: 'tasks', record_id: taskId, payload: task, expected: null })).error).toBeNull()
+    await signedIn(first, actorA.session); await signedIn(second, actorA.session)
+    const pageA = await first.newPage(), pageB = await second.newPage()
+    await pageA.goto(`/projects/${projectId}/table`); await pageB.goto(`/projects/${projectId}/table`)
+    await expect(pageA.getByLabel('Title for QA live task', { exact: true })).toBeVisible()
+    await expect(pageB.getByLabel('Title for QA live task', { exact: true })).toBeVisible()
+    await pageA.getByLabel('Title for QA live task', { exact: true }).fill('Propagated immediately')
+    await expect(pageB.getByLabel('Title for Propagated immediately', { exact: true })).toHaveValue('Propagated immediately', { timeout: 15000 })
+    await pageA.getByText('More fields', { exact: true }).click()
+    await pageA.getByRole('button', { name: 'Delete task', exact: true }).click()
+    await expect(pageB.getByLabel('Title for Propagated immediately', { exact: true })).toHaveCount(0, { timeout: 15000 })
+    // Hard deletes use the private owner notification instead of a row update.
+    const hardDelete = await actorA.client.rpc('kw_workspace_write', { collection: 'tasks', record_id: taskId, payload: { ...task, title: 'QA hard delete' }, expected: (await actorA.client.from('kw_tasks').select('updated_at').eq('id', taskId).single()).data!.updated_at })
+    expect(hardDelete.error).toBeNull()
+    await expect(pageB.getByLabel('Title for QA hard delete', { exact: true })).toBeVisible()
+    expect((await actorA.client.from('kw_tasks').delete().eq('id', taskId)).error).toBeNull()
+    await expect(pageB.getByLabel('Title for QA hard delete', { exact: true })).toHaveCount(0, { timeout: 15000 })
+  } finally {
+    await first.close(); await second.close()
+    await actorA.client.from('kw_tasks').delete().eq('id', taskId)
+    await actorA.client.from('kw_projects').delete().eq('id', projectId)
+  }
+})
 test('two real clients recover offline edits after a saved conflict without losing the editor text', async ({
   browser,
 }) => {
@@ -138,26 +169,9 @@ test('two real clients recover offline edits after a saved conflict without losi
     await expect
       .poll(async () =>
         pageA.evaluate(
-          (scope) =>
-            new Promise<boolean>((resolve) => {
-              const request = indexedDB.open('kimpor-workspace')
-              request.onsuccess = () => {
-                const db = request.result
-                const row = db
-                  .transaction('snapshots')
-                  .objectStore('snapshots')
-                  .get(scope)
-                row.onsuccess = () => {
-                  resolve(
-                    JSON.stringify(row.result?.content || '').includes(
-                      'Offline retained',
-                    ),
-                  )
-                  db.close()
-                }
-              }
-              request.onerror = () => resolve(false)
-            }),
+          (scope) => Object.keys(localStorage).some((key) =>
+            key.startsWith(`kw-cloud-pending:${scope}:`) && (localStorage.getItem(key) || '').includes('Offline retained'),
+          ),
           a.user.id,
         ),
       )

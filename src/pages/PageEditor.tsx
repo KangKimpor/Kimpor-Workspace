@@ -1,3 +1,4 @@
+import { GlassSelect } from '@/components/glass/GlassSelect'
 import { Download, Plus, Star, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -137,7 +138,7 @@ export default function PageEditor() {
       >
         {page.cover && <PageCover cover={page.cover} />}
         <div className="page-options">
-          <select
+          <GlassSelect
             aria-label="Page icon"
             value={page.icon}
             onChange={(e) => update({ icon: e.target.value })}
@@ -146,7 +147,7 @@ export default function PageEditor() {
               <option key={icon}>{icon}</option>
             ))}
             {!['note','book','star','bulb','flag','layout'].includes(page.icon)&&<option value={page.icon}>Custom icon</option>}
-          </select>
+          </GlassSelect>
           <label>Emoji<input className="emoji-input" aria-label="Page emoji" placeholder="🙂" maxLength={12} value={/\p{Extended_Pictographic}/u.test(page.icon)?page.icon:''} onChange={e=>update({icon:e.target.value || 'note'})}/></label>
           <label className="btn-text">Upload icon<input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Upload page icon" onChange={e=>{const file=e.target.files?.[0];if(file)void uploadWorkspaceFile(file).then(icon=>update({icon})).catch(error=>notify(error.message))}}/></label>
           <button className="btn-text" onClick={() => setCover(!cover)}>
@@ -154,7 +155,7 @@ export default function PageEditor() {
           </button>
           <label>
             Font
-            <select
+            <GlassSelect
               value={page.font ?? 'default'}
               onChange={(e) =>
                 update({ font: e.target.value as WorkspacePage['font'] })
@@ -163,7 +164,7 @@ export default function PageEditor() {
               {['default', 'serif', 'mono'].map((f) => (
                 <option key={f}>{f}</option>
               ))}
-            </select>
+            </GlassSelect>
           </label>
           <label>
             <input
@@ -230,7 +231,7 @@ export default function PageEditor() {
         <div className="document-meta">
           <label className="inline small muted">
             Inside
-            <select
+            <GlassSelect
               aria-label="Parent page"
               value={page.parentId ?? ''}
               onChange={(e) => {
@@ -246,7 +247,7 @@ export default function PageEditor() {
                     {p.title || 'Untitled'}
                   </option>
                 ))}
-            </select>
+            </GlassSelect>
           </label>
           <button
             className="btn-text"

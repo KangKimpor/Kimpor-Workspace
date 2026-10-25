@@ -38,6 +38,7 @@ function TimelineDay({
   events: CalendarEvent[]
   tasks: Task[]
 }) {
+  const navigate = useNavigate()
   const key = dateKey(date),
     ui = useWorkspaceUI(),
     { saveEvent, updateTask } = useWorkspace()
@@ -469,7 +470,7 @@ function TimelineDay({
                   checked={task.status === 'Done'}
                   onChange={() => completeTask(task)}
                 />
-                <button onClick={() => ui.openTask(task.id)}>
+                <button onClick={() => navigate(`/projects/${task.projectId}/table?task=${task.id}`)}>
                   {task.dueTime} · {task.title}
                 </button>
               </div>
@@ -817,7 +818,7 @@ export default function Calendar() {
                           <button
                             className="calendar-task"
                             key={t.id}
-                            onClick={() => ui.openTask(t.id)}
+                            onClick={() => navigate(`/projects/${t.projectId}/table?task=${t.id}`)}
                           >
                             □ {t.title}
                           </button>

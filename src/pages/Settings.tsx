@@ -1,9 +1,9 @@
+import { GlassSelect } from '@/components/glass/GlassSelect'
 import { useEffect } from 'react'
 import { initializeCloud } from '@/data/sync'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CalendarAccounts } from '@/components/CalendarAccounts'
 import { Link, useParams } from 'react-router-dom'
-import { Monitor, Moon, Sun } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 import { useGlass } from '@/lib/glass'
 import type { GlassPref } from '@/lib/glass'
@@ -74,32 +74,16 @@ function SettingsContent() {
             <p className="muted small">
               Choose what feels right, or follow your device.
             </p>
-            <div className="theme-options">
-              {[
-                { pref: 'light', label: 'Light', icon: Sun },
-                { pref: 'dark', label: 'Dark', icon: Moon },
-                { pref: 'system', label: 'System', icon: Monitor },
-              ].map((t) => (
-                <button
-                  className="theme-choice flat-card"
-                  aria-pressed={theme.pref === t.pref}
-                  key={t.pref}
-                  onClick={() =>
-                    theme.setPref(t.pref as 'light' | 'dark' | 'system')
-                  }
-                >
-                  <t.icon size={24} />
-                  <strong>{t.label}</strong>
-                </button>
-              ))}
-            </div>
+            <GlassSelect aria-label="Theme" value={theme.pref} onChange={(e) => theme.setPref(e.target.value as 'light' | 'dark' | 'system')}>
+              <option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option>
+            </GlassSelect>
           </section>
           <section className="settings-section settings-row">
             <div>
               <h2>Glass effect</h2>
               <p className="muted small">Soft depth, only where it belongs.</p>
             </div>
-            <select
+            <GlassSelect
               aria-label="Glass effect"
               value={glass.pref}
               onChange={(e) => glass.setPref(e.target.value as GlassPref)}
@@ -110,7 +94,7 @@ function SettingsContent() {
                   {v.slice(1)}
                 </option>
               ))}
-            </select>
+            </GlassSelect>
           </section>
           <section className="settings-section settings-row">
             <div>
@@ -132,8 +116,8 @@ function SettingsContent() {
             <h2>Calendar display</h2>
             <div className="settings-row">
               <label htmlFor="week-start">Week starts on</label>
-              <select
-                id="week-start"
+              <GlassSelect
+                id="week-start" aria-label="Week starts on"
                 value={preferences.weekStart}
                 onChange={(e) =>
                   setCalendarPreferences({
@@ -144,12 +128,12 @@ function SettingsContent() {
               >
                 <option value="1">Monday</option>
                 <option value="0">Sunday</option>
-              </select>
+              </GlassSelect>
             </div>
             <div className="settings-row">
               <label htmlFor="clock-format">Clock format</label>
-              <select
-                id="clock-format"
+              <GlassSelect
+                id="clock-format" aria-label="Clock format"
                 value={preferences.hour12 ? '12' : '24'}
                 onChange={(e) =>
                   setCalendarPreferences({
@@ -160,11 +144,11 @@ function SettingsContent() {
               >
                 <option value="24">24 hour</option>
                 <option value="12">12 hour</option>
-              </select>
+              </GlassSelect>
             </div>
           </section>
           <section className="settings-section">
-            <h2>Install Kimpor Workspace</h2>
+            <h2>Install SingBuild Workspace</h2>
             <p className="muted small">
               {install.installed
                 ? 'Installed on this device. Your workspace is available from your home screen or app launcher.'
@@ -187,8 +171,7 @@ function SettingsContent() {
           <section className="settings-section">
             <h2>Your workspace data</h2>
             <p className="muted small">
-              Pages, tasks, and events are saved locally in this browser. Export
-              important pages as Markdown before clearing browser storage.
+              Sign in for a persistent cloud workspace. Signed-in changes are saved to the server and updated live across your sessions. Offline edits wait for confirmation; guest content is a local demo.
             </p>
             <Link className="text-link" to="/design">
               Explore the design system

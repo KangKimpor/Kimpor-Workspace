@@ -44,11 +44,9 @@ test('500-task lists render a bounded window, support End navigation and inline 
   expect(await list.locator('.task-row').count()).toBeLessThan(80)
   await list.focus()
   await page.keyboard.press('End')
-  await expect(list.getByText('QA Task 0499', { exact: true })).toBeVisible()
-  await page.keyboard.press('F2')
-  await page.getByLabel('Edit task title').fill('Renamed in list')
-  await page.keyboard.press('Enter')
-  await expect(list.getByText('Renamed in list', { exact: true })).toBeVisible()
+  await expect(list.getByLabel('Title for QA Task 0499', { exact: true })).toBeVisible()
+  await list.getByLabel('Title for QA Task 0499', { exact: true }).fill('Renamed in list')
+  await expect(list.getByLabel('Title for Renamed in list', { exact: true })).toHaveValue('Renamed in list')
 })
 test('500-task table renders a bounded row window and reaches the final task', async ({
   page,

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import { applyRemotePatch, useAccount } from '@/data/sync'
+import { applyRemotePatch, useAccount, pendingEventIds, discardCalendarWrites } from '@/data/sync'
 import { dateKey, useWorkspace } from '@/data'
 import type { CalendarAccount, CalendarEvent, UserCalendar } from '@/data'
 import { db } from '@/data/persistence'
@@ -797,11 +797,8 @@ export async function syncGoogle(force = false) {
       }
       try {
         const result = await googleProvider.sync(calendar)
-        const pending = new Set(
-          (await db.outbox.where('scope').equals(scope).toArray())
-            .filter((p) => p.collection === 'events')
-            .map((p) => p.id),
-        )
+        if (useAccount.getState().session?.user.id !== scope) return
+        const pending = pendingEventIds(scope)
         let existing = useWorkspace.getState().events
         if (result.reset) {
           const received = new Set(result.events.map((e) => e.providerEventId))
@@ -839,7 +836,6 @@ export async function syncGoogle(force = false) {
           if (!pending.has(id)) mapped.set(id, { ...event, id })
         }
         if (useAccount.getState().session?.user.id !== scope) return
-        applyRemotePatch({ events: [...mapped.values()] })
         calendar.syncToken = result.token
         calendar.eventFormatVersion = 2
         const changed = result.events
@@ -863,6 +859,7 @@ export async function syncGoogle(force = false) {
           )
           if (error) throw error
         }
+        if (useAccount.getState().session?.user.id !== scope) return
         const { error: calendarError } = await supabase
           .from('kw_calendars')
           .upsert(
@@ -876,6 +873,12 @@ export async function syncGoogle(force = false) {
             { onConflict: 'user_id,account_id,provider_id' },
           )
         if (calendarError) throw calendarError
+        if (useAccount.getState().session?.user.id !== scope) return
+        // Apply provider data only after its workspace write is confirmed.
+        const protectedIds = pendingEventIds(scope)
+        const currentEvents = useWorkspace.getState().events
+        for (const event of currentEvents) if (protectedIds.has(event.id)) mapped.set(event.id, event)
+        applyRemotePatch({ events: [...mapped.values()] })
         retries.delete(calendar.id)
       } catch (error) {
         failures.push(`${calendar.name}: ${backoff(calendar.id, error)}`)
@@ -886,17 +889,19 @@ export async function syncGoogle(force = false) {
     await db.versions.put({
       key: `google-calendars:${scope}`,
       value: JSON.stringify(calendars),
-    })
+    }).catch(() => {})
   } catch (error) {
-    useCalendars.setState({
+    if (useAccount.getState().session?.user.id === scope) useCalendars.setState({
       error: error instanceof Error ? error.message : 'Google sync failed',
     })
   } finally {
-    useCalendars.setState({ busy: false })
+    if (useAccount.getState().session?.user.id === scope) useCalendars.setState({ busy: false })
   }
 }
 export async function disconnectGoogle(accountId: string) {
+  const scope = useAccount.getState().session?.user.id
   await googleService('disconnect', { accountId })
+  if (useAccount.getState().session?.user.id !== scope) return
   tokenCache.delete(accountId)
   const ids = new Set(
     useCalendars
@@ -908,18 +913,13 @@ export async function disconnectGoogle(accountId: string) {
   applyRemotePatch({
     events: state.events.filter((e) => !e.calendarId || !ids.has(e.calendarId)),
   })
-  await db.outbox
-    .where('scope')
-    .equals(state.scope)
-    .filter(
-      (p) => p.collection === 'events' && ids.has(String(p.data.calendarId)),
-    )
-    .delete()
+  discardCalendarWrites(state.scope, ids)
   await supabase
     ?.from('kw_events')
     .delete()
     .eq('user_id', state.scope)
     .in('data->>calendarId', [...ids])
+  if (useAccount.getState().session?.user.id !== scope) return
   useCalendars.setState({
     accounts: useCalendars
       .getState()

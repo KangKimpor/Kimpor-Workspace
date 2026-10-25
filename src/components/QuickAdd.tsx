@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import * as chrono from 'chrono-node'
 import { dateKey, useWorkspace } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
@@ -37,6 +38,7 @@ export function QuickAdd({ onDone }: { onDone?: () => void }) {
     [error, setError] = useState('')
   const { projects, addProject, addTask, saveEvent } = useWorkspace()
   const ui = useWorkspaceUI()
+  const navigate = useNavigate()
   return (
     <form
       className="quick-add-form"
@@ -63,7 +65,8 @@ export function QuickAdd({ onDone }: { onDone?: () => void }) {
             priority: parsed.priority,
           })
           onDone?.()
-          ui.openTask(id)
+          const task = useWorkspace.getState().tasks.find((t) => t.id === id)!
+          navigate(`/projects/${task.projectId}/table?task=${id}`)
         } else {
           const id = crypto.randomUUID()
           const start = parsed.time || '09:00'

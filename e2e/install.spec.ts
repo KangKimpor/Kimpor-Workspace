@@ -21,11 +21,13 @@ test('calendar display preferences persist and change week order and clocks', as
   page,
 }) => {
   await page.goto('/settings/appearance')
-  await page.getByLabel('Week starts on').selectOption('0')
-  await page.getByLabel('Clock format').selectOption('12')
+  await page.getByRole('combobox', { name: 'Week starts on' }).click()
+  await page.getByRole('option', { name: 'Sunday', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Clock format' }).click()
+  await page.getByRole('option', { name: '12 hour', exact: true }).click()
   await page.reload()
-  await expect(page.getByLabel('Week starts on')).toHaveValue('0')
-  await expect(page.getByLabel('Clock format')).toHaveValue('12')
+  await expect(page.getByRole('combobox', { name: 'Week starts on' })).toHaveText('Sunday')
+  await expect(page.getByRole('combobox', { name: 'Clock format' })).toHaveText('12 hour')
   await page.goto('/calendar/week/2026-10-19')
   await expect(page.locator('.week-day').first()).toHaveAttribute(
     'data-date',

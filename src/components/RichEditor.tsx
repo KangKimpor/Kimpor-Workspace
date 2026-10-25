@@ -1,3 +1,4 @@
+import { GlassSelect } from '@/components/glass/GlassSelect'
 import {
   BlockNoteSchema,
   defaultBlockSpecs,
@@ -95,7 +96,7 @@ function EmbeddedTasks({
   const { tasks, projects } = useWorkspace()
   return (
     <div className="embedded-tasks" contentEditable={false}>
-      <select
+      <GlassSelect
         aria-label="Embedded task project"
         value={projectId}
         onChange={(e) => onChange(e.target.value)}
@@ -106,7 +107,7 @@ function EmbeddedTasks({
             {p.name}
           </option>
         ))}
-      </select>
+      </GlassSelect>
       {tasks
         .filter(
           (t) => !t.deletedAt && (!projectId || t.projectId === projectId),

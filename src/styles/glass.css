@@ -185,3 +185,5 @@
   bottom: -18%;
   left: 24%;
 }
+
+@supports not (backdrop-filter: blur(1px)) { .glass { background: var(--bg-raised); } }

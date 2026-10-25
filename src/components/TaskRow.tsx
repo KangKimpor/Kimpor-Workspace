@@ -1,9 +1,7 @@
-import { CalendarDays, Flag, Pencil } from 'lucide-react'
-import { useRef, useState } from 'react'
-import { dateKey, useProjects, useWorkspace } from '@/data'
+import { useProjects, useWorkspace } from '@/data'
 import type { Task } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
-import { Badge, formatDate, statusColor } from './WorkspaceUI'
+import { TaskFields, TaskStatusSelect, TaskPrioritySelect } from './TaskFields'
 
 export function completeTask(task: Task) {
   const status = task.status === 'Done' ? 'Not started' : 'Done'
@@ -18,111 +16,17 @@ export function completeTask(task: Task) {
         useWorkspace.getState().updateTask(task.id, { status: task.status }),
     )
 }
-export function TaskRow({
-  task,
-  compact = false,
-}: {
-  task: Task
-  compact?: boolean
-}) {
+export function TaskRow({ task, compact = false }: { task: Task; compact?: boolean }) {
+  const update = useWorkspace((s) => s.updateTask)
   const project = useProjects().find((p) => p.id === task.projectId)
-  const openTask = useWorkspaceUI((s) => s.openTask)
-  const [editing, setEditing] = useState(false),
-    [title, setTitle] = useState(task.title)
-  const cancelled = useRef(false)
-  const rename = () => {
-    cancelled.current = false
-    setTitle(task.title)
-    setEditing(true)
-  }
-  return (
-    <div
-      className={`task-row ${compact ? 'task-row-card flat-card' : ''}`}
-      data-priority={task.priority}
-      data-overdue={task.status !== 'Done' && !!task.due && task.due < dateKey()}
-      data-done={task.status === 'Done'}
-    >
-      <label className="checkbox-target">
-        <input
-          aria-label={`Complete ${task.title}`}
-          type="checkbox"
-          checked={task.status === 'Done'}
-          onChange={() => completeTask(task)}
-        />
-      </label>
-      <div className="task-main">
-        {editing ? (
-          <input
-            className="task-title-input"
-            autoFocus
-            aria-label="Edit task title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => {
-              if (
-                !cancelled.current &&
-                title.trim() &&
-                title.trim() !== task.title
-              )
-                useWorkspace
-                  .getState()
-                  .updateTask(task.id, { title: title.trim() })
-              setEditing(false)
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') e.currentTarget.blur()
-              if (e.key === 'Escape') {
-                cancelled.current = true
-                setEditing(false)
-              }
-            }}
-          />
-        ) : (
-          <button
-            className="task-open"
-            onClick={() => openTask(task.id)}
-            onKeyDown={(e) => {
-              if (e.key === 'F2') {
-                e.preventDefault()
-                rename()
-              }
-            }}
-          >
-            {compact && (
-              <span className="task-tags">
-                <Badge>{project?.name ?? 'Personal'}</Badge>
-                <Badge color={statusColor[task.status]}>{task.status}</Badge>
-              </span>
-            )}
-            <span className="task-title">{task.title}</span>
-            {!compact && (
-              <span className="task-project"><Badge color={project?.color ?? 'gray'}>{project?.name ?? 'Personal'}</Badge></span>
-            )}
-          </button>
-        )}
-        {!compact && !editing && (
-          <button
-            className="ibtn task-rename"
-            aria-label={`Rename ${task.title}`}
-            onClick={rename}
-          >
-            <Pencil size={13} />
-          </button>
-        )}
-      </div>
-      {!compact && (
-        <>
-          <span className="task-priority small">
-            <Flag size={13} />
-            {task.priority}
-          </span>
-          <span className="task-date small muted">
-            <CalendarDays size={13} />
-            {formatDate(task.due)}
-          </span>
-          <Badge color={statusColor[task.status]}>{task.status}</Badge>
-        </>
-      )}
+  return <div className={`task-row ${compact ? 'task-row-card flat-card' : ''}`} data-priority={task.priority} data-done={task.status === 'Done'}>
+    <label className="checkbox-target"><input aria-label={`Complete ${task.title}`} type="checkbox" checked={task.status === 'Done'} onChange={() => completeTask(task)} /></label>
+    <div className="task-main">
+      <input className="task-title-input" aria-label={`Title for ${task.title}`} value={task.title} onChange={(e) => update(task.id, { title: e.target.value })} />
+      <span className="small muted">{project?.name}</span>
+      <div className="task-inline-controls"><TaskStatusSelect task={task} /><TaskPrioritySelect task={task} /><input aria-label={`Due date for ${task.title}`} type="date" value={task.due} onChange={(e) => update(task.id, { due: e.target.value })} /></div>
+      <textarea className="task-description" rows={2} aria-label={`Description for ${task.title}`} placeholder="Description" value={task.notes} onChange={(e) => update(task.id, { notes: e.target.value })} />
+      <TaskFields task={task} />
     </div>
-  )
+  </div>
 }

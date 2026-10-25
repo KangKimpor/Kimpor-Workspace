@@ -1,3 +1,17 @@
+# Local SingBuild update · October 25, 2026
+
+Implemented locally: supplied SingBuild branding/icons, persistent private Team/Personal project groups, Personal defaults for legacy projects, workspace selection during project creation/editing, a remembered opening project/group, and a dense task table based on the supplied reference. Home is removed. Calendar, My tasks, Pages, Favorites and New page are absent from navigation; existing page/task/calendar data and Google Calendar integration remain available. Removed the task inspector and its opening state/actions. Primary task properties edit inline; in-flow fields retain hierarchy, subtasks, labels, repeat schedules, reminders, activity and rich notes. Shared status/priority pills and glass selectors retain keyboard operation, touch targets, both themes and opaque/reduced-motion fallbacks. The content column stays opaque to the bottom of short pages.
+
+Signed-in writes now use a memory queue and prompt server requests; local storage and IndexedDB are cache/recovery paths, not write prerequisites. Realtime subscriptions trigger authoritative reconciliation, with private owner-scoped notifications for hard deletes. Independent field edits rebase, overlapping drafts recover into searchable pages, in-flight keystrokes survive acknowledgements, and account changes isolate subscriptions/async results. Google Calendar retains separate polling, backoff, ETags and its series-change journal. Guest mode is labeled as a local demo.
+
+Validation: lint, frontend/API typecheck, **77 unit tests**, and the production build pass. The deterministic browser suite passes **162 Chromium/WebKit checks**. All **six live checks** subsequently passed with disposable accounts. Eight focused desktop/mobile checks also pass in both themes, covering workspace reassignment, opening selection, inline editing, column order and keyboard selectors. Screenshots were inspected in both themes and at desktop/phone sizes. The shared-selector label regression found during verification is fixed and covered by a regression test. The existing lazy editor chunk remains above Vite's 500 kB advisory threshold; initial bundle budgets pass (96.6 KiB JavaScript / 13.8 KiB CSS gzip).
+
+Backend status: applied `*_cloud_first_workspaces.sql` to `nlcpjdokfvawlpzyfytx` on October 25, 2026. Confirmed all five tables in Realtime and the owner-scoped policies. Transactional isolation SQL passed and rolled back. Live tests verified private files, cross-account isolation, stale-write rejection, two-session task delivery/deletion without focus or refresh, and offline conflict recovery. Disposable QA accounts/data are cleaned up after verification. Local public configuration is saved in ignored `.env.local`. Team remains a private project group; real sharing still requires a membership and permission model.
+
+The user authorized pushing this update to main. No manual app deployment was requested. Confirmed access to the correct Vercel `kimpor-workspace` project and verified that its production Supabase URL/public key match the live-tested backend. Existing hosted values required no changes. The remaining sections below are historical production observations.
+
+---
+
 # Build status · October 20, 2026
 
 ## Production performance follow-up · October 20, evening

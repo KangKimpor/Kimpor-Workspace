@@ -1,3 +1,4 @@
+import { TaskRow } from './TaskRow'
 import {
   DndContext,
   KeyboardSensor,
@@ -16,50 +17,20 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { CalendarDays, Plus } from 'lucide-react'
+import { GripVertical, Plus } from 'lucide-react'
 import { statuses, useWorkspace } from '@/data'
 import type { Task, TaskStatus } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
-import { Badge, formatDate, statusColor } from './WorkspaceUI'
+import { Badge, statusColor } from './WorkspaceUI'
 
 function Card({ task }: { task: Task }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useSortable({ id: task.id })
   return (
-    <button
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      className="board-card flat-card"
-      style={{
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.6 : 1,
-        zIndex: isDragging ? 5 : undefined,
-        touchAction: 'manipulation',
-      }}
-      onClick={() => useWorkspaceUI.getState().openTask(task.id)}
-    >
-      <Badge
-        color={
-          task.priority === 'Urgent'
-            ? 'red'
-            : task.priority === 'High'
-              ? 'orange'
-              : 'gray'
-        }
-      >
-        {task.priority}
-      </Badge>
-      <h3>{task.title}</h3>
-      <p className="small muted">{task.notes || 'Add notes and details…'}</p>
-      <div className="row-between small muted">
-        <span className="inline">
-          <CalendarDays size={13} />
-          {formatDate(task.due)}
-        </span>
-        <span className="owner-avatar">K</span>
-      </div>
-    </button>
+    <div ref={setNodeRef} className="board-card flat-card" style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.6 : 1, zIndex: isDragging ? 5 : undefined }}>
+      <button {...attributes} {...listeners} className="ibtn" aria-label={`Move ${task.title}`} style={{ touchAction: 'none' }}><GripVertical size={16} /></button>
+      <TaskRow task={task} compact />
+    </div>
   )
 }
 function Column({
@@ -76,7 +47,6 @@ function Column({
     <section ref={setNodeRef} className="board-column" data-over={isOver}>
       <header>
         <Badge color={statusColor[status]}>
-          <span className="dot" />
           {status}
         </Badge>
         <span className="muted small">{tasks.length}</span>
@@ -157,11 +127,7 @@ export function ProjectBoard({
               status={status}
               tasks={tasks.filter((t) => t.status === status)}
               key={status}
-              add={() =>
-                useWorkspaceUI
-                  .getState()
-                  .openTask(addTask({ title: 'New task', projectId, status }))
-              }
+              add={() => { addTask({ title: 'New task', projectId, status }) }}
             />
           ))}
         </div>

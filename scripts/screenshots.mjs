@@ -17,7 +17,7 @@ const sizes = [
   [320, 640],
 ]
 const routes = [
-  ['home', '/'],
+  ['workspace', '/'],
   ['design', '/design'],
   ['page', '/p/weekly-plan'],
   ['project', '/projects/website/overview'],
@@ -55,7 +55,7 @@ try {
       for (const [name, route] of routes) {
         if (
           ![1920, 1180, 820, 393].includes(width) &&
-          !['home', 'design'].includes(name)
+          !['workspace', 'design'].includes(name)
         )
           continue
         await page.goto(`${baseURL}${route}`)
@@ -72,11 +72,8 @@ try {
         await capture('command')
         await page.keyboard.press('Escape')
         await page.goto(`${baseURL}/projects/website/board`)
-        await page
-          .getByRole('button', { name: /Finalize token contrasts/ })
-          .click()
-        await page.getByRole('dialog').waitFor()
-        await capture('task-detail')
+        await page.locator('.board-card').filter({ has: page.getByLabel('Title for Finalize token contrasts for WCAG AA', { exact: true }) }).getByText('More fields', { exact: true }).click()
+        await capture('task-fields')
       }
       await context.close()
     }

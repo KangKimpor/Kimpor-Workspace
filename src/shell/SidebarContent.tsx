@@ -1,31 +1,18 @@
 /* oxlint-disable jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- Delegated link clicks include keyboard activation. */
 import {
-  CalendarDays,
-  CheckSquare,
   FileText,
   FolderKanban,
-  Home,
   Palette,
-  Plus,
   Search,
   Settings,
   Trash2,
   ChevronRight,
-  ChevronsUpDown,
 } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
-import { usePages, useProjects } from '@/data'
-import type { PageNode } from '@/data'
+import { NavLink, useLocation } from 'react-router-dom'
+import { useProjects } from '@/data'
 import { modKey } from './store'
 import { Tile } from '@/components/WorkspaceUI'
 import { useWorkspaceUI } from './workspace'
-import { lazy, Suspense } from 'react'
-const PageTree = lazy(() =>
-  import('@/components/PageTree').then((module) => ({
-    default: module.PageTree,
-  })),
-)
-
 /** Lucide at 1.75 px stroke, currentColor (§9). */
 const ic = { size: 18, strokeWidth: 1.75 } as const
 
@@ -42,9 +29,10 @@ function Item({
   meta?: React.ReactNode
   end?: boolean
 }) {
+  const { search } = useLocation()
   return (
     <li>
-      <NavLink to={to} end={end} className="nav-item">
+      <NavLink to={to} end={end} className="nav-item" aria-current={to.includes('?') && search !== `?${to.split('?')[1]}` ? false : undefined}>
         <span className="nav-icon">{icon}</span>
         <span className="nav-label">{label}</span>
         {meta ? <span className="nav-meta">{meta}</span> : null}
@@ -53,58 +41,15 @@ function Item({
   )
 }
 
-function PageRows({ nodes, depth = 0 }: { nodes: PageNode[]; depth?: number }) {
-  return nodes.map((n) => (
-    <li key={n.id}>
-      <NavLink
-        to={`/p/${n.id}`}
-        className="nav-item"
-        style={{ paddingLeft: `calc(var(--space-12) + ${depth * 16}px)` }}
-      >
-        <span className="nav-icon" aria-hidden="true">
-          <Tile
-            name={n.isFavorite ? 'star' : n.icon}
-            color={
-              n.isFavorite ? 'yellow' : n.icon === 'book' ? 'purple' : 'blue'
-            }
-          />
-        </span>
-        <span className="nav-label" title={n.title}>
-          {n.title}
-        </span>
-      </NavLink>
-      {n.children.length ? (
-        <ul className="nav-list">
-          <PageRows nodes={n.children} depth={depth + 1} />
-        </ul>
-      ) : null}
-    </li>
-  ))
-}
-
 /** Sidebar contents, shared by the persistent sidebar and the overlay drawer. */
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const projects = useProjects()
-  const pages = usePages()
-  const favorites = pages.filter((p) => p.isFavorite)
 
   return (
     <>
       <div className="nav-item workspace-btn" style={{ cursor: 'default' }}>
-        <span
-          className="nav-icon"
-          aria-hidden="true"
-          style={{
-            background: 'var(--accent-fill)',
-            color: 'var(--on-accent)',
-            borderRadius: 'var(--radius-control)',
-            fontWeight: 700,
-          }}
-        >
-          K
-        </span>
-        <span className="nav-label">Kimpor Workspace</span>
-        <ChevronsUpDown size={13} className="muted" />
+        <img className="brand-logo" src="/brand/favicon.svg" alt="" width={28} height={28} />
+        <span className="nav-label">SingBuild Workspace</span>
       </div>
 
       <nav
@@ -128,60 +73,23 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               <span className="kbd">{modKey()} K</span>
             </button>
           </li>
-          <Item to="/" end icon={<Home {...ic} />} label="Home" />
-          <Item
-            to="/calendar/week/today"
-            icon={<CalendarDays {...ic} />}
-            label="Calendar"
-          />
-          <Item to="/tasks" icon={<CheckSquare {...ic} />} label="My tasks" />
+
         </ul>
 
-        <div className="nav-section">
-          <div className="t-caption">Projects</div>
-          <ul className="nav-list">
-            {projects.map((p) => (
-              <li key={p.id}>
-                <NavLink to={`/projects/${p.id}/table`} className="nav-item">
-                  <span className="nav-icon">
-                    <Tile name={p.id} color={p.color} />
-                  </span>
-                  <span className="nav-label">{p.name}</span>
-                  <span className="nav-meta">
-                    {Math.round(p.progress * 100)}%
-                  </span>
-                </NavLink>
-              </li>
-            ))}
-            <Item
-              to="/projects"
-              end
-              icon={<FolderKanban {...ic} />}
-              label="All projects"
-              meta={<ChevronRight size={13} />}
-            />
-          </ul>
-        </div>
-
-        <div className="nav-section">
-          <div className="t-caption">Favorites</div>
-          <ul className="nav-list">
-            <PageRows nodes={favorites.map((f) => ({ ...f, children: [] }))} />
-          </ul>
-        </div>
-
-        <div className="nav-section">
-          <div className="t-caption">Pages</div>
-          <Suspense
-            fallback={
-              <ul className="nav-list">
-                <PageRows nodes={pages} />
-              </ul>
-            }
-          >
-            <PageTree />
-          </Suspense>
-        </div>
+        {(['team', 'personal'] as const).map((workspace) => (
+          <div className="nav-section" key={workspace}>
+            <div className="t-caption">{workspace === 'team' ? 'Team Workspace' : 'Personal Workspace'}</div>
+            <ul className="nav-list">
+              {projects.filter((p) => (p.workspace ?? 'personal') === workspace).map((p) => (
+                <li key={p.id}><NavLink to={`/projects/${p.id}/table`} className="nav-item">
+                  <span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span>
+                  <span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span>
+                </NavLink></li>
+              ))}
+              <Item to={`/projects?workspace=${workspace}`} end icon={<FolderKanban {...ic} />} label={workspace === 'team' ? 'Team projects' : 'Personal projects'} meta={<ChevronRight size={13} />} />
+            </ul>
+          </div>
+        ))}
       </nav>
 
       <div className="sidebar-foot">
@@ -194,10 +102,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           />
           <Item to="/design" icon={<Palette {...ic} />} label="Design system" />
         </ul>
-        <NavLink to="/p/new" className="btn-accent" onClick={onNavigate}>
-          <Plus size={16} strokeWidth={1.75} aria-hidden="true" />
-          New page
-        </NavLink>
+
       </div>
     </>
   )

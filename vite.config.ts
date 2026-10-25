@@ -35,8 +35,8 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['brand/favicon.svg', 'brand/apple-touch-icon.png'],
       manifest: {
-        name: 'Kimpor Workspace',
-        short_name: 'Workspace',
+        name: 'SingBuild Workspace',
+        short_name: 'SingBuild',
         description: 'Pages, calendar and tasks in one workspace.',
         start_url: '/',
         scope: '/',
@@ -55,17 +55,7 @@ export default defineConfig({
           },
         ],
         shortcuts: [
-          {
-            name: 'New page',
-            short_name: 'New page',
-            url: '/?action=new-page',
-          },
-          {
-            name: 'New task',
-            short_name: 'New task',
-            url: '/?action=new-task',
-          },
-          { name: 'Today', short_name: 'Today', url: '/calendar/week/today' },
+          { name: 'Workspace', short_name: 'Workspace', url: '/' },
         ],
       },
       workbox: {

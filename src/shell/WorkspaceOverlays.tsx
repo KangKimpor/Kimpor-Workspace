@@ -6,27 +6,21 @@ import {
   Check,
   CheckSquare,
   FileText,
-  Plus,
   Search,
   X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { completeTask } from '@/components/TaskRow'
-import { Badge, statusColor } from '@/components/WorkspaceUI'
 import {
   dateKey,
-  priorities,
-  statuses,
   useProjects,
   useWorkspace,
 } from '@/data'
-import type { CalendarEvent, Priority, TaskStatus } from '@/data'
+import type { CalendarEvent } from '@/data'
 import { useTheme } from '@/lib/theme'
 import { modKey } from './store'
 import { useWorkspaceUI } from './workspace'
 import { useCalendars, defaultCalendar } from '@/calendar/store'
-import { canParentTask } from '@/data/task-tree'
 import { contentText, searchRank, htmlText } from '@/data/text'
 import {
   localSeriesChange,
@@ -52,7 +46,7 @@ export function SearchResults({
   const events = useWorkspace((s) => s.events)
   const projects = useProjects()
   const q = query.toLowerCase().trim()
-  const { openTask, openEvent } = useWorkspaceUI()
+  const { openEvent } = useWorkspaceUI()
   const results = [
     ...pages
       .filter((p) => !p.deletedAt)
@@ -79,7 +73,7 @@ export function SearchResults({
         title: t.title,
         body: `${t.notes} ${(t.labels || []).join(' ')}`,
         type: 'Task',
-        to: '',
+        to: `/projects/${t.projectId}/table?task=${encodeURIComponent(t.id)}`,
         icon: CheckSquare,
       })),
     ...events
@@ -109,7 +103,7 @@ export function SearchResults({
             <span>
               <strong>{result.title}</strong>
               <span className="small muted">
-                {result.type} · Kimpor Workspace
+                {result.type} · SingBuild Workspace
               </span>
             </span>
             <ArrowRight size={14} />
@@ -134,8 +128,7 @@ export function SearchResults({
             key={`${result.type}-${result.id}`}
             onClick={() => {
               onSelect?.()
-              if (result.type === 'Task') openTask(result.id)
-              else openEvent(result.id)
+              openEvent(result.id)
             }}
           >
             {children}
@@ -175,11 +168,11 @@ export function SearchPage() {
   )
 }
 function CommandPalette() {
-  const { commandOpen, setCommandOpen, openTask } = useWorkspaceUI()
+  const { commandOpen, setCommandOpen } = useWorkspaceUI()
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(0)
   const navigate = useNavigate()
-  const { addPage, addTask } = useWorkspace()
+  const { addTask } = useWorkspace()
   const theme = useTheme()
   useEffect(() => {
     if (commandOpen) {
@@ -252,22 +245,9 @@ function CommandPalette() {
                 <span className="eyebrow">QUICK ACTIONS</span>
                 {[
                   {
-                    label: 'Create a new page',
-                    icon: Plus,
-                    run: () => navigate(`/p/${addPage()}`),
-                  },
-                  {
                     label: 'Create a new task',
                     icon: CheckSquare,
-                    run: () =>
-                      openTask(
-                        addTask({ title: 'New task', projectId: 'website' }),
-                      ),
-                  },
-                  {
-                    label: 'Go to today',
-                    icon: CalendarDays,
-                    run: () => navigate('/calendar/day/today'),
+                    run: () => { const id = addTask({ title: 'New task', projectId: 'website' }); const task = useWorkspace.getState().tasks.find((t) => t.id === id)!; navigate(`/projects/${task.projectId}/table?task=${id}`) },
                   },
                   {
                     label: 'Toggle theme',
@@ -303,363 +283,6 @@ function CommandPalette() {
             </span>
             <span>{modKey()} K to search</span>
           </footer>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
-  )
-}
-function TaskInspector() {
-  const navigate = useNavigate()
-  const { taskId, openTask } = useWorkspaceUI()
-  const { tasks, updateTask } = useWorkspace()
-  const projects = useProjects()
-  const [subtask, setSubtask] = useState('')
-  const task = tasks.find((t) => t.id === taskId)
-  useEffect(() => setSubtask(''), [taskId])
-  return (
-    <Dialog.Root open={!!task} onOpenChange={(open) => !open && openTask(null)}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="inspector-scrim" />
-        <Dialog.Content
-          className="task-inspector glass"
-          data-material="thick"
-          aria-describedby={undefined}
-        >
-          <div className="row-between">
-            <span className="eyebrow">TASK DETAILS</span>
-            <Dialog.Close className="ibtn" aria-label="Close task details">
-              <X size={17} />
-            </Dialog.Close>
-          </div>
-          {task && (
-            <>
-              <Dialog.Title className="sr-only">{task.title}</Dialog.Title>
-              <div className="inspector-complete">
-                <input
-                  type="checkbox"
-                  aria-label="Mark task complete"
-                  checked={task.status === 'Done'}
-                  onChange={() => completeTask(task)}
-                />
-                <Badge color={statusColor[task.status]}>{task.status}</Badge>
-              </div>
-              <textarea
-                className="task-title-input"
-                rows={3}
-                aria-label="Task title"
-                value={task.title}
-                onChange={(e) => updateTask(task.id, { title: e.target.value })}
-              />
-              <div className="property-list">
-                <label>
-                  Status
-                  <GlassSelect
-                    aria-label="Status"
-                    value={task.status}
-                    onChange={(e) =>
-                      updateTask(task.id, {
-                        status: e.target.value as TaskStatus,
-                      })
-                    }
-                  >
-                    {statuses.map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </GlassSelect>
-                </label>
-                <label>
-                  Priority
-                  <GlassSelect
-                    aria-label="Priority"
-                    value={task.priority}
-                    onChange={(e) =>
-                      updateTask(task.id, {
-                        priority: e.target.value as Priority,
-                      })
-                    }
-                  >
-                    {priorities.map((p) => (
-                      <option key={p}>{p}</option>
-                    ))}
-                  </GlassSelect>
-                </label>
-                <label>
-                  Due date
-                  <input
-                    aria-label="Due date"
-                    type="date"
-                    value={task.due}
-                    onChange={(e) =>
-                      updateTask(task.id, { due: e.target.value })
-                    }
-                  />
-                </label>
-                <label>
-                  Project
-                  <GlassSelect
-                    aria-label="Project"
-                    value={task.projectId}
-                    onChange={(e) =>
-                      updateTask(task.id, { projectId: e.target.value })
-                    }
-                  >
-                    {projects.map((p) => (
-                      <option value={p.id} key={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </GlassSelect>
-                </label>
-                <label>
-                  Start date
-                  <input
-                    type="datetime-local"
-                    value={task.startAt || ''}
-                    onChange={(e) =>
-                      updateTask(task.id, { startAt: e.target.value })
-                    }
-                  />
-                </label>
-                <label>
-                  Due time
-                  <input
-                    type="time"
-                    value={task.dueTime || ''}
-                    onChange={(e) =>
-                      updateTask(task.id, { dueTime: e.target.value })
-                    }
-                  />
-                </label>
-                <label>
-                  Estimate (minutes)
-                  <input
-                    type="number"
-                    min={0}
-                    max={100000}
-                    value={task.estimate ?? ''}
-                    onChange={(e) =>
-                      updateTask(task.id, {
-                        estimate: Math.max(0, Number(e.target.value)),
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Labels
-                  <input
-                    placeholder="Separate labels with commas"
-                    key={task.id}
-                    defaultValue={(task.labels || []).join(', ')}
-                    onBlur={(e) =>
-                      updateTask(task.id, {
-                        labels: e.target.value
-                          .split(',')
-                          .map((label) => label.trim())
-                          .filter(Boolean),
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Parent task
-                  <GlassSelect
-                    value={task.parentId || ''}
-                    onChange={(e) =>
-                      updateTask(task.id, { parentId: e.target.value || null })
-                    }
-                  >
-                    <option value="">No parent</option>
-                    {tasks
-                      .filter(
-                        (parent) =>
-                          parent.id !== task.id &&
-                          !parent.deletedAt &&
-                          canParentTask(tasks, task.id, parent.id),
-                      )
-                      .map((parent) => (
-                        <option key={parent.id} value={parent.id}>
-                          {parent.title}
-                        </option>
-                      ))}
-                  </GlassSelect>
-                </label>
-                <label>
-                  Repeat
-                  <GlassSelect
-                    value={task.recurrence || ''}
-                    onChange={(e) =>
-                      updateTask(task.id, {
-                        recurrence: e.target.value,
-                        recurrenceStart: task.due,
-                      })
-                    }
-                  >
-                    <option value="">Does not repeat</option>
-                    <option value="FREQ=DAILY">Daily</option>
-                    <option value="FREQ=WEEKLY">Weekly</option>
-                    <option value="FREQ=MONTHLY">Monthly</option>
-                  </GlassSelect>
-                  {task.recurrence && !task.due && (
-                    <span className="small muted">
-                      Set a due date to start repeating.
-                    </span>
-                  )}
-                </label>
-                <label>
-                  Reminder
-                  <input
-                    type="datetime-local"
-                    value={task.reminder || ''}
-                    onChange={(e) =>
-                      updateTask(task.id, { reminder: e.target.value })
-                    }
-                  />
-                </label>
-              </div>
-              <section className="inspector-section">
-                <h3>
-                  Subtasks{' '}
-                  <span className="small muted">
-                    {task.subtasks.filter((s) => s.done).length}/
-                    {task.subtasks.length}
-                  </span>
-                </h3>
-                {task.subtasks.map((sub) => (
-                  <label className="subtask" key={sub.id}>
-                    <input
-                      type="checkbox"
-                      checked={sub.done}
-                      onChange={(e) =>
-                        updateTask(task.id, {
-                          subtasks: task.subtasks.map((s) =>
-                            s.id === sub.id
-                              ? { ...s, done: e.target.checked }
-                              : s,
-                          ),
-                        })
-                      }
-                    />
-                    <span data-checked={sub.done}>{sub.title}</span>
-                  </label>
-                ))}
-                <form
-                  className="subtask-add"
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    if (subtask.trim()) {
-                      updateTask(task.id, {
-                        subtasks: [
-                          ...task.subtasks,
-                          {
-                            id: crypto.randomUUID(),
-                            title: subtask.trim(),
-                            done: false,
-                          },
-                        ],
-                      })
-                      setSubtask('')
-                    }
-                  }}
-                >
-                  <input
-                    aria-label="New subtask"
-                    placeholder="Add a subtask…"
-                    value={subtask}
-                    onChange={(e) => setSubtask(e.target.value)}
-                  />
-                  <button className="ibtn" aria-label="Add subtask">
-                    <Plus size={16} />
-                  </button>
-                </form>
-              </section>
-              <section className="inspector-section">
-                <h3>Notes & specifications</h3>
-                {task.pageId ? (
-                  <>
-                    <p className="small muted">
-                      {task.notes ||
-                        'Add notes, checklists, files and context to this task’s page.'}
-                    </p>
-                    <Link
-                      className="btn-secondary"
-                      to={`/p/${task.pageId}`}
-                      onClick={() => openTask(null)}
-                    >
-                      Open notes editor
-                      <ArrowRight size={15} />
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <textarea
-                      className="notes-input"
-                      rows={6}
-                      value={task.notes}
-                      placeholder="Add a little context…"
-                      aria-label="Task notes"
-                      onChange={(e) =>
-                        updateTask(task.id, { notes: e.target.value })
-                      }
-                    />
-                    <button
-                      className="btn-text"
-                      onClick={() => {
-                        const state = useWorkspace.getState()
-                        const pageId = state.addPage(task.title)
-                        state.updatePage(pageId, {
-                          blocks: task.notes
-                            ? [
-                                {
-                                  id: crypto.randomUUID(),
-                                  kind: 'paragraph',
-                                  text: task.notes,
-                                },
-                              ]
-                            : [],
-                        })
-                        state.updateTask(task.id, { pageId })
-                        openTask(null)
-                        navigate(`/p/${pageId}`)
-                      }}
-                    >
-                      Open as a task page
-                      <ArrowRight size={15} />
-                    </button>
-                  </>
-                )}
-              </section>
-              <div className="inspector-section small muted">
-                <details>
-                  <summary>Activity</summary>
-                  {(task.activity || [])
-                    .slice()
-                    .reverse()
-                    .map((entry, i) => (
-                      <p key={`${entry.at}:${i}`}>
-                        {entry.text} · {new Date(entry.at).toLocaleString()}
-                      </p>
-                    ))}
-                </details>
-                <button
-                  className="btn-text danger-text"
-                  onClick={() => {
-                    updateTask(task.id, {
-                      deletedAt: new Date().toISOString(),
-                    })
-                    openTask(null)
-                    useWorkspaceUI
-                      .getState()
-                      .notify('Task deleted', () =>
-                        updateTask(task.id, { deletedAt: null }),
-                      )
-                  }}
-                >
-                  Delete task
-                </button>
-              </div>
-              <WorkspaceToast />
-            </>
-          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -1336,20 +959,17 @@ function EventEditor() {
   )
 }
 export function WorkspaceOverlays() {
-  const taskId = useWorkspaceUI((s) => s.taskId)
   const storageError = useWorkspace((s) => s.storageError)
   return (
     <>
       <CommandPalette />
-      <TaskInspector />
       <EventEditor />
       {storageError && (
         <div className="storage-banner" role="alert">
-          Storage is unavailable. Changes are only in memory; export pages
-          before closing this tab.
+          Local recovery storage is unavailable. Online cloud saves can continue; download a backup of pending edits before closing this tab.
         </div>
       )}
-      {!taskId && <WorkspaceToast />}
+      <WorkspaceToast />
     </>
   )
 }

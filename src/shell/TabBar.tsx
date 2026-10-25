@@ -1,4 +1,4 @@
-import { CalendarDays, FolderKanban, Home, Plus, Search } from 'lucide-react'
+import { FolderKanban, LayoutDashboard, Plus, Search, Settings } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { Glass } from '@/components/glass/Glass'
 import { useShell } from './store'
@@ -14,17 +14,12 @@ function Tab({ to, label, end, children }: { to: string; label: string; end?: bo
   )
 }
 
-/** Compact bottom tab bar: Home, Calendar, add, Projects, Search. 64 px plus the safe area (§12). */
+/** Compact workspace navigation, add, projects, search and settings. 64 px plus the safe area (§12). */
 export function TabBar() {
   const setSheet = useShell((s) => s.setSheet)
   return (
     <Glass as="nav" material="regular" className="tabbar" aria-label="Tabs" data-testid="tabbar">
-      <Tab to="/" end label="Home">
-        <Home {...ic} />
-      </Tab>
-      <Tab to="/calendar/agenda/today" label="Calendar">
-        <CalendarDays {...ic} />
-      </Tab>
+      <Tab to="/" end label="Workspace"><LayoutDashboard {...ic} /></Tab>
       {/* Solid, not glass: glass never stacks on glass (§10) */}
       <button type="button" className="btn-accent tab-add" data-round="true" aria-label="Quick add" onClick={() => setSheet('quick-add')}>
         <Plus size={24} strokeWidth={1.75} aria-hidden="true" />
@@ -35,6 +30,7 @@ export function TabBar() {
       <Tab to="/search" label="Search">
         <Search {...ic} />
       </Tab>
+      <Tab to="/settings/appearance" label="Settings"><Settings {...ic} /></Tab>
     </Glass>
   )
 }

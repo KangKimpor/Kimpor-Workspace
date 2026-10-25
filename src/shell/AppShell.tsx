@@ -45,17 +45,22 @@ const QuickAdd = lazy(() =>
 export function AppShell() {
   const hasOverlay = useWorkspaceUI(
     (state) =>
-      !!(state.commandOpen || state.taskId || state.eventId || state.toast),
+      !!(state.commandOpen || state.eventId || state.toast),
   )
   const hasReminders = useWorkspace(
     (s) =>
       s.tasks.some((t) => t.reminder && !t.deletedAt && t.status !== 'Done') ||
       s.events.some((e) => e.reminders?.length && !e.deletedAt),
   )
+  const scope = useWorkspace((s) => s.scope)
+  const lastScope = useRef(scope)
   const root = useRef<HTMLDivElement>(null)
   const [bp, setBp] = useState(() => breakpointFor(window.innerWidth))
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  useEffect(() => {
+    if (lastScope.current !== scope) { lastScope.current = scope; navigate('/', { replace: true }) }
+  }, [scope, navigate])
   const crumb = useCrumb(pathname)
   const shell = useShell()
   const persistent = bp === 'expanded' || bp === 'large'
@@ -190,33 +195,6 @@ export function AppShell() {
                   <QuickAdd onDone={() => shell.setSheet(null)} />
                 </Suspense>
                 <div className="quick-add-options">
-                  <button
-                    className="btn-secondary"
-                    onClick={() => {
-                      shell.setSheet(null)
-                      navigate(`/p/${useWorkspace.getState().addPage()}`)
-                    }}
-                  >
-                    New page
-                  </button>
-                  <button
-                    className="btn-secondary"
-                    onClick={() => {
-                      shell.setSheet(null)
-                      useWorkspaceUI
-                        .getState()
-                        .openTask(
-                          useWorkspace
-                            .getState()
-                            .addTask({
-                              title: 'New task',
-                              projectId: 'website',
-                            }),
-                        )
-                    }}
-                  >
-                    New task
-                  </button>
                   <button
                     className="btn-accent"
                     onClick={() => {

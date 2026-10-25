@@ -37,3 +37,14 @@
   .glass-select { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg-raised); border-color: var(--border-strong); }
 }
 @media (prefers-reduced-motion: reduce) { .glass-select, .glass-select > svg { transition: none; } .glass-select-menu { animation: none; } }
+
+.glass-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.glass-select-option:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+[data-glass='off'] .glass-select, [data-glass='reduced'] .glass-select { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg-raised); }
+@supports not (backdrop-filter: blur(1px)) { .glass-select, .glass-select-menu { background: var(--bg-raised); } }
+.table-status .glass-select { background: transparent !important; }
+.table-status .glass-select > span::before { display: none !important; }
+
+[data-motion='reduced'] .glass-select, [data-motion='reduced'] .glass-select > svg { transition: none; }
+[data-motion='reduced'] .glass-select-menu { animation: none; }
+@media (forced-colors: active) { .glass-select, .glass-select-option { background: Canvas; color: CanvasText; border: 1px solid CanvasText; backdrop-filter: none; } .glass-select-option[aria-selected='true'] { background: Highlight; color: HighlightText; } }

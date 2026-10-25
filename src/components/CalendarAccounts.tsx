@@ -1,3 +1,4 @@
+import { GlassSelect } from '@/components/glass/GlassSelect'
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -133,7 +134,7 @@ export function CalendarAccounts() {
       {session && calendars.length > 0 && (
         <label className="settings-row">
           <span>Default calendar for new events</span>
-          <select
+          <GlassSelect
             aria-label="Default calendar for new events"
             disabled={busy}
             value={calendars.find((calendar) => calendar.isDefault)?.id || ''}
@@ -155,7 +156,7 @@ export function CalendarAccounts() {
                   ))}
               </optgroup>
             ))}
-          </select>
+          </GlassSelect>
         </label>
       )}
       {!session && (
@@ -236,7 +237,7 @@ export function CalendarAccounts() {
                   />
                   {calendar.name}
                 </label>
-                <select
+                <GlassSelect
                   aria-label={`Color for ${calendar.name}`}
                   disabled={busy}
                   value={calendar.color}
@@ -272,7 +273,7 @@ export function CalendarAccounts() {
                   ].map((c) => (
                     <option key={c}>{c}</option>
                   ))}
-                </select>
+                </GlassSelect>
               </div>
             ))}
         </div>

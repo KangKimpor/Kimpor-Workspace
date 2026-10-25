@@ -32,3 +32,10 @@ test('project editor holds a draft, validates dates, and saves only on submit', 
   expect(close).toHaveBeenCalledOnce()
   useWorkspace.getState().updateProject(project.id, project)
 })
+
+
+test('selector accessible names follow an inline task rename', () => {
+  const { rerender } = render(<GlassSelect aria-label="Status for Original" value="Done"><option>Done</option></GlassSelect>)
+  rerender(<GlassSelect aria-label="Status for Renamed" value="Done"><option>Done</option></GlassSelect>)
+  expect(screen.getByRole('combobox', { name: 'Status for Renamed' })).toBeInTheDocument()
+})

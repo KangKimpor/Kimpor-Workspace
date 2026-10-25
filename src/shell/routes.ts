@@ -17,7 +17,7 @@ export function useCrumb(pathname: string): Crumb & { meta: ScreenMeta } {
   const projects = useProjects()
   const seg = pathname.split('/').filter(Boolean)
   const head = seg[0]
-  if (!head) return { label: 'Home', meta: { title: 'Home' } }
+  if (!head) return { label: 'Workspace', meta: { title: 'Workspace' } }
   if (head === 'design')
     return {
       label: 'Design system',

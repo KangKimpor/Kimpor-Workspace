@@ -120,8 +120,6 @@
   .table-status .glass-select > span { display: flex; align-items: center; gap: 7px; }
   .table-status .glass-select > span::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--tint); flex: none; }
   .table-task-name > input { flex: 1; text-overflow: ellipsis; height: 31px; }
-  .task-table td .table-open { flex: none; border: 1px solid var(--border-strong); border-radius: 7px; padding: 3px 6px; color: var(--text-secondary); background: var(--bg-hover); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; min-height: 28px; }
-  .task-table td .table-open:hover { color: var(--text-primary); background: var(--bg-raised); }
   .task-table td[data-column='title'] { padding-block: 8px; }
   .project-page[data-view='table'] .task-table input { font-size: 16px; }
 }

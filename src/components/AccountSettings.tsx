@@ -33,7 +33,7 @@ function backupWorkspace() {
   )
   const link = document.createElement('a')
   link.href = url
-  link.download = 'kimpor-workspace-backup.json'
+  link.download = 'singbuild-workspace-backup.json'
   link.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
@@ -178,7 +178,7 @@ export function AccountSettings() {
           <div>
             <h2>Everything, in sync</h2>
             <p className="muted">
-              Your pages, projects and plans stay with you across devices.
+              The cloud is your workspace database. Changes appear live across signed-in sessions. Pending or failed edits remain available for recovery.
             </p>
             <p className="account-sync-status" role="status">
               {sync.kind === 'saved'
@@ -196,7 +196,7 @@ export function AccountSettings() {
             onClick={() => void run('sync', syncWorkspace)}
           >
             <RefreshCw size={16} />
-            Sync now
+            Retry / reconnect
           </button>
         </section>
         <section className="account-action-grid">
@@ -243,9 +243,7 @@ export function AccountSettings() {
   return (
     <div className="account-auth-layout">
       <aside className="account-welcome">
-        <div className="account-brand-icon" aria-hidden="true">
-          K
-        </div>
+        <img className="account-brand-logo" src="/brand/logo.svg" alt="SingBuild" />
         <span className="eyebrow">A LITTLE SPACE FOR EVERYTHING</span>
         <h2>
           Your work.
@@ -267,7 +265,7 @@ export function AccountSettings() {
           <span>Private to your account</span>
         </div>
         <Link className="text-link" to="/">
-          Keep working locally
+          Explore the local demo
           <ArrowRight size={15} />
         </Link>
       </aside>
@@ -328,7 +326,7 @@ export function AccountSettings() {
                     ? 'We’ll email you a link to get back in.'
                     : isSignup
                       ? 'Create your private workspace in a moment.'
-                      : 'Sign in to your Kimpor Workspace.'}
+                      : 'Sign in to your SingBuild Workspace.'}
               </p>
             </header>
             {!isReset && !recovering && (

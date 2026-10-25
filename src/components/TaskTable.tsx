@@ -1,15 +1,16 @@
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { GlassPopover } from '@/components/glass/GlassPopover'
 import { AlignLeft, CalendarDays, CircleDot, Columns3, Flag } from 'lucide-react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { priorities, statuses, useWorkspace } from '@/data'
 import type { Task } from '@/data'
-import { useWorkspaceUI } from '@/shell/workspace'
+import { TaskFields } from './TaskFields'
 import { statusColor, tint } from '@/components/WorkspaceUI'
 
-const columns = ['title', 'status', 'due', 'priority', 'notes'] as const
+export const columns = ['title', 'status', 'priority', 'due', 'notes'] as const
 type Column = (typeof columns)[number]
 const names = {
   title: 'Task name',
@@ -24,7 +25,10 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
   toolbar: ReactNode
   actions: ReactNode
 }) {
-  const availableColumns = mobile ? (['title', 'status', 'priority', 'due'] as const) : columns
+  const [params] = useSearchParams()
+  const targetTask = params.get('task')
+  const focusedTask = useRef<string | null>(null)
+  const availableColumns = columns
   const update = useWorkspace((s) => s.updateTask)
   const [sort, setSort] = useState<Column>('title'),
     [descending, setDescending] = useState(false)
@@ -60,6 +64,18 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
     enabled: large,
     useFlushSync: false,
   })
+  useEffect(() => {
+    if (!targetTask || focusedTask.current === targetTask) return
+    const index = rows.findIndex((t) => t.id === targetTask)
+    if (large && index >= 0) virtual.scrollToIndex(index, { align: 'center' })
+    const frame = requestAnimationFrame(() => {
+      const input = parent.current?.querySelector<HTMLInputElement>(`[data-task-id="${CSS.escape(targetTask)}"] input`)
+      input?.scrollIntoView({ block: 'center', inline: 'nearest' })
+      input?.focus({ preventScroll: true })
+      if (input) focusedTask.current = targetTask
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [targetTask, large, virtual, rows])
   const items = large
     ? virtual.getVirtualItems()
     : rows.map((_, index) => ({
@@ -105,7 +121,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
           style={{
             tableLayout: 'fixed',
             width: visibleColumns
-              .reduce((sum, c) => sum + widths[c], mobile ? 0 : 44),
+              .reduce((sum, c) => sum + widths[c], 0),
           }}
         >
           <thead>
@@ -171,7 +187,6 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
                     />
                   </th>
                 ))}
-              {!mobile && <th style={{ width: 44 }}><span className="sr-only">Details</span></th>}
             </tr>
           </thead>
           <tbody>
@@ -179,7 +194,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
               <tr aria-hidden="true">
                 <td
                   aria-hidden="true"
-                  colSpan={visibleColumns.length + (mobile ? 0 : 1)}
+                  colSpan={visibleColumns.length}
                   style={{ height: items[0].start, padding: 0, border: 0 }}
                 />
               </tr>
@@ -189,6 +204,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
               return (
                 <tr
                   key={task.id}
+                  data-task-id={task.id}
                   data-index={item.index}
                   ref={large ? virtual.measureElement : undefined}
                   aria-rowindex={item.index + 2}
@@ -205,10 +221,10 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
                               update(task.id, { title: e.target.value })
                             }
                           />
-                          {mobile && <button className="table-open" aria-label={`Open ${task.title}`} onClick={() => useWorkspaceUI.getState().openTask(task.id)}>Open</button>}
+                          <TaskFields task={task} />
                           </div>
                         ) : column === 'notes' ? (
-                          <button className="table-description" aria-label={task.notes ? undefined : `Description for ${task.title}`} onClick={() => useWorkspaceUI.getState().openTask(task.id)}>{task.notes || '\u00a0'}</button>
+                          <textarea className="task-description" rows={1} aria-label={`Description for ${task.title}`} value={task.notes} onChange={(e) => update(task.id, { notes: e.target.value })} />
                         ) : column === 'due' ? (
                           <input
                             type="date"
@@ -237,7 +253,6 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
                         )}
                       </td>
                     ))}
-                  {!mobile && <td><button className="ibtn" aria-label={`Open ${task.title}`} onClick={() => useWorkspaceUI.getState().openTask(task.id)}>↗</button></td>}
                 </tr>
               )
             })}
@@ -245,7 +260,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
               <tr aria-hidden="true">
                 <td
                   aria-hidden="true"
-                  colSpan={visibleColumns.length + (mobile ? 0 : 1)}
+                  colSpan={visibleColumns.length}
                   style={{
                     height: Math.max(
                       0,

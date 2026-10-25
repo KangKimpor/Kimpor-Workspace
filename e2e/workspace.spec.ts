@@ -34,30 +34,21 @@ test('page creation, slash editing, persistence, trash and restore', async ({
   ).toHaveValue('A quieter workspace')
 })
 
-test('task inspector edits status and subtasks, completion can be undone', async ({
-  page,
-}) => {
+test('inline board fields edit status and subtasks, completion can be undone', async ({ page }) => {
   await page.goto('/projects/website/board')
-  await page.getByRole('button', { name: /Finalize token contrasts/ }).click()
-  const dialog = page.getByRole('dialog')
-  await dialog.getByRole('combobox', { name: 'Status', exact: true }).click()
+  const card = page.locator('.board-card').filter({ has: page.getByLabel('Title for Finalize token contrasts for WCAG AA', { exact: true }) })
+  await card.getByRole('combobox', { name: /^Status for/ }).click()
   await page.getByRole('option', { name: 'In review', exact: true }).click()
-  await dialog
-    .getByRole('textbox', { name: 'New subtask' })
-    .fill('Verify on Safari')
-  await dialog.getByRole('button', { name: 'Add subtask' }).click()
-  await expect(dialog.getByText('Verify on Safari')).toBeVisible()
-  await dialog.getByRole('checkbox', { name: 'Mark task complete' }).check()
-  await dialog.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(dialog.getByRole('combobox', { name: 'Status', exact: true })).toHaveText(
-    'In review',
-  )
-  await dialog.getByRole('button', { name: 'Close task details' }).click()
+  await card.getByText('More fields', { exact: true }).click()
+  await card.getByRole('textbox', { name: 'New subtask' }).fill('Verify on Safari')
+  await card.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(card.getByText('Verify on Safari')).toBeVisible()
+  await card.getByRole('checkbox', { name: /^Complete / }).check()
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(card.getByRole('combobox', { name: /^Status for/ })).toHaveText('In review')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
   await page.reload()
-  await page.getByRole('button', { name: /Finalize token contrasts/ }).click()
-  await expect(
-    page.getByRole('dialog').getByRole('combobox', { name: 'Status', exact: true }),
-  ).toHaveText('In review')
+  await expect(card.getByRole('combobox', { name: /^Status for/ })).toHaveText('In review')
 })
 
 test('event validation, save, reload and delete', async ({ page }) => {
@@ -116,67 +107,17 @@ test('daily notes keep the selected date and are created once', async ({
   await expect(page).toHaveURL(url)
 })
 
-test('sidebar pages can be nested with a drag and restored with Undo', async ({
-  page,
-}) => {
+test('removed navigation preserves page access through Search', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 })
   await page.goto('/')
-  const handle = page.getByRole('button', {
-    name: 'Move page Reading list',
-    exact: true,
-  })
-  const target = page.locator('.page-tree-row').filter({
-    has: page.getByRole('link', { name: 'Workspace Overview', exact: true }),
-  })
-  const source = await handle.boundingBox(),
-    destination = await target.boundingBox()
-  if (!source || !destination)
-    throw new Error('Page drag targets must be visible')
-  await page.mouse.move(
-    source.x + source.width / 2,
-    source.y + source.height / 2,
-  )
-  await page.mouse.down()
-  await page.mouse.move(
-    source.x + source.width / 2 + 12,
-    source.y + source.height / 2,
-    { steps: 3 },
-  )
-  await page.mouse.move(
-    destination.x + destination.width - 20,
-    destination.y + destination.height / 2,
-    { steps: 20 },
-  )
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      ),
-  )
-  await page.mouse.up()
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          JSON.parse(
-            localStorage.getItem('kw-workspace-v1') || '{}',
-          ).pages?.find((p: { id: string }) => p.id === 'reading-list')
-            ?.parentId,
-      ),
-    )
-    .toBe('workspace')
-  await page.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          JSON.parse(
-            localStorage.getItem('kw-workspace-v1') || '{}',
-          ).pages?.find((p: { id: string }) => p.id === 'reading-list')
-            ?.parentId,
-      ),
-    )
-    .toBe(null)
+  const nav = page.getByRole('navigation', { name: 'Primary', exact: true })
+  await expect(nav.getByText('Team Workspace', { exact: true })).toBeVisible()
+  await expect(nav.getByText('Personal Workspace', { exact: true })).toBeVisible()
+  for (const name of ['Favorites', 'Pages', 'My tasks', 'New page']) await expect(nav.getByText(name, { exact: true })).toHaveCount(0)
+  await page.goto('/search')
+  await page.getByLabel('Search workspace').fill('Reading list')
+  await page.getByRole('link', { name: /Reading list/ }).click()
+  await expect(page.getByLabel('Page title', { exact: true })).toHaveValue('Reading list')
 })
 
 test('saved task filters survive a reload', async ({ page }) => {
@@ -261,7 +202,7 @@ test('installed shell and page editing survive a reload offline', async ({
 
 test('board cards can move between statuses', async ({ page }) => {
   await page.goto('/projects/website/board')
-  const card = page.getByRole('button', { name: /Finalize token contrasts/ })
+  const card = page.getByRole('button', { name: /Move Finalize token contrasts/ })
   const column = page.locator('.board-column').filter({
     has: page.getByRole('button', {
       name: 'Add task to In review',
@@ -293,7 +234,7 @@ test('board cards can move between statuses', async ({ page }) => {
   )
   await page.mouse.up()
   await expect(
-    column.getByRole('button', { name: /Finalize token contrasts/ }),
+    column.getByRole('button', { name: /Move Finalize token contrasts/ }),
   ).toBeVisible()
 })
 

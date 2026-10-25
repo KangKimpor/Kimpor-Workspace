@@ -679,13 +679,7 @@ summary {
   cursor: pointer;
   padding: var(--space-12) 0;
 }
-.workspace-footer {
-  border-top: 1px solid var(--border-subtle);
-  margin-top: var(--space-40);
-  padding-top: var(--space-16);
-  font-size: var(--fs-small);
-  color: var(--text-secondary);
-}
+
 .board-scroll {
   overflow-x: auto;
   padding-bottom: var(--space-16);
@@ -1097,30 +1091,6 @@ kbd {
   padding: var(--space-12);
   border-radius: var(--radius-control);
 }
-.inspector-scrim {
-  position: fixed;
-  inset: 0;
-  background: transparent;
-  z-index: 40;
-}
-.task-inspector {
-  --glass-radius: var(--radius-glass);
-  position: fixed;
-  z-index: 50;
-  right: var(--space-12);
-  top: var(--space-12);
-  bottom: var(--space-12);
-  width: var(--w-inspector);
-  padding: var(--space-24);
-  overflow-y: auto;
-  animation: inspector-in var(--duration-base) var(--ease-enter);
-}
-.inspector-complete {
-  display: flex;
-  align-items: center;
-  gap: var(--space-12);
-  margin-block: var(--space-24) var(--space-16);
-}
 .task-title-input {
   width: 100%;
   border: 0;
@@ -1154,18 +1124,6 @@ kbd {
   padding: var(--space-8);
   font-size: var(--fs-small);
   color: var(--text-primary);
-}
-.inspector-section {
-  padding-block: var(--space-20);
-  border-top: 1px solid var(--border-subtle);
-}
-.inspector-section h3 {
-  font-size: var(--fs-label);
-  font-weight: 600;
-  margin: 0 0 var(--space-16);
-}
-.inspector-section h3 span {
-  margin-left: var(--space-8);
 }
 .subtask {
   display: flex;
@@ -1268,14 +1226,6 @@ kbd {
   font-weight: 600;
   cursor: pointer;
 }
-.task-inspector .workspace-toast {
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  max-width: 100%;
-  background: var(--bg-raised);
-}
 .storage-banner {
   position: fixed;
   top: var(--space-8);
@@ -1297,12 +1247,7 @@ kbd {
     margin-top: calc(var(--space-8) * -1);
   }
 }
-@keyframes inspector-in {
-  from {
-    opacity: 0;
-    transform: translateX(var(--space-24));
-  }
-}
+
 @media (hover: hover) and (pointer: fine) {
   .btn-secondary:hover,
   .btn-text:hover,
@@ -1357,12 +1302,6 @@ button:disabled {
   }
   .document-surface {
     padding: var(--space-24) var(--space-32);
-  }
-  .task-inspector {
-    width: min(380px, calc(100% - var(--space-24)));
-  }
-  .inspector-scrim {
-    background: var(--scrim);
   }
   .workspace-toast {
     left: var(--space-16);
@@ -1529,16 +1468,6 @@ button:disabled {
   .block-heading textarea {
     font-size: var(--fs-h3);
   }
-  .task-inspector {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-height: 92dvh;
-    --glass-radius: var(--radius-glass) var(--radius-glass) 0 0;
-    padding-bottom: calc(var(--space-24) + var(--safe-bottom));
-  }
   .workspace-toast {
     left: var(--space-16);
     bottom: calc(var(--h-tabbar) + var(--safe-bottom) + var(--space-24));
@@ -1574,11 +1503,7 @@ button:disabled {
     flex-wrap: wrap;
     gap: var(--space-12);
   }
-  .workspace-footer {
-    margin-top: var(--space-24);
-    padding-top: var(--space-12);
-    font-size: var(--fs-caption);
-  }
+
   .event-editor input,
   .search-field input,
   .property-list input,
@@ -1682,3 +1607,45 @@ html[data-motion='reduced'] :is(.ibtn, .btn-secondary, .btn-text, .tab, .view-ta
   scale: none;
 }
 html[data-motion='reduced'] .pill[data-tone='busy'] .dot { animation: none; }
+
+/* The content column stays opaque through short and empty pages. */
+.main { min-height: 100dvh; background: var(--bg-canvas); }
+.canvas { background: var(--bg-canvas); }
+.brand-logo { object-fit: contain; flex: none; }
+.status-badge { border-radius: var(--radius-pill); background: var(--tint-bg); color: var(--text-primary); }
+.status-badge::before { content: ''; width: 6px; height: 6px; flex: none; border-radius: 50%; background: var(--tint); }
+.task-inline-controls { display: flex; gap: var(--space-8); align-items: center; flex-wrap: wrap; margin-block: var(--space-8); }
+.task-main { min-width: 0; }
+.task-row .task-main { display: block; flex: 1; }
+.task-description { display: block; width: 100%; min-width: 0; resize: vertical; border: 1px solid var(--border-subtle); border-radius: var(--radius-control); padding: var(--space-8); background: var(--bg-canvas); color: var(--text-primary); font: inherit; }
+.task-fields { font-size: var(--fs-small); white-space: normal; }
+.task-fields summary { width: fit-content; min-height: 32px; color: var(--text-secondary); }
+.task-fields[open] { min-width: min(300px, 100%); }
+.task-field-grid { display: grid; gap: var(--space-12); margin-block: var(--space-8); }
+.task-field-grid label { display: grid; gap: var(--space-4); }
+.task-fields input { max-width: 100%; min-height: 32px; }
+.task-fields fieldset { min-width: 0; padding: var(--space-8); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); }
+.task-fields form { flex-wrap: wrap; }
+.task-fields form input { flex: 1; min-width: 100px; }
+.task-fields label.inline { display: flex; }
+.task-fields input[type=checkbox] { width: auto; }
+.table-task-name { display: block; }
+.board-card .task-row { padding: 0; border: 0; background: transparent; }
+.board-card .task-inline-controls { display: grid; }
+.task-row .task-title-input { width: 100%; font-size: var(--fs-label); }
+.topbar .pill[data-tone=busy] { color: var(--text-primary); background: var(--chip-blue); }
+.topbar .pill[data-tone=error] { color: var(--danger-text); background: var(--chip-red); }
+
+.account-brand-logo { display: block; width: min(100%, 280px); height: auto; margin-bottom: var(--space-24); border-radius: var(--radius-control); }
+
+/* Dense task rows follow the workspace reference; expanded fields stay in flow. */
+.table-task-name { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-8); align-items: center; }
+.table-task-name > .task-fields[open] { grid-column: 1 / -1; }
+.table-task-name .task-fields summary { font-size: var(--fs-caption); padding: var(--space-4); white-space: nowrap; }
+.task-table td { vertical-align: middle; }
+.task-table td .task-description { min-height: 30px; height: 30px; padding: 4px 6px; border-color: transparent; background: transparent; resize: vertical; }
+.task-table td .task-description:hover { border-color: var(--border-subtle); }
+.task-table td .task-description:focus { height: 90px; border-color: var(--border-strong); }
+.task-table .table-task-name > input { font-weight: 600; }
+.task-table td .glass-select { min-height: 30px; }
+@media (pointer: coarse) { .task-table .task-fields summary, .task-table td .glass-select, .task-table td input { min-height: 44px; } }

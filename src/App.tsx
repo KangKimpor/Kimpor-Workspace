@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
-import { Route, Routes } from 'react-router-dom'
-import { Home, Placeholder } from '@/pages/Home'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { useWorkspace } from '@/data'
+import { workspaceStart } from '@/shell/landing'
 import { AppShell } from '@/shell/AppShell'
 const SearchPage = lazy(()=>import('@/shell/WorkspaceOverlays').then(module=>({default:module.SearchPage})))
 
@@ -14,6 +15,10 @@ const Trash = lazy(() =>
 )
 const Settings = lazy(() => import('@/pages/Settings'))
 
+function WorkspaceStart() {
+  const { scope, projects } = useWorkspace()
+  return <Navigate to={workspaceStart(scope, projects)} replace />
+}
 export function App() {
   return (
     <Suspense
@@ -25,7 +30,7 @@ export function App() {
     >
       <Routes>
         <Route element={<AppShell />}>
-          <Route index element={<Home />} />
+          <Route index element={<WorkspaceStart />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:id" element={<Projects />} />
           <Route path="projects/:id/:view" element={<Projects />} />
@@ -49,7 +54,7 @@ export function App() {
               </Suspense>
             }
           />
-          <Route path="*" element={<Placeholder />} />
+          <Route path="*" element={<div className="page"><h1>Not found</h1><p>This page does not exist.</p></div>} />
         </Route>
       </Routes>
     </Suspense>

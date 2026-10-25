@@ -20,7 +20,6 @@ export async function uploadWorkspaceFile(file: File) {
       'Use a PNG, JPEG, WebP, GIF, PDF, or text file up to 10 MB.',
     )
   const id = crypto.randomUUID()
-  await db.files.put({ id, blob: file, name: file.name })
   const scope = useWorkspace.getState().scope
   if (scope !== 'guest' && navigator.onLine && supabase) {
     const path = `${scope}/${id}/${file.name.replace(/[^a-zA-Z0-9._-]/g, '-')}`
@@ -28,6 +27,7 @@ export async function uploadWorkspaceFile(file: File) {
     if (error) throw error
     return `storage:${path}`
   }
+  await db.files.put({ id, blob: file, name: file.name })
   return `local-file:${id}`
 }
 export async function resolveFile(url: string) {
