@@ -4,10 +4,10 @@ import { GlassPopover } from '@/components/glass/GlassPopover'
 import { TaskTable } from '@/components/TaskTable'
 import { ProjectBoard } from '@/components/ProjectBoard'
 import { ProjectEditor } from '@/components/ProjectEditor'
-import { ArrowLeft, CalendarDays, ChevronDown, Kanban, Pencil, Plus, Search, SlidersHorizontal, Star, Table2 } from 'lucide-react'
+import { ArrowLeft, ChevronDown, Kanban, Pencil, Plus, Search, SlidersHorizontal, Star, Table2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Navigate, useParams, useSearchParams } from 'react-router-dom'
-import { Badge, ProjectCards, Tile } from '@/components/WorkspaceUI'
+import { ProjectCards, Tile } from '@/components/WorkspaceUI'
 import { useProjects, useWorkspace } from '@/data'
 import type { TaskStatus } from '@/data'
 import { rememberWorkspace } from '@/shell/landing'
@@ -138,7 +138,6 @@ export default function Projects() {
           <Tile name={project.icon || project.id} color={project.color} />
           <div>
             <h1 className="t-h1">{project.name}</h1>
-            <p className="muted">{project.description || (view === 'table' ? 'Stay organized with tasks, your way.' : '')}</p>
           </div>
         </div>
         {(!mobile || view !== 'table') && <div className="heading-actions">
@@ -146,17 +145,6 @@ export default function Projects() {
           {view !== 'table' && <button className="btn-accent" onClick={() => add()}><Plus size={16} />New task</button>}
         </div>}
       </header>
-      <div className="project-properties">
-        <span className="small muted">Private · {project.workspace === 'team' ? 'Team Workspace' : 'Personal Workspace'}</span>
-        <Badge color="green">{project.status || 'Active'}</Badge>
-        <span className="inline small muted">
-          <CalendarDays size={14} /> Target{' '}
-          {project.target
-            ? new Date(`${project.target}T12:00:00`).toLocaleDateString()
-            : 'No target date'}
-        </span>
-        <span className="small muted">{allTasks.length} tasks</span>
-      </div>
       {editing && <ProjectEditor key={project.id} project={project} onClose={() => setEditing(false)} />}
       {view !== 'table' && <div className="view-toolbar">
         <nav className="view-tabs" aria-label="Project views">
