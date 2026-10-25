@@ -163,36 +163,17 @@ html.theme-fade .glass {
 /* Skeleton shimmer, 1.2 s (§11) */
 .skeleton {
   border-radius: var(--radius-control);
-  background: linear-gradient(
-    90deg,
-    var(--bg-hover) 0%,
-    var(--bg-pressed) 50%,
-    var(--bg-hover) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.2s linear infinite;
+  background: var(--bg-hover);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
 }
-@keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.5;
   }
 }
 
-/* Empty-state glyph floats 6 px over 4 s (§11) */
 .float-glyph {
-  animation: float-glyph 4s ease-in-out infinite;
-}
-@keyframes float-glyph {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
+  animation: none;
 }
 
 @keyframes spin {

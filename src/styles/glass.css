@@ -1,139 +1,40 @@
-/* Liquid glass: SPEC.md §10. Controls float above solid content; never stack glass on glass.
-   Level selectors match any ancestor ([data-glass]) so the specimen can scope a level to a subtree. */
+/* Flat surfaces.
+   The `.glass` class and `data-material` attribute are kept so existing components keep working, but they now
+   render opaque, bordered surfaces: no blur, translucency, highlights or sheen. */
 
 .glass {
-  --glass-bg: var(--glass-regular-bg);
-  --glass-blur: 24px;
-  --glass-saturate: 180%;
   position: relative;
-  isolation: isolate;
-  border-radius: var(--glass-radius, var(--radius-glass));
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  box-shadow:
-    0 0 0 1px var(--glass-hairline),
-    inset 0 1px 0 var(--glass-highlight),
-    inset 0 -1px 0 var(--glass-shade),
-    var(--glass-shadow);
-  transition:
-    transform var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard);
+  border-radius: var(--glass-radius, var(--radius-card));
+  background: var(--bg-raised);
+  box-shadow: 0 0 0 1px var(--border-subtle);
 }
 
-.glass[data-material='thin'] {
-  --glass-bg: var(--glass-thin-bg);
-  --glass-blur: 12px;
-  --glass-saturate: 150%;
-}
-.glass[data-material='regular'] {
-  --glass-bg: var(--glass-regular-bg);
-  --glass-blur: 24px;
-  --glass-saturate: 180%;
-}
+/* Floating layers (popovers, menus, dialogs, toasts) carry the only shadow in the app. */
 .glass[data-material='thick'] {
-  --glass-bg: var(--glass-thick-bg);
-  --glass-blur: 40px;
-  --glass-saturate: 180%;
+  box-shadow: var(--shadow-popover);
 }
+
 .glass[data-material='tinted'] {
-  --glass-blur: 24px;
-  --glass-saturate: 180%;
-  --glass-bg: linear-gradient(
-      color-mix(in srgb, var(--accent-fill) var(--glass-tint-alpha), transparent),
-      color-mix(in srgb, var(--accent-fill) var(--glass-tint-alpha), transparent)
-    ),
-    var(--glass-regular-bg);
+  background: var(--accent-fill);
+  box-shadow: none;
   color: var(--on-accent);
 }
 
-/* Specular rim: a 1px gradient border, brighter at top-left and bottom-right */
-.glass::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: 1px;
-  border-radius: inherit;
-  background: linear-gradient(
-    135deg,
-    rgb(255 255 255 / 0.65),
-    rgb(255 255 255 / 0) 40%,
-    rgb(255 255 255 / 0) 60%,
-    rgb(255 255 255 / 0.3)
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-standard);
+/* Buttons: bordered, opaque, quiet hover. */
+.glass.gbtn {
+  box-shadow: 0 0 0 1px var(--border-strong);
+  transition: background var(--duration-instant) var(--ease-standard);
 }
-
-/* Cursor sheen (pointer only). --mx and --my are set by useSheen. */
-.glass::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: radial-gradient(
-    120px circle at var(--mx, 50%) var(--my, 0%),
-    rgb(255 255 255 / 0.28),
-    transparent 70%
-  );
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-base) var(--ease-standard);
+.glass.gbtn[data-material='tinted'] {
+  box-shadow: none;
 }
-
 @media (hover: hover) and (pointer: fine) {
-  .glass[data-interactive]:not(.gbtn):hover {
-    transform: translateY(-1px);
+  .glass.gbtn:hover {
+    background: color-mix(in srgb, var(--text-primary) 6%, var(--bg-raised));
   }
-  .glass[data-interactive]:hover::after {
-    opacity: 1;
-  }
-  .glass[data-interactive]:hover::before {
-    opacity: 1;
-    filter: brightness(1.25);
-  }
-}
-.glass[data-force='hover']::after {
-  opacity: 1;
-}
-.glass[data-force='hover'] {
-  transform: translateY(-1px);
-}
-
-/* Levels */
-[data-glass='reduced'] .glass {
-  --glass-blur: 12px;
-}
-[data-glass='off'] .glass {
-  background: var(--bg-raised);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow:
-    0 0 0 1px var(--border-subtle),
-    var(--shadow-popover);
-}
-[data-glass='off'] .glass[data-material='tinted'] {
-  background: var(--accent-fill);
-}
-[data-glass='off'] .glass::before,
-[data-glass='off'] .glass::after {
-  display: none;
-}
-
-@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  .glass {
-    background: var(--bg-raised);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  .glass[data-material='tinted'] {
+  .glass.gbtn[data-material='tinted']:hover {
     background: var(--accent-fill);
+    filter: brightness(1.08);
   }
 }
 
@@ -141,49 +42,7 @@
   .glass {
     background: Canvas;
     color: CanvasText;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
     box-shadow: none;
     border: 1px solid CanvasText;
   }
-  .glass::before,
-  .glass::after {
-    display: none;
-  }
 }
-
-/* Ambient backdrop: three static blurred blobs from the palette (§10). Never animated. */
-.ambient {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
-.ambient > i {
-  position: absolute;
-  width: 46vmax;
-  height: 46vmax;
-  max-width: 720px;
-  max-height: 720px;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: var(--ambient-opacity);
-}
-.ambient > i:nth-child(1) {
-  background: var(--c-blue);
-  top: -12%;
-  left: -8%;
-}
-.ambient > i:nth-child(2) {
-  background: var(--c-purple);
-  top: 28%;
-  right: -12%;
-}
-.ambient > i:nth-child(3) {
-  background: var(--c-orange);
-  bottom: -18%;
-  left: 24%;
-}
-
-@supports not (backdrop-filter: blur(1px)) { .glass { background: var(--bg-raised); } }

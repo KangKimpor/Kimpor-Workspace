@@ -85,12 +85,7 @@ describe.each([
     for (const c of palette) expect(pair(t, '--text-primary', `--chip-${c}`), c).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('tinted glass keeps the white label at 4.5:1 over the canvas', () => {
-    const alpha = Number.parseInt(t['--glass-tint-alpha']!, 10) / 100
-    const canvas = parse(t['--bg-canvas']!, t)
-    const regular = over(parse(t['--glass-regular-bg']!, t), canvas)
-    const accent = parse(t['--accent-fill']!, t)
-    const bg = over([accent[0], accent[1], accent[2], alpha], regular)
-    expect(ratio([255, 255, 255, 1], bg)).toBeGreaterThanOrEqual(4.5)
+  it('white label on the accent fill passes 4.5:1', () => {
+    expect(ratio([255, 255, 255, 1], parse(t['--accent-fill']!, t))).toBeGreaterThanOrEqual(4.5)
   })
 })

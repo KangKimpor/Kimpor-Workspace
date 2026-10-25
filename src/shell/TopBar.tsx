@@ -5,7 +5,7 @@ import {Glass} from '@/components/glass/Glass'
 const GlassPopover=lazy(()=>import('@/components/glass/GlassPopover').then(module=>({default:module.GlassPopover})))
 import { useSyncStatus, useWorkspace } from '@/data'
 import { useGlass } from '@/lib/glass'
-import type { GlassPref, MotionPref } from '@/lib/glass'
+import type { MotionPref } from '@/lib/glass'
 import { useTheme } from '@/lib/theme'
 import type { ThemePref } from '@/lib/theme'
 import { modKey, useShell } from './store'
@@ -88,18 +88,6 @@ export function Appearance() {
           { value: 'dark', label: 'Dark' },
         ]}
         onChange={(v, e) => theme.setPref(v, { x: e.clientX, y: e.clientY })}
-      />
-      <div className="menu-sep" />
-      <Group<GlassPref>
-        label="Glass effect"
-        value={glass.pref}
-        options={[
-          { value: 'auto', label: 'Auto' },
-          { value: 'full', label: 'Full' },
-          { value: 'reduced', label: 'Reduced' },
-          { value: 'off', label: 'Off' },
-        ]}
-        onChange={(v) => glass.setPref(v)}
       />
       <div className="menu-sep" />
       <Group<MotionPref>

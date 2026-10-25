@@ -6,7 +6,6 @@ import { CalendarAccounts } from '@/components/CalendarAccounts'
 import { Link, useParams } from 'react-router-dom'
 import { useTheme } from '@/lib/theme'
 import { useGlass } from '@/lib/glass'
-import type { GlassPref } from '@/lib/glass'
 import { AccountSettings } from '@/components/AccountSettings'
 import { useWorkspace } from '@/data'
 import { useInstall } from '@/lib/install'
@@ -76,24 +75,6 @@ function SettingsContent() {
             </p>
             <GlassSelect aria-label="Theme" value={theme.pref} onChange={(e) => theme.setPref(e.target.value as 'light' | 'dark' | 'system')}>
               <option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option>
-            </GlassSelect>
-          </section>
-          <section className="settings-section settings-row">
-            <div>
-              <h2>Glass effect</h2>
-              <p className="muted small">Soft depth, only where it belongs.</p>
-            </div>
-            <GlassSelect
-              aria-label="Glass effect"
-              value={glass.pref}
-              onChange={(e) => glass.setPref(e.target.value as GlassPref)}
-            >
-              {['auto', 'full', 'reduced', 'off'].map((v) => (
-                <option key={v} value={v}>
-                  {v[0]?.toUpperCase()}
-                  {v.slice(1)}
-                </option>
-              ))}
             </GlassSelect>
           </section>
           <section className="settings-section settings-row">

@@ -4,7 +4,7 @@ import { Glass } from '@/components/glass/Glass'
 import { SidebarContent } from './SidebarContent'
 import { SIDEBAR_MAX, SIDEBAR_MIN, useShell } from './store'
 
-/** Persistent floating glass sidebar (expanded and large). Resizable 220 to 380 px (§5). */
+/** Persistent flat sidebar (expanded and large). Resizable 220 to 380 px (§5). */
 export function Sidebar() {
   const width = useShell((s) => s.sidebarWidth)
   const setWidth = useShell((s) => s.setSidebarWidth)

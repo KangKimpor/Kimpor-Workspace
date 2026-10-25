@@ -1,7 +1,7 @@
-/* Stitch Quiet Glass: flat content, floating chrome, color used for meaning. */
+/* Workspace layout and content: flat surfaces, thin dividers, color used for meaning. */
 :root {
-  --bg-workspace: #f7f8fa;
-  --radius-reference-card: 14px;
+  --bg-workspace: var(--bg-canvas);
+  --radius-reference-card: var(--radius-card);
   --fs-section: 1.0625rem;
   --calendar-hour: 64px;
   --calendar-label: 96px;
@@ -16,31 +16,26 @@ body {
 .shell {
   background: transparent;
 }
-.shell > .ambient {
-  opacity: 0.65;
-}
 .sidebar {
-  padding: var(--space-12);
-  box-shadow: 0 var(--space-8) var(--space-32) var(--glass-shade);
+  padding: var(--space-8);
 }
 .nav-section {
-  margin-top: var(--space-24);
+  margin-top: var(--space-16);
 }
 .nav-item {
   font-size: var(--fs-label);
   font-weight: 400;
   color: var(--text-secondary);
-  min-height: max(var(--h-sidebar-item), var(--space-32));
-  padding-inline: var(--space-12);
+  min-height: var(--h-sidebar-item);
+  padding-inline: var(--space-8);
 }
 .nav-item[aria-current='page'] {
-  background: var(--bg-raised);
+  background: var(--bg-pressed);
   color: var(--text-primary);
-  box-shadow: 0 0 0 1px var(--border-subtle);
-  font-weight: 600;
+  font-weight: 500;
 }
 .nav-item[aria-current='page'] .nav-icon {
-  color: var(--accent-text);
+  color: var(--text-primary);
 }
 .workspace-btn {
   color: var(--text-primary);
@@ -73,14 +68,10 @@ body {
   width: var(--space-16);
   height: var(--space-16);
 }
-.topbar {
-  --glass-radius: var(--radius-glass);
-  box-shadow: 0 var(--space-8) var(--space-24) var(--glass-shade);
-}
 .topbar .pill {
-  color: var(--success-text);
-  background: color-mix(in srgb, var(--chip-green) 55%, transparent);
-  border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-subtle);
 }
 .profile-avatar,
 .owner-avatar {
@@ -163,14 +154,20 @@ body {
   min-height: var(--h-button);
   padding: var(--space-4) var(--space-12);
   border-radius: var(--radius-control);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-strong);
   background: var(--bg-raised);
-  font-size: var(--fs-small);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
   color: var(--text-primary);
   white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-secondary:hover {
+    background: color-mix(in srgb, var(--text-primary) 6%, var(--bg-raised));
+  }
 }
 .btn-text {
   display: inline-flex;
@@ -513,10 +510,11 @@ input[type='checkbox'] {
 .view-tabs {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-4);
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-sidebar);
-  border-radius: var(--radius-pill);
+  gap: var(--space-4);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
   max-width: 100%;
   overflow-x: auto;
 }
@@ -530,14 +528,18 @@ input[type='checkbox'] {
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   white-space: nowrap;
   min-height: var(--h-button);
 }
 .view-tab[aria-current='page'] {
-  color: var(--accent-text);
-  background: var(--bg-raised);
-  box-shadow: 0 0 0 1px var(--border-subtle);
+  color: var(--text-primary);
+  background: var(--bg-pressed);
+}
+@media (hover: hover) and (pointer: fine) {
+  .view-tab:hover {
+    background: var(--bg-hover);
+  }
 }
 .filter-controls {
   display: flex;
@@ -547,12 +549,12 @@ input[type='checkbox'] {
 }
 select {
   background: var(--bg-raised);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-control);
   min-height: var(--h-input);
   max-width: 100%;
   padding-inline: var(--space-8);
-  font-size: var(--fs-small);
+  font-size: var(--fs-label);
 }
 .search-field {
   display: flex;
@@ -560,8 +562,8 @@ select {
   gap: var(--space-8);
   padding-inline: var(--space-12);
   min-height: var(--h-input);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
   color: var(--text-secondary);
   background: var(--bg-raised);
 }
@@ -570,7 +572,7 @@ select {
   border: 0;
   min-width: 0;
   width: 100%;
-  font-size: var(--fs-small);
+  font-size: var(--fs-label);
   outline: none;
 }
 .search-field:focus-within {
@@ -1033,6 +1035,7 @@ summary {
   max-height: 76dvh;
   overflow-y: auto;
   animation: overlay-in var(--duration-fast) var(--ease-enter);
+  box-shadow: var(--shadow-popover);
 }
 .command-input {
   display: flex;
@@ -1156,6 +1159,7 @@ kbd {
   padding: var(--space-24);
   max-height: 90dvh;
   overflow-y: auto;
+  box-shadow: var(--shadow-popover);
 }
 .event-editor h2 {
   margin: 0;
@@ -1175,8 +1179,8 @@ kbd {
   min-width: 0;
   width: 100%;
   min-height: var(--h-input);
-  padding: var(--space-8);
-  border: 1px solid var(--border-subtle);
+  padding: 0 var(--space-8);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-control);
   background: var(--bg-raised);
   font-size: var(--fs-label);
@@ -1214,6 +1218,7 @@ kbd {
   max-width: calc(100vw - var(--space-32));
   padding: var(--space-12) var(--space-16);
   font-size: var(--fs-small);
+  box-shadow: var(--shadow-popover);
 }
 .workspace-toast > svg {
   color: var(--success-text);

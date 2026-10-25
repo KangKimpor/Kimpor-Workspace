@@ -12,6 +12,7 @@
   --bg-raised: #ffffff;
   --bg-hover: rgb(55 53 47 / 0.06);
   --bg-pressed: rgb(55 53 47 / 0.1);
+  --bg-selected: rgb(55 53 47 / 0.08);
   --border-subtle: rgb(55 53 47 / 0.09);
   --border-strong: rgb(55 53 47 / 0.16);
   --text-primary: #37352f;
@@ -50,19 +51,8 @@
   --chip-red: #ffe2dd;
 
   /* Elevation (§9) */
-  --shadow-popover: 0 0 0 1px rgb(15 15 15 / 0.05), 0 3px 6px rgb(15 15 15 / 0.1),
-    0 9px 24px rgb(15 15 15 / 0.2);
+  --shadow-popover: 0 0 0 1px rgb(15 15 15 / 0.06), 0 6px 16px rgb(15 15 15 / 0.12);
 
-  /* Glass (§10) */
-  --glass-hairline: rgb(55 53 47 / 0.1);
-  --glass-highlight: rgb(255 255 255 / 0.7);
-  --glass-shade: rgb(55 53 47 / 0.06);
-  --glass-shadow: 0 8px 32px rgb(15 15 15 / 0.12);
-  --glass-thin-bg: rgb(255 255 255 / 0.45);
-  --glass-regular-bg: rgb(255 255 255 / 0.62);
-  --glass-thick-bg: rgb(255 255 255 / 0.78);
-  --glass-tint-alpha: 100%; /* DECISIONS D-02: 70% gives 2.83:1 with a white label in light mode */
-  --ambient-opacity: 0.05;
   --scrim: rgb(15 15 15 / 0.32);
 }
 
@@ -72,13 +62,14 @@
   --bg-canvas: #191919;
   --bg-sidebar: #202020;
   --bg-raised: #252525;
+  --bg-selected: #2b2b2b;
   --bg-hover: rgb(255 255 255 / 0.055);
-  --bg-pressed: rgb(255 255 255 / 0.09);
-  --border-subtle: rgb(255 255 255 / 0.09);
-  --border-strong: rgb(255 255 255 / 0.17);
-  --text-primary: rgb(255 255 255 / 0.81);
-  --text-secondary: rgb(255 255 255 / 0.52);
-  --text-tertiary: rgb(255 255 255 / 0.34);
+  --bg-pressed: #2b2b2b;
+  --border-subtle: #333333;
+  --border-strong: #454545;
+  --text-primary: #e6e6e6;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #737373;
   --accent: #2383e2;
   --accent-fill: #1a73d9;
   --accent-text: #5ba5f0;
@@ -108,18 +99,8 @@
   --chip-pink: #533b4c;
   --chip-red: #594141;
 
-  --shadow-popover: 0 0 0 1px rgb(0 0 0 / 0.2), 0 3px 6px rgb(0 0 0 / 0.3),
-    0 9px 24px rgb(0 0 0 / 0.4);
+  --shadow-popover: 0 0 0 1px #333333, 0 6px 16px rgb(0 0 0 / 0.4);
 
-  --glass-hairline: rgb(255 255 255 / 0.12);
-  --glass-highlight: rgb(255 255 255 / 0.16);
-  --glass-shade: rgb(0 0 0 / 0.3);
-  --glass-shadow: 0 10px 40px rgb(0 0 0 / 0.5);
-  --glass-thin-bg: rgb(32 32 32 / 0.45);
-  --glass-regular-bg: rgb(32 32 32 / 0.6);
-  --glass-thick-bg: rgb(32 32 32 / 0.78);
-  --glass-tint-alpha: 70%;
-  --ambient-opacity: 0.1;
   --scrim: rgb(0 0 0 / 0.5);
 }
 
@@ -175,22 +156,22 @@
   /* Radii */
   --radius-chip: 4px;
   --radius-control: 6px;
-  --radius-card: 8px;
-  --radius-popover: 12px;
-  --radius-modal: 16px;
-  --radius-glass: 20px;
-  --radius-tabbar: 28px;
+  --radius-card: 6px;
+  --radius-popover: 8px;
+  --radius-modal: 8px;
+  --radius-glass: 6px;
+  --radius-tabbar: 0px;
   --radius-pill: 999px;
 
   /* Control heights: desktop values, raised under coarse pointers below */
   --h-sidebar-item: 28px;
   --h-row: 36px;
   --h-button: 32px;
-  --h-input: 36px;
+  --h-input: 32px;
   --h-topbar: 44px;
   --w-sidebar: 260px;
   --w-inspector: 340px;
-  --h-tabbar: 64px;
+  --h-tabbar: 56px;
 
   /* Content width (§9) */
   --content-width: 720px;

@@ -7,8 +7,6 @@ import {
   useState,
 } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Ambient } from '@/components/glass/Ambient'
-import { useGlass, watchFrameTime } from '@/lib/glass'
 import { UpdateNotice } from './UpdateNotice'
 import { watchSystemTheme } from '@/lib/theme'
 const BottomSheet = lazy(() =>
@@ -41,7 +39,7 @@ const QuickAdd = lazy(() =>
   })),
 )
 
-/** Floating navigation with an overlay drawer and bottom tabs on smaller screens. */
+/** Flat sidebar navigation with an overlay drawer and bottom tabs on smaller screens. */
 export function AppShell() {
   const hasOverlay = useWorkspaceUI(
     (state) =>
@@ -81,11 +79,8 @@ export function AppShell() {
 
   useEffect(() => {
     const stopTheme = watchSystemTheme()
-    const stopFrames = watchFrameTime()
-    useGlass.getState().setAuto('full')
     return () => {
       stopTheme()
-      stopFrames()
     }
   }, [])
 
@@ -141,7 +136,6 @@ export function AppShell() {
       <a className="skip" href="#main">
         Skip to content
       </a>
-      <Ambient />
       {hasReminders && (
         <Suspense fallback={null}>
           <Reminders />

@@ -72,14 +72,14 @@
   }
 }
 
-/* Pills (non-glass; they sit on glass bars) */
+/* Status pills */
 .pill {
   display: inline-flex;
   align-items: center;
   gap: var(--space-6);
   height: 24px;
   padding: 0 var(--space-8);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-chip);
   background: var(--bg-hover);
   color: var(--text-primary);
   font-size: var(--fs-small);
@@ -202,7 +202,7 @@
   place-items: center;
   width: 64px;
   height: 64px;
-  border-radius: var(--radius-glass);
+  border-radius: var(--radius-card);
   background: var(--bg-hover);
   color: var(--text-secondary);
 }
@@ -212,12 +212,10 @@
   color: var(--text-secondary);
 }
 .btn-glow {
-  box-shadow:
-    0 0 0 1px var(--glass-hairline),
-    0 0 24px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 0 0 1px var(--border-subtle);
 }
 
-/* Solid accent button for places that sit on glass (never glass on glass, §10) */
+/* Solid accent button */
 .btn-accent {
   display: inline-flex;
   align-items: center;
@@ -248,10 +246,9 @@
   }
 }
 .btn-accent[data-round='true'] {
-  width: 48px;
-  height: 48px;
-  min-height: 48px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
   padding: 0;
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-popover);
+  border-radius: var(--radius-control);
 }

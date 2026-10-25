@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 test.use({ hasTouch: true, isMobile: true })
 
-test('mobile safe area reserves space above the header and page content', async ({ page }) => {
+test('mobile safe area is absorbed by a flush header above the page content', async ({ page }) => {
   await page.setViewportSize({ width: 393, height: 852 })
   for (const route of ['/', '/projects/website/table']) {
     await page.goto(route)
@@ -15,11 +15,11 @@ test('mobile safe area reserves space above the header and page content', async 
       }, inset)
       const header = await page.locator('.topbar').boundingBox()
       const content = await surface.boundingBox()
-      expect(header!.y).toBe(Math.max(8, inset))
+      expect(header!.y).toBe(0)
       expect(content!.y - header!.y - header!.height).toBe(12)
       await expect(surface.locator('h1')).toBeInViewport()
       await page.evaluate(() => window.scrollTo(0, 160))
-      await expect.poll(async () => (await page.locator('.topbar').boundingBox())!.y).toBe(Math.max(8, inset))
+      await expect.poll(async () => (await page.locator('.topbar').boundingBox())!.y).toBe(0)
     }
   }
 })

@@ -1,10 +1,4 @@
-/** Static ambient backdrop for glass to blur: three palette blobs, never animated (§10). */
+/** The ambient backdrop was part of the removed Liquid Glass material; kept as a no-op for imports. */
 export function Ambient() {
-  return (
-    <div className="ambient" aria-hidden="true">
-      <i />
-      <i />
-      <i />
-    </div>
-  )
+  return null
 }
