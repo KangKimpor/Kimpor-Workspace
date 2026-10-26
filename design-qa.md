@@ -1,5 +1,38 @@
 # Design QA
 
+## Board, project creation, and logo update — 2026-10-26
+
+final result: passed
+
+- Visual truth: the supplied Notion board screenshot and the user's open Chrome reference, captured locally as `docs/screenshots/board-update/notion-board-reference.png`.
+- Implementation: `docs/screenshots/board-update/board-desktop-dark.png`, `board-mobile-dark.png`, and `projects-clean.png` in the same folder.
+- Full comparison: `docs/screenshots/board-update/board-comparison.png`; focused card comparison: `board-detail-comparison.png`.
+- Desktop comparison: 1397 × 654 CSS pixels. Captures normalized to that pixel size for the full comparison; focused crops remain at native density. Phone capture: 393 × 852. Both source and implementation show the default board in dark mode with details collapsed.
+- Content differs intentionally: the reference contains the user's real tasks, while the app uses its existing demo tasks. The existing sidebar, editing controls, and additional In review/Blocked groups remain functional. This is a scoped board styling update, not a copy of Notion's surrounding product.
+
+### Visual checks and comparison history
+
+1. P2: Expanded task forms made cards substantially taller than the reference. Moved status, due date, description, and advanced fields behind the existing details control. Post-fix focused comparison shows titles and priority tags with consistent padding, wrapping, and gaps.
+2. P2: Initial cards were too large and neutral colors too light. Matched the reference's compact typography, 280px columns, 10px card corners, dark neutral/blue/green surfaces, and hover controls. The final focused comparison confirms the corrected density and semantic colors.
+3. P2: Project-list inputs, duplicated workspace selectors, and descriptions cluttered creation. Replaced the inline form with a single New project button opening the existing editor. Cancel creates nothing; Save preserves workspace and icon. `projects-clean.png` verifies the simplified entry screen.
+4. P2: Text focus created bright blue rectangles. Replaced text-field and search-container outlines with a subtle underline; retained keyboard focus on controls and forced-colors outlines. Computed styles and browser tests verify `outline-style: none` while typing.
+5. Fonts/typography: kept the app's installed Inter family; card titles use 15px/1.5 desktop text, 16px for touch devices, and wrap without clipping. The reference uses its platform font. This family difference is an accepted product constraint.
+6. Spacing/layout: aligned title, completion icon, priority tag, and hover actions; column headers and cards share consistent insets. Mobile keeps horizontal board scrolling inside the content region with no page overflow.
+7. Colors/tokens: neutral, blue, and green board surfaces follow the reference; existing priority tokens remain in use. Minor priority shade differences are acceptable shared-design-system variation.
+8. Image/asset fidelity: supplied SVG is used directly in app chrome, settings, and favicon. Installed-app PNGs are generated from that vector. No replacement logo was drawn.
+9. Copy/content: removed both requested project-list descriptions and the inline workspace/name fields. Existing task content remains editable; no reference task data was imported.
+
+### Verification
+
+- In-app browser: inspected desktop and phone boards, tested New project and Cancel, checked typing focus, and checked console errors (none).
+- 78 unit tests passed, including draft creation and icon/workspace persistence.
+- 44 Chromium production browser tests passed, including creation, table editing, board editing, drag-and-drop, offline reload, light/dark accessibility, and responsive layouts.
+- Six WebKit board tests passed, including wrapping, quiet typing, task fields, completion undo, and drag-and-drop.
+- Typecheck, lint, and production build passed.
+- No actionable P0/P1/P2 findings remain. Full and focused visual comparisons are saved locally; source captures containing private reference data are ignored by Git.
+
+---
+
 final result: passed
 
 ## Evidence and scope

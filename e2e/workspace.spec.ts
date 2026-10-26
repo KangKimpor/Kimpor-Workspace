@@ -37,17 +37,20 @@ test('page creation, slash editing, persistence, trash and restore', async ({
 test('inline board fields edit status and subtasks, completion can be undone', async ({ page }) => {
   await page.goto('/projects/website/board')
   const card = page.locator('.board-card').filter({ has: page.getByLabel('Title for Finalize token contrasts for WCAG AA', { exact: true }) })
+  await card.getByLabel('More fields for Finalize token contrasts for WCAG AA', { exact: true }).click()
   await card.getByRole('combobox', { name: /^Status for/ }).click()
   await page.getByRole('option', { name: 'In review', exact: true }).click()
-  await card.getByText('More fields', { exact: true }).click()
+  await card.getByLabel('More fields for Finalize token contrasts for WCAG AA', { exact: true }).click()
   await card.getByRole('textbox', { name: 'New subtask' }).fill('Verify on Safari')
   await card.getByRole('button', { name: 'Add', exact: true }).click()
   await expect(card.getByText('Verify on Safari')).toBeVisible()
   await card.getByRole('checkbox', { name: /^Complete / }).check()
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await card.getByLabel('More fields for Finalize token contrasts for WCAG AA', { exact: true }).click()
   await expect(card.getByRole('combobox', { name: /^Status for/ })).toHaveText('In review')
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await page.reload()
+  await card.getByLabel('More fields for Finalize token contrasts for WCAG AA', { exact: true }).click()
   await expect(card.getByRole('combobox', { name: /^Status for/ })).toHaveText('In review')
 })
 
@@ -143,8 +146,9 @@ test('project creation and editable, hideable, resizable task table', async ({
   page,
 }) => {
   await page.goto('/projects')
-  await page.getByLabel('New project name').fill('Release checklist')
   await page.getByRole('button', { name: 'New project', exact: true }).click()
+  await page.getByLabel('Project name', { exact: true }).fill('Release checklist')
+  await page.getByRole('button', { name: 'Create project', exact: true }).click()
   await expect(
     page.locator('main').getByText('Release checklist', { exact: true }),
   ).toBeVisible()
@@ -205,7 +209,7 @@ test('board cards can move between statuses', async ({ page }) => {
   const card = page.getByRole('button', { name: /Move Finalize token contrasts/ })
   const column = page.locator('.board-column').filter({
     has: page.getByRole('button', {
-      name: 'Add task to In review',
+      name: 'Add task to Done',
       exact: true,
     }),
   })

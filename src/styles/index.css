@@ -65,12 +65,22 @@ button {
 :focus:not(:focus-visible) {
   outline: none;
 }
+/* Text fields use a quiet underline instead of a box while typing. */
+input:not([type='checkbox']):not([type='radio']):focus,
+textarea:focus,
+[contenteditable='true']:focus {
+  outline: none;
+  box-shadow: inset 0 -1px var(--text-secondary);
+}
 a {
   color: var(--accent-text);
 }
 @media (forced-colors: active) {
   :focus-visible {
     outline-color: Highlight;
+  }
+  input:focus-visible, textarea:focus-visible, [contenteditable='true']:focus-visible {
+    outline: 2px solid Highlight;
   }
 }
 

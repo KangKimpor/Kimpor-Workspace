@@ -18,10 +18,9 @@ export default function Projects() {
   const { id, view = 'table' } = useParams()
   const projects = useProjects()
   const project = projects.find((p) => p.id === id)
-  const { tasks, addTask, addProject, updateProject } = useWorkspace()
+  const { tasks, addTask, updateProject } = useWorkspace()
   const [editing, setEditing] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
   const workspace = params.get('workspace') === 'team' ? 'team' : 'personal'
   const [query, setQuery] = useState('')
   const [priority, setPriority] = useState('All priorities')
@@ -36,37 +35,10 @@ export default function Projects() {
         <header className="page-heading">
           <div>
             <h1 className="t-title">{workspace === 'team' ? 'Team Workspace' : 'Personal Workspace'}</h1>
-            <p className="muted">
-              A home for every idea you’re bringing to life.
-            </p>
           </div>
+          <button className="btn-accent" onClick={() => setEditing(true)}><Plus size={16} />New project</button>
         </header>
-        <form
-          className="filter-controls"
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (newName.trim()) {
-              addProject(newName, workspace)
-              setNewName('')
-            }
-          }}
-        >
-          <input
-            aria-label="New project name"
-            placeholder="Name your project"
-            required
-            maxLength={200}
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-          />
-          <GlassSelect aria-label="Project workspace" value={workspace} onChange={(e) => setParams({ workspace: e.target.value })}><option value="team">Team Workspace</option><option value="personal">Personal Workspace</option></GlassSelect>
-          <GlassSelect aria-label="Project workspace" value={workspace} onChange={(e) => setParams({ workspace: e.target.value })}><option value="team">Team Workspace</option><option value="personal">Personal Workspace</option></GlassSelect>
-          <button className="btn-accent">
-            <Plus size={16} />
-            New project
-          </button>
-        </form>
-        <p className="small muted">Team and Personal are private project groups. Sharing between accounts is not enabled.</p>
+        {editing && <ProjectEditor workspace={workspace} onClose={() => setEditing(false)} />}
         <ProjectCards workspace={workspace} />
         {projects.some((p) => p.status === 'Archived') && (
           <details className="flat-card settings-section">
@@ -142,24 +114,14 @@ export default function Projects() {
         </div>
         {(!mobile || view !== 'table') && <div className="heading-actions">
           <button className="btn-secondary" onClick={() => setEditing(true)}><Pencil size={14} />Edit project</button>
-          {view !== 'table' && <button className="btn-accent" onClick={() => add()}><Plus size={16} />New task</button>}
         </div>}
       </header>
       {editing && <ProjectEditor key={project.id} project={project} onClose={() => setEditing(false)} />}
-      {view !== 'table' && <div className="view-toolbar">
-        <nav className="view-tabs" aria-label="Project views">
-          <NavLink to={`/projects/${id}/table`} className="view-tab"><Table2 size={15} />Table</NavLink>
-          <NavLink to={`/projects/${id}/board`} className="view-tab"><Kanban size={15} />Board</NavLink>
-        </nav>
-        <div className="filter-controls">
-          <label className="search-field"><Search size={14} /><input aria-label="Search project tasks" placeholder="Search tasks…" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
-          <GlassSelect aria-label="Filter priority" value={priority} onChange={(e) => setPriority(e.target.value)}>
-            {['All priorities', 'Low', 'Medium', 'High', 'Urgent'].map((p) => <option key={p}>{p}</option>)}
-          </GlassSelect>
-        </div>
-      </div>}
       {view === 'board' ? (
-        <ProjectBoard tasks={filtered} projectId={id} />
+        <>
+          <div className="project-table-toolbar">{toolbar}{actions}</div>
+          <ProjectBoard tasks={filtered} projectId={id} />
+        </>
       ) : (
         <TaskTable tasks={filtered} mobile={mobile} toolbar={toolbar} actions={actions} />
       )}

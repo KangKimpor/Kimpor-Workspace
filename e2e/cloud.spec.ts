@@ -113,7 +113,7 @@ test('two signed-in sessions receive task writes and deletions without focus or 
     await pageA.getByLabel('Title for QA live task', { exact: true }).fill('Propagated immediately')
     await expect(pageB.getByLabel('Title for Propagated immediately', { exact: true })).toHaveValue('Propagated immediately', { timeout: 15000 })
     await pageA.goto(`/projects/${projectId}/board`)
-    await pageA.getByText('More fields', { exact: true }).click()
+    await pageA.getByLabel(/^More fields for /).click()
     await pageA.getByRole('button', { name: 'Delete task', exact: true }).click()
     await expect(pageB.getByLabel('Title for Propagated immediately', { exact: true })).toHaveCount(0, { timeout: 15000 })
     // Hard deletes use the private owner notification instead of a row update.

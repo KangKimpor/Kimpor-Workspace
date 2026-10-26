@@ -1,4 +1,5 @@
-import { TaskRow } from './TaskRow'
+import { completeTask } from './TaskRow'
+import { TaskFields, TaskPrioritySelect, TaskStatusSelect } from './TaskFields'
 import {
   DndContext,
   KeyboardSensor,
@@ -17,19 +18,28 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Plus } from 'lucide-react'
+import { CircleCheck, GripVertical, Plus } from 'lucide-react'
 import { statuses, useWorkspace } from '@/data'
 import type { Task, TaskStatus } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
-import { Badge, statusColor } from './WorkspaceUI'
+import { Badge, statusColor, tint } from './WorkspaceUI'
 
 function Card({ task }: { task: Task }) {
+  const update = useWorkspace((s) => s.updateTask)
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useSortable({ id: task.id })
   return (
-    <div ref={setNodeRef} className="board-card flat-card" style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.6 : 1, zIndex: isDragging ? 5 : undefined }}>
-      <button {...attributes} {...listeners} className="ibtn" aria-label={`Move ${task.title}`} style={{ touchAction: 'none' }}><GripVertical size={16} /></button>
-      <TaskRow task={task} compact />
+    <div ref={setNodeRef} className="board-card flat-card" style={{ ...tint(statusColor[task.status]), transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.6 : 1, zIndex: isDragging ? 5 : undefined }}>
+      <div className="board-card-heading">
+        <label className="board-complete"><input aria-label={`Complete ${task.title}`} type="checkbox" checked={task.status === 'Done'} onChange={() => completeTask(task)} /><CircleCheck size={20} aria-hidden="true" /></label>
+        <textarea className="board-task-title" rows={1} aria-label={`Title for ${task.title}`} value={task.title} onChange={(e) => update(task.id, { title: e.target.value })} />
+      </div>
+      <div className="board-card-meta"><TaskPrioritySelect task={task} /><button {...attributes} {...listeners} className="ibtn board-drag" aria-label={`Move ${task.title}`} style={{ touchAction: 'none' }}><GripVertical size={16} /></button></div>
+      <TaskFields task={task} compact>
+        <div className="board-status-field"><span>Status</span><TaskStatusSelect task={task} /></div>
+        <label>Due date<input aria-label={`Due date for ${task.title}`} type="date" value={task.due} onChange={(e) => update(task.id, { due: e.target.value })} /></label>
+        <label>Description<textarea rows={3} aria-label={`Description for ${task.title}`} value={task.notes} onChange={(e) => update(task.id, { notes: e.target.value })} /></label>
+      </TaskFields>
     </div>
   )
 }
@@ -44,7 +54,7 @@ function Column({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
   return (
-    <section ref={setNodeRef} className="board-column" data-over={isOver}>
+    <section ref={setNodeRef} className="board-column" data-status={status} data-over={isOver} style={tint(statusColor[status])}>
       <header>
         <Badge color={statusColor[status]}>
           {status}
@@ -122,7 +132,7 @@ export function ProjectBoard({
     >
       <div className="board-scroll">
         <div className="board">
-          {statuses.map((status) => (
+          {(['Not started', 'In progress', 'Done', 'In review', 'Blocked'] as const).map((status) => (
             <Column
               status={status}
               tasks={tasks.filter((t) => t.status === status)}

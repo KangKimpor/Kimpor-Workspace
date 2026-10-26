@@ -6,8 +6,8 @@ import { useWorkspace } from '@/data'
 import type { PaletteColor, ProjectSummary } from '@/data'
 import { projectIcons, Tile, tint } from './WorkspaceUI'
 
-export function ProjectEditor({ project, onClose }: { project: ProjectSummary; onClose: () => void }) {
-  const [draft, setDraft] = useState(project)
+export function ProjectEditor({ project, workspace = 'personal', onClose }: { project?: ProjectSummary; workspace?: 'team' | 'personal'; onClose: () => void }) {
+  const [draft, setDraft] = useState<ProjectSummary>(project ?? { id: '', name: '', workspace, description: '', color: 'blue', progress: 0, target: '', status: 'Planned' })
   const [error, setError] = useState('')
   const update = (patch: Partial<ProjectSummary>) => setDraft({ ...draft, ...patch })
   return (
@@ -16,7 +16,7 @@ export function ProjectEditor({ project, onClose }: { project: ProjectSummary; o
         <Dialog.Overlay className="scrim" />
         <Dialog.Content className="event-editor project-editor glass" data-material="thick">
           <div className="row-between">
-            <div className="inline"><Tile name={draft.icon || draft.id} color={draft.color} /><Dialog.Title className="t-h3">Edit project</Dialog.Title></div>
+            <div className="inline"><Tile name={draft.icon || draft.id} color={draft.color} /><Dialog.Title className="t-h3">{project ? 'Edit project' : 'New project'}</Dialog.Title></div>
             <Dialog.Close className="ibtn" aria-label="Close project editor"><X size={18} /></Dialog.Close>
           </div>
           <Dialog.Description className="small muted">A few details to give your project a clear direction.</Dialog.Description>
@@ -24,7 +24,9 @@ export function ProjectEditor({ project, onClose }: { project: ProjectSummary; o
             e.preventDefault()
             if (!draft.name.trim()) { setError('Enter a project name.'); return }
             if (draft.startDate && draft.target && draft.target < draft.startDate) { setError('Target date must be on or after the start date.'); return }
-            useWorkspace.getState().updateProject(project.id, { workspace: draft.workspace ?? 'personal', name: draft.name.trim(), description: draft.description, icon: draft.icon, color: draft.color, status: draft.status, startDate: draft.startDate, target: draft.target })
+            const state = useWorkspace.getState()
+            const id = project?.id ?? state.addProject(draft.name, draft.workspace)
+            state.updateProject(id, { workspace: draft.workspace ?? 'personal', name: draft.name.trim(), description: draft.description, icon: draft.icon, color: draft.color, status: draft.status, startDate: draft.startDate, target: draft.target })
             onClose()
           }}>
             <label>Project name<input autoFocus required maxLength={200} value={draft.name} onChange={(e) => update({ name: e.target.value })} /></label>
@@ -41,7 +43,7 @@ export function ProjectEditor({ project, onClose }: { project: ProjectSummary; o
             </div>
             <fieldset className="project-colors"><legend>Project color</legend><div className="inline">{(['blue', 'purple', 'green', 'orange', 'red', 'pink', 'gray'] as PaletteColor[]).map((color) => <button type="button" key={color} style={tint(color)} className="color-choice" aria-label={color} aria-pressed={draft.color === color} onClick={() => update({ color })}>{draft.color === color && <Check size={16} />}</button>)}</div></fieldset>
             {error && <p className="form-error small" role="alert">{error}</p>}
-            <footer><Dialog.Close className="btn-secondary" type="button">Cancel</Dialog.Close><button className="btn-accent" type="submit">Save changes</button></footer>
+            <footer><Dialog.Close className="btn-secondary" type="button">Cancel</Dialog.Close><button className="btn-accent" type="submit">{project ? 'Save changes' : 'Create project'}</button></footer>
           </form>
         </Dialog.Content>
       </Dialog.Portal>

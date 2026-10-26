@@ -202,7 +202,7 @@ export function TopBar({ crumb, bp }: { crumb: Crumb; bp: Breakpoint }) {
         {moreLoaded ? <Suspense fallback={moreTrigger}><GlassPopover label="Appearance and view options" open={moreOpen} onOpenChange={setMoreOpen} trigger={moreTrigger}><Appearance/></GlassPopover></Suspense> : moreTrigger}
         <Link
           to="/settings/appearance"
-          className="profile-avatar"
+          className="ibtn"
           aria-label="Workspace settings"
         >
           <img className="brand-logo" src="/brand/favicon.svg" width={28} height={28} alt="" />

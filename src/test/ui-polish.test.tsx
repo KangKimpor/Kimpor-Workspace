@@ -44,3 +44,16 @@ test('selector accessible names follow an inline task rename', () => {
   rerender(<GlassSelect aria-label="Status for Renamed" value="Done"><option>Done</option></GlassSelect>)
   expect(screen.getByRole('combobox', { name: 'Status for Renamed' })).toBeInTheDocument()
 })
+
+test('new project editor creates only on save and keeps the selected workspace and icon', () => {
+  const before = useWorkspace.getState()
+  const close = vi.fn()
+  render(<ProjectEditor workspace="team" onClose={close} />)
+  expect(useWorkspace.getState().projects).toHaveLength(before.projects.length)
+  fireEvent.change(screen.getByLabelText('Project name'), { target: { value: 'Site construction' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Use construction icon' }))
+  fireEvent.submit(screen.getByRole('button', { name: 'Create project' }).closest('form')!)
+  expect(useWorkspace.getState().projects.at(-1)).toMatchObject({ name: 'Site construction', workspace: 'team', icon: 'construction' })
+  expect(close).toHaveBeenCalledOnce()
+  useWorkspace.setState(before)
+})

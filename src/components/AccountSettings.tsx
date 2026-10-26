@@ -243,7 +243,7 @@ export function AccountSettings() {
   return (
     <div className="account-auth-layout">
       <aside className="account-welcome">
-        <img className="account-brand-logo" src="/brand/logo.svg" alt="SingBuild" />
+        <img className="account-brand-logo" src="/brand/favicon.svg" alt="SingBuild" width={80} height={80} />
         <span className="eyebrow">A LITTLE SPACE FOR EVERYTHING</span>
         <h2>
           Your work.

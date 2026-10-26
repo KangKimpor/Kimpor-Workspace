@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
+import type { ReactNode } from 'react'
+import { Ellipsis } from 'lucide-react'
 import { priorities, statuses, useWorkspace } from '@/data'
 import type { Task } from '@/data'
 import { canParentTask } from '@/data/task-tree'
@@ -13,12 +15,13 @@ export function TaskPrioritySelect({ task }: { task: Task }) {
   return <GlassSelect aria-label={`Priority for ${task.title}`} value={task.priority} onChange={(e) => useWorkspace.getState().updateTask(task.id, { priority: e.target.value as Task['priority'] })}>{priorities.map((s) => <option key={s}>{s}</option>)}</GlassSelect>
 }
 /** Extra fields expand in the document flow, without a task overlay. */
-export function TaskFields({ task }: { task: Task }) {
+export function TaskFields({ task, compact = false, children }: { task: Task; compact?: boolean; children?: ReactNode }) {
   const { tasks, projects, updateTask } = useWorkspace()
   const [subtask, setSubtask] = useState('')
   const update = (patch: Partial<Task>) => updateTask(task.id, patch)
-  return <details className="task-fields"><summary aria-label={`More fields for ${task.title}`}>More fields</summary>
+  return <details className="task-fields"><summary aria-label={`More fields for ${task.title}`}>{compact ? <Ellipsis size={18} aria-hidden="true" /> : 'More fields'}</summary>
     <div className="task-field-grid">
+      {children}
       <label>Project<GlassSelect value={task.projectId} onChange={(e) => update({ projectId: e.target.value })}>{projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</GlassSelect></label>
       <label>Start date<input type="datetime-local" value={task.startAt || ''} onChange={(e) => update({ startAt: e.target.value })} /></label>
       <label>Due time<input type="time" value={task.dueTime || ''} onChange={(e) => update({ dueTime: e.target.value })} /></label>

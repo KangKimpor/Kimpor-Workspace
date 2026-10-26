@@ -73,7 +73,6 @@ body {
   background: var(--bg-hover);
   border: 1px solid var(--border-subtle);
 }
-.profile-avatar,
 .owner-avatar {
   display: inline-grid;
   place-items: center;
@@ -81,14 +80,6 @@ body {
   border-radius: var(--radius-pill);
   font-size: var(--fs-small);
   font-weight: 600;
-}
-.profile-avatar {
-  width: var(--space-32);
-  height: var(--space-32);
-  margin-left: var(--space-8);
-  color: var(--on-accent);
-  background: var(--accent-fill);
-  text-decoration: none;
 }
 .owner-avatar {
   width: var(--space-20);
@@ -584,8 +575,7 @@ select {
   outline: none;
 }
 .search-field:focus-within {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  box-shadow: inset 0 -1px var(--text-secondary);
 }
 .metrics-grid {
   display: grid;
@@ -696,15 +686,20 @@ summary {
 }
 .board {
   display: grid;
-  grid-template-columns: repeat(5, minmax(240px, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: 280px;
+  align-items: start;
   gap: var(--space-16);
-  min-height: 55dvh;
 }
 .board-column {
-  background: var(--bg-sidebar);
+  --board-card-bg: color-mix(in srgb, var(--tint) 16%, var(--bg-canvas));
+  background: color-mix(in srgb, var(--tint) 7%, var(--bg-canvas));
   border-radius: var(--radius-popover);
-  padding: var(--space-12);
+  padding: var(--space-8);
 }
+.board-column[data-status='Not started'] { --board-card-bg: var(--bg-sidebar); background: var(--bg-sidebar); }
+.board-column[data-status='In progress'] { --board-card-bg: light-dark(#e8f0fa, #213041); background: light-dark(#f3f7fc, #1b2128); }
+.board-column[data-status='Done'] { --board-card-bg: light-dark(#e7f1e9, #203329); background: light-dark(#f2f7f3, #1b241e); }
 .board-column > header {
   display: flex;
   align-items: center;
@@ -716,27 +711,86 @@ summary {
 }
 .board-cards {
   display: grid;
-  gap: var(--space-12);
+  gap: var(--space-8);
 }
 .board-card {
-  display: grid;
-  gap: var(--space-12);
-  padding: var(--space-16);
+  position: relative;
+  padding: 10px 12px;
   text-align: left;
   width: 100%;
-  cursor: grab;
+  background: var(--board-card-bg);
+  border: 1px solid color-mix(in srgb, var(--tint) 20%, var(--border-subtle));
+  border-radius: 10px;
 }
-.board-card > .status-badge {
-  justify-self: start;
+.board-card-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding-right: var(--space-16);
 }
-.board-card h3 {
-  font-size: var(--fs-label);
+.board-card .board-task-title {
+  field-sizing: content;
+  min-width: 0;
+  width: 100%;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 15px;
   font-weight: 600;
-  line-height: var(--lh-label);
+  line-height: 1.5;
+  resize: none;
+  overflow: hidden;
 }
-.board-card p {
-  margin: 0;
+.board-complete {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  color: var(--success-text);
+  cursor: pointer;
 }
+.board-complete input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.board-complete svg { fill: var(--success-text); stroke: var(--bg-canvas); }
+.board-status-field { display: grid; gap: var(--space-4); }
+.board-complete:focus-within { outline: 2px solid var(--text-secondary); outline-offset: 2px; }
+.board-card-meta { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-8); }
+.board-card-meta .glass-select { min-height: 24px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.board-card-meta .status-badge { border-radius: 4px; font-size: 12px; }
+.board-card-meta .status-badge::before { display: none; }
+.board-column > header > .status-badge { font-size: var(--fs-label); }
+@media (pointer: coarse) {
+  .board-card > .task-fields > summary { opacity: 1; min-width: 32px; min-height: 32px; }
+  .board-card-meta .glass-select { min-height: 32px; }
+  .board-card .board-task-title { font-size: 16px; }
+}
+.board-card-meta .glass-select > svg { display: none; }
+.board-card-meta .glass-select:hover > svg { display: block; }
+.board-drag { width: 24px; height: 24px; opacity: 0; cursor: grab; }
+.board-card:hover .board-drag, .board-card:focus-within .board-drag { opacity: 1; }
+.board-card > .task-fields { margin: 0; }
+.board-card > .task-fields > summary {
+  position: absolute;
+  top: 8px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  list-style: none;
+  opacity: 0;
+}
+.board-card:hover > .task-fields > summary,
+.board-card:focus-within > .task-fields > summary { opacity: 1; }
+.board-card > .task-fields > summary::-webkit-details-marker { display: none; }
+.board-card .task-field-grid { padding-top: var(--space-12); }
+.board-column > .add-row { width: 100%; margin-top: var(--space-8); }
+.board-column[data-over='true'] { box-shadow: inset 0 0 0 2px var(--text-secondary); }
 .add-row {
   background: transparent;
   border: 0;
@@ -1331,9 +1385,6 @@ button:disabled {
   .topbar .collapsed-title {
     opacity: 1;
   }
-  .topbar .profile-avatar {
-    display: none;
-  }
   .topbar .actions {
     gap: 0;
   }
@@ -1643,13 +1694,11 @@ html[data-motion='reduced'] .pill[data-tone='busy'] .dot { animation: none; }
 .task-fields label.inline { display: flex; }
 .task-fields input[type=checkbox] { width: auto; }
 .table-task-name { display: block; }
-.board-card .task-row { padding: 0; border: 0; background: transparent; }
-.board-card .task-inline-controls { display: grid; }
 .task-row .task-title-input { width: 100%; font-size: var(--fs-label); }
 .topbar .pill[data-tone=busy] { color: var(--text-primary); background: var(--chip-blue); }
 .topbar .pill[data-tone=error] { color: var(--danger-text); background: var(--chip-red); }
 
-.account-brand-logo { display: block; width: min(100%, 280px); height: auto; margin-bottom: var(--space-24); border-radius: var(--radius-control); }
+.account-brand-logo { display: block; width: 80px; height: 80px; object-fit: contain; margin-bottom: var(--space-24); }
 
 /* Dense task rows follow the workspace reference. */
 .task-table td { vertical-align: middle; }

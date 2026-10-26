@@ -1,6 +1,28 @@
 import { expect, test } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
+for (const theme of ['light', 'dark']) for (const width of [1397, 393]) {
+  test(`compact board cards and quiet typing in ${theme} at ${width}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 })
+    await page.addInitScript((value) => localStorage.setItem('kw-theme', value), theme)
+    await page.goto('/projects/website/board')
+    const card = page.locator('.board-card').first()
+    await expect(card.getByRole('combobox', { name: /^Priority for/ })).toBeVisible()
+    await expect(card.getByRole('combobox', { name: /^Status for/ })).toBeHidden()
+    await expect(card.getByLabel(/^Description for/)).toBeHidden()
+    const title = card.getByRole('textbox', { name: /^Title for/ })
+    await title.fill('A construction task with a longer name that wraps cleanly')
+    await expect(title).toHaveCSS('outline-style', 'none')
+    expect(await title.evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await card.getByLabel(/^More fields for/).click()
+    await expect(card.getByRole('combobox', { name: /^Status for/ })).toBeVisible()
+    await card.getByLabel(/^More fields for/).click()
+    await page.screenshot({ path: `test-results/board-${theme}-${width}.png`, animations: 'disabled' })
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
+  })
+}
+
 for (const theme of ['light', 'dark']) {
   test(`desktop reference table layout and editing in ${theme}`, async ({ page }) => {
     await page.setViewportSize({ width: 1605, height: 1000 })

@@ -25,7 +25,7 @@ for (const preference of ['system', 'os-reduced', 'app-reduced']) {
 
     await page.goto('/projects/website/board')
     await page.getByRole('button', { name: 'New task', exact: true }).first().click()
-    await page.getByText('More fields', { exact: true }).first().click()
+    await page.getByLabel(/^More fields for /).first().click()
     await page.getByRole('button', { name: 'Delete task', exact: true }).first().click()
     const toast = page.locator('.workspace-toast')
     await expect(toast).toContainText(/Task deleted/)
