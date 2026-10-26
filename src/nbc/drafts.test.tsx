@@ -27,10 +27,10 @@ test('unfinished raw input survives an editor unmount/reopen without inventing a
  render(<Editor/>);expect(screen.getByLabelText('Progress')).toHaveValue('37.')
  act(()=>vi.advanceTimersByTime(450));expect(useWorkspace.getState().nbc_activities![3]!.progress).toBe(0.37)
 })
-test('invalid text is recoverable, bounds clamp, and scope keys isolate private drafts',()=>{
+test('invalid and out-of-range edits stay recoverable without changing saved progress; scopes stay isolated',()=>{
  vi.useFakeTimers();render(<Editor/>);fireEvent.change(screen.getByLabelText('Progress'),{target:{value:'bad input'}});act(()=>vi.advanceTimersByTime(450));expect(useWorkspace.getState().nbc_activities![3]!.progress).toBe(0.25)
  expect(readActivityDraft('another-user',fixtureProject.id)).toBeNull()
- fireEvent.change(screen.getByLabelText('Progress'),{target:{value:'150%'}});act(()=>vi.advanceTimersByTime(450));expect(useWorkspace.getState().nbc_activities![3]!.progress).toBe(1)
+ fireEvent.change(screen.getByLabelText('Progress'),{target:{value:'150%'}});act(()=>vi.advanceTimersByTime(450));expect(useWorkspace.getState().nbc_activities![3]!.progress).toBe(0.25)
  expect(screen.getByText('Progress must be between 0% and 100%.')).toBeInTheDocument()
 })
 test('restoring screen data does not mix editor modes or accounts',()=>{

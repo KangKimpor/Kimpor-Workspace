@@ -7,7 +7,7 @@ import { existsSync, readFileSync } from 'node:fs'
 async function setup(page:Page) {
   await page.addInitScript(({activities,project})=>{if(!localStorage.getItem('kw-workspace-v1'))localStorage.setItem('kw-workspace-v1',JSON.stringify({pages:[],tasks:[],events:[],projects:[project,{id:'standard',name:'Standard project',workspace:'personal',color:'blue',description:'',target:'',progress:0}],nbc_activities:activities,nbc_reports:[],scratchpad:'',taskViews:[]}))},{activities:fixtureActivities(),project:fixtureProject})
 }
-async function start(page:Page){await page.goto('/projects-progress/nbc-bp03/update');await page.getByLabel('Reporting date',{exact:true}).fill('2026-10-25');await page.getByRole('button',{name:'Start update',exact:true}).click();await expect(page.getByText('Update · 25 Oct 2026',{exact:true})).toBeVisible()}
+async function start(page:Page){await page.goto('/projects-progress/nbc-bp03/update');await page.getByRole('combobox',{name:'Your handler',exact:true}).click();await page.getByRole('option',{name:'Tola',exact:true}).click();await page.getByLabel('Reporting date',{exact:true}).fill('2026-10-25');await page.getByRole('button',{name:'Start update',exact:true}).click();await expect(page.getByText('Update · 25 Oct 2026',{exact:true})).toBeVisible()}
 async function edit(page:Page,value:string){await page.getByRole('button',{name:/^Edit progress for 1\.6\.1\.2:/}).click();const input=page.getByLabel('Actual % for 1.6.1.2',{exact:true});await input.fill(value);await input.press('Enter')}
 
 test('locked baseline, compact header, five views and standard projects unchanged',async({page})=>{

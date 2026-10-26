@@ -1,6 +1,7 @@
 import { useWorkspace } from '@/data'
 import { calculate, latestReport, percentage, reportEntries } from './progress'
 import type { NbcActivity, NbcReport } from './types'
+import { confirmationKey, isHandler } from './reporting-week'
 
 export function assignActivities(ids: string[], handler: string) {
   const state = useWorkspace.getState(), activities = state.nbc_activities ?? [], selected = new Set(ids)
@@ -24,8 +25,9 @@ export function updateActivity(id: string, patch: Pick<Partial<NbcActivity>, 'pr
   next.history = [...activity.history, { id: crypto.randomUUID(), at, editor: state.scope, previous: activity.progress, progress: next.progress, remark: next.remark, handler: next.handler }]
   state.commitNbc({ nbc_activities: activities.map((a) => a.id === id ? next : a) })
 }
-export function startWeek(projectId: string, date: string, correctionOf: string | null = null, reason = '') {
+export function startWeek(projectId: string, date: string, correctionOf: string | null = null, reason = '', handler?: string) {
   const state = useWorkspace.getState(), reports = state.nbc_reports ?? []
+  if (handler !== undefined && !isHandler(handler)) throw new Error('Choose which handler you are.')
   if (!state.projects.some((p) => p.id === projectId && p.nbcBp03 && p.workspace === 'team')) throw new Error('NBC BP03 must belong to Team Workspace.')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || new Date(date).toISOString().slice(0, 10) !== date) throw new Error('Choose a valid week-ending date.')
   if (reports.some((r) => r.projectId === projectId && (r.status === 'draft' || r.date === date))) throw new Error('An open period or this reporting date already exists.')
@@ -35,8 +37,18 @@ export function startWeek(projectId: string, date: string, correctionOf: string 
   const now = new Date().toISOString()
   const report: NbcReport = { id: crypto.randomUUID(), projectId, date, status: 'draft', previousReportId: previous?.id ?? null,
     correctionOf, reason: reason.trim(), entries: [], overall: 0, previous: previous?.overall ?? calculate((state.nbc_activities ?? []).filter((a) => a.projectId === projectId), new Map((state.nbc_activities ?? []).map((a) => [a.id, a.baseline]))).overall,
-    createdAt: now, updatedAt: now, finalizedAt: null, editor: state.scope }
+    createdAt: now, updatedAt: now, finalizedAt: null, editor: state.scope, ...(handler && isHandler(handler) ? { startedBy: handler } : {}) }
   state.commitNbc({ nbc_reports: [...reports, report] })
+}
+export function confirmHandlerUpdate(reportId: string, handler: string) {
+  if (!isHandler(handler)) throw new Error('Choose which handler you are.')
+  const state = useWorkspace.getState(), report = state.nbc_reports?.find((r) => r.id === reportId)
+  if (!report || report.status !== 'draft') throw new Error('Choose an open update to confirm your weekly progress.')
+  if (state.scope !== 'guest' && state.sync.kind !== 'saved') throw new Error('Wait for activity changes to save before confirming your update.')
+  const assigned = (state.nbc_activities ?? []).filter((a) => a.projectId === report.projectId && a.editable && a.handler === handler)
+  const prior = latestReport(state.nbc_reports ?? [], report.projectId), previous = new Map(prior?.entries.map((e) => [e.id, e.progress]))
+  const at = new Date().toISOString(), confirmation = { at, editor: state.scope, assignedCount: assigned.length, changedCount: assigned.filter((a) => a.progress !== (previous.get(a.id) ?? a.baseline)).length }
+  state.commitNbc({ nbc_reports: (state.nbc_reports ?? []).map((r) => r.id === report.id ? { ...r, [confirmationKey(handler)]: confirmation, updatedAt: at } : r) })
 }
 export function finalizeWeek(id: string, note = '') {
   const state = useWorkspace.getState(), reports = state.nbc_reports ?? [], report = reports.find((r) => r.id === id)

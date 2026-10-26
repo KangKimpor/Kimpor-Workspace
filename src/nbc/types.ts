@@ -1,4 +1,8 @@
 export const handlers = ['Sitha', 'Lychhinh', 'Chhorvaon', 'Srun', 'Kheng', 'Tola'] as const
+export type Handler = typeof handlers[number]
+export interface HandlerConfirmation { at: string; editor: string; assignedCount: number; changedCount: number }
+// Separate fields let the existing sync merge confirmations from different handlers.
+type HandlerConfirmations = Partial<Record<`handlerUpdate${Handler}`, HandlerConfirmation>>
 export interface ProgressChange {
   id: string
   at: string
@@ -52,7 +56,8 @@ export interface ReportEntry {
   remark: string
   updatedAt: string | null
 }
-export interface NbcReport {
+export interface NbcReport extends HandlerConfirmations {
+  startedBy?: Handler
   note?: string
   id: string
   projectId: string

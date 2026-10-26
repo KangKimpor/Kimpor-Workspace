@@ -12,6 +12,7 @@ import { modKey, useShell } from './store'
 import type { Breakpoint } from './store'
 import { useWorkspaceUI } from './workspace'
 import { Link } from 'react-router-dom'
+import { syncWorkspace } from '@/data/sync'
 
 const ic = { size: 18, strokeWidth: 1.75 } as const
 
@@ -167,30 +168,24 @@ export function TopBar({ crumb, bp }: { crumb: Crumb; bp: Breakpoint }) {
       </nav>
 
       <div className="actions">
-        {!online ? (
-          <span className="pill offline-pill" data-tone="warn" role="status">
-            <WifiOff size={14} strokeWidth={1.75} aria-hidden="true" />
-            Offline
-          </span>
-        ) : null}
         <span
           className="pill"
           role="status"
-          data-tone={sync.kind === 'saving' ? 'busy' : sync.kind === 'error' || sync.kind === 'offline' ? 'error' : undefined}
+          data-tone={!online || sync.kind === 'offline' ? 'warn' : sync.kind === 'saving' ? 'busy' : sync.kind === 'error' ? 'error' : 'success'}
           title={sync.kind === 'error' ? sync.reason : undefined}
           aria-label={sync.kind === 'error' ? `Save failed: ${sync.reason}` : undefined}
           data-testid="sync-pill"
         >
-          <span className="dot" aria-hidden="true" />
-          {sync.kind === 'saved'
+          {!online || sync.kind === 'offline' ? <WifiOff size={12} aria-hidden="true"/> : sync.kind === 'saved' ? <Check className="sync-check" size={12} aria-hidden="true"/> : <span className="dot" aria-hidden="true" />}
+          <span key={!online?'offline':sync.kind}>{!online || sync.kind === 'offline' ? 'Offline' : sync.kind === 'saved'
             ? useWorkspace.getState().scope === 'guest'
               ? 'Demo · local'
               : 'Saved to cloud'
             : sync.kind === 'saving'
               ? 'Saving'
-              : sync.kind === 'offline' ? `Pending · ${sync.pending}` : 'Save failed'}
+              : 'Error'}</span>
+          {sync.kind === 'error' && online && <button className="text-link small" onClick={()=>void syncWorkspace(false)}>Retry</button>}
         </span>
-        {sync.kind === 'error' && <Link className="text-link small" to="/settings/account">Retry</Link>}
         <button
           type="button"
           className="ibtn"

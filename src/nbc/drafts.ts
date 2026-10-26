@@ -2,6 +2,7 @@ import type { NbcActivity } from './types'
 import { parseProgress } from './progress'
 import { updateActivity } from './actions'
 import { useWorkspace } from '@/data'
+import { isHandler } from './reporting-week'
 
 export interface ActivityDraft {
   id: string
@@ -27,6 +28,7 @@ export function clearActivityDraft(scope: string, project: string, id: string, m
 }
 export function applyActivityDraft(activity: NbcActivity, draft: ActivityDraft) {
   const parsed = draft.mode === 'remark' ? null : parseProgress(draft.text)
+  if (parsed?.message) throw new Error(parsed.message)
   updateActivity(activity.id, { ...(parsed ? { progress: parsed.progress } : {}), ...(draft.mode !== 'inline' ? { remark: draft.remark } : {}) })
   return parsed?.message ?? ''
 }
@@ -38,9 +40,9 @@ export function flushActivityDraft(projectId: string, keepDraft = false) {
   if (!keepDraft) clearActivityDraft(state.scope, projectId, draft.id)
 }
 
-export interface UpdateForm { date?: string; note?: string; step?: 'update' | 'review' }
+export interface UpdateForm { date?: string; note?: string; step?: 'update' | 'review'; handler?: string }
 export function readUpdateForm(scope: string, project: string): UpdateForm {
-  try { const value = JSON.parse(localStorage.getItem(`kw-nbc-form:${scope}:${project}`) || '{}'); return { ...(typeof value?.date === 'string' ? { date: value.date } : {}), ...(typeof value?.note === 'string' ? { note: value.note } : {}), ...(['update','review'].includes(value?.step) ? { step: value.step } : {}) } } catch { return {} }
+  try { const value = JSON.parse(localStorage.getItem(`kw-nbc-form:${scope}:${project}`) || '{}'); return { ...(typeof value?.handler === 'string' && isHandler(value.handler) ? {handler:value.handler} : {}), ...(typeof value?.date === 'string' ? { date: value.date } : {}), ...(typeof value?.note === 'string' ? { note: value.note } : {}), ...(['update','review'].includes(value?.step) ? { step: value.step } : {}) } } catch { return {} }
 }
 export function saveUpdateForm(scope: string, project: string, patch: UpdateForm) {
   localStorage.setItem(`kw-nbc-form:${scope}:${project}`, JSON.stringify({ ...readUpdateForm(scope, project), ...patch }))

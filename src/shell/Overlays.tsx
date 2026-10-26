@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useMotionReduced, useSheetDrag } from '@/motion/hooks'
-import { DURATION, EASE, REDUCED, SPRING, exitDuration } from '@/motion/tokens'
+import { DURATION, EASE, REDUCED, exitDuration } from '@/motion/tokens'
 
 interface SideSheetProps {
   side: 'left' | 'right'
@@ -63,7 +63,7 @@ export function SideSheet({
                         },
                       }
                 }
-                transition={reduced ? REDUCED : SPRING.smooth}
+                transition={reduced ? REDUCED : { duration: DURATION.base, ease: EASE.enter }}
               >
                 <Dialog.Title className="sr-only">{title}</Dialog.Title>
                 <div className="drawer-dismiss">
@@ -133,27 +133,19 @@ function SheetBody({
 
   return (
     <Dialog.Portal>
-      <Dialog.Overlay className="scrim" onClick={close} />
+      <Dialog.Overlay asChild><motion.div className="scrim" style={{opacity:sheet.opacity}} onClick={close}/></Dialog.Overlay>
       <Dialog.Content
         asChild
         aria-describedby={undefined}
         onEscapeKeyDown={(e) => {
           e.preventDefault()
-          if (initial === 'large') onClose()
-          else close()
+          close()
         }}
       >
         <motion.div
           className="glass bsheet"
           data-material="thick"
           {...sheet.sheetProps}
-          onKeyDown={(e) => {
-            if (initial === 'large' && e.key === 'Escape') {
-              e.preventDefault()
-              e.stopPropagation()
-              onClose()
-            }
-          }}
         >
           <div className="grabber" role="presentation" {...sheet.handleProps} />
           <Dialog.Title
@@ -162,7 +154,7 @@ function SheetBody({
           >
             {title}
           </Dialog.Title>
-          {initial === 'large' && <button className="ibtn" aria-label={`Close ${title.toLowerCase()}`} onClick={onClose} style={{ position: 'absolute', top: 'var(--space-16)', right: 'var(--space-16)' }}><X size={18} /></button>}
+          {initial === 'large' && <button className="ibtn" aria-label={`Close ${title.toLowerCase()}`} onClick={close} style={{ position: 'absolute', top: 'var(--space-16)', right: 'var(--space-16)' }}><X size={18} /></button>}
           {children}
         </motion.div>
       </Dialog.Content>

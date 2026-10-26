@@ -96,7 +96,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             </ul>
           </div>
         ))}
-        <div className="nav-section"><div className="t-caption">Projects Progress</div><ul className="nav-list"><Item to="/projects-progress" end icon={<ChartNoAxesCombined {...ic} />} label="Projects Progress" /><li><ul className="nav-list nav-projects" aria-label="Progress projects">{projects.filter((p) => p.nbcBp03).map((p) => <li key={p.id}><NavLink to={`/projects-progress/${p.id}/progress`} className="nav-item"><span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span><span className="nav-label">{p.name}</span><span className="nav-meta">{(p.progress * 100).toFixed(2)}%</span></NavLink></li>)}</ul></li></ul></div>
+        <div className="nav-section"><div className="t-caption">Projects Progress</div><ul className="nav-list"><Item to="/projects-progress" end icon={<ChartNoAxesCombined {...ic} />} label="Projects Progress" /><li><ul className="nav-list nav-projects" aria-label="Progress projects">{projects.filter((p) => p.nbcBp03).map((p) => <li key={p.id}><NavLink to={`/projects-progress/${p.id}/progress`} className="nav-item"><span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span><span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span></NavLink></li>)}</ul></li></ul></div>
       </nav>
 
       <div className="sidebar-foot">

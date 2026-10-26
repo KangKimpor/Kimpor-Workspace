@@ -87,7 +87,6 @@
 .nbc-grid-header { position: sticky; top: 0; z-index: 5; color: var(--text-secondary); font-size: var(--fs-small); background: var(--bg-sidebar); font-weight: 500; }
 .nbc-grid-header > .nbc-sticky-cell { background: var(--bg-sidebar); }
 .nbc-sticky-cell { position: sticky; left: 0; z-index: 2; background: inherit; }
-.nbc-sticky-cell:nth-child(2) { left: var(--w-nbc-wbs); box-shadow: 1px 0 var(--border-subtle); }
 .nbc-grid-row[data-parent=true] { font-weight: 600; }
 .nbc-grid-row[data-context=true], .nbc-grid-row[data-zero=true] { color: var(--text-secondary); }
 .nbc-wbs-cell .nbc-wbs { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -192,7 +191,6 @@
   .nbc-handler-tabs { padding-block: var(--space-8); }
   .nbc-handler-tabs .view-tab { min-height: var(--space-40); }
   .nbc-ipad-grid { min-width: calc(var(--space-64) * 12); }
-  .nbc-ipad-grid .nbc-sticky-cell:nth-child(2) { left: calc(var(--space-64) * 2); }
   .nbc-ipad-grid .nbc-handler-name, .nbc-ipad-grid .nbc-progress-status { display: none; }
   .nbc-ipad-grid .nbc-grid-row { min-height: var(--h-nbc-tablet-row); }
   .nbc-ipad-grid .nbc-wbs-cell .ibtn, .nbc-ipad-grid .nbc-edit-number { min-width: calc(var(--space-32) + var(--space-12)); min-height: calc(var(--space-32) + var(--space-12)); }
@@ -325,7 +323,6 @@
 .nbc-weekly .nbc-grid-header { background: var(--bg-sidebar); border-bottom: 1px solid var(--border-subtle); }
 @media (min-width:1280px) {
  .nbc-weekly .nbc-boq[data-updating=true] .nbc-treegrid:not(.nbc-phone-grid):not(.nbc-ipad-grid) { --nbc-update-cols: calc(var(--space-64) * 2) minmax(calc(var(--space-64) * 3),1fr) calc(var(--space-40) * 3) calc(var(--space-32) * 7) calc(var(--space-40) * 2) calc(var(--space-64) * 2); min-width: 0; }
- .nbc-weekly .nbc-boq[data-updating=true] .nbc-treegrid .nbc-sticky-cell:nth-child(2) { left: calc(var(--space-64) * 2); }
  .nbc-weekly .nbc-boq[data-updating=true] .nbc-grid-row { height: var(--space-48); min-height: var(--space-48); }
  .nbc-weekly .nbc-boq[data-updating=true] .nbc-progress-main { display: grid; grid-template-columns: var(--space-64) var(--space-64) var(--space-40); gap: var(--space-8); justify-content: end; }
  .nbc-weekly .nbc-boq[data-updating=true] .nbc-progress-main > .nbc-number, .nbc-weekly .nbc-boq[data-updating=true] .nbc-progress-main > input { grid-column: 1; grid-row: 1; min-width: 0; width: var(--space-64); min-height: var(--space-32); padding: 0; font-size: var(--fs-small); justify-content: end; text-align: right; }

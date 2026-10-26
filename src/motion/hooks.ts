@@ -51,6 +51,7 @@ export function useSheetDrag(options: { onDismiss: () => void; initial?: Detent 
   const reduced = useMotionReduced()
   const controls = useDragControls()
   const y = useMotionValue(typeof window === 'undefined' ? 800 : window.innerHeight)
+  const opacity = useMotionValue(reduced ? 0 : 1)
   const [detent, setDetent] = useState<Detent>(initial)
   const heightRef = useRef(0)
 
@@ -64,24 +65,31 @@ export function useSheetDrag(options: { onDismiss: () => void; initial?: Detent 
     (d: Detent) => {
       measure()
       setDetent(d)
-      animate(y, offsetFor(d), reduced ? { duration: DURATION.fast, ease: EASE.standard } : SPRING.smooth)
+      animate(opacity, 1, reduced ? REDUCED : { duration: DURATION.base, ease: EASE.enter })
+      if (reduced) y.set(offsetFor(d))
+      else animate(y, offsetFor(d), { duration: DURATION.base, ease: EASE.enter })
     },
-    [measure, offsetFor, reduced, y],
+    [measure, offsetFor, opacity, reduced, y],
   )
 
   const open = useCallback(
     (d: Detent = initial) => {
       measure()
+      opacity.set(0)
       y.set(heightRef.current)
       snapTo(d)
     },
-    [initial, measure, snapTo, y],
+    [initial, measure, opacity, snapTo, y],
   )
 
   const close = useCallback(() => {
     measure()
-    animate(y, heightRef.current, reduced ? { duration: DURATION.fast } : SPRING.smooth).then(onDismiss)
-  }, [measure, onDismiss, reduced, y])
+    if (reduced) animate(opacity, 0, REDUCED).then(onDismiss)
+    else {
+      animate(opacity, 0, { duration: DURATION.base * .7, ease: EASE.exit })
+      animate(y, heightRef.current, { duration: DURATION.base * .7, ease: EASE.exit }).then(onDismiss)
+    }
+  }, [measure, onDismiss, opacity, reduced, y])
 
   const onDragEnd = useCallback(
     (_: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => {
@@ -98,6 +106,7 @@ export function useSheetDrag(options: { onDismiss: () => void; initial?: Detent 
 
   return {
     y,
+    opacity,
     detent,
     open,
     close,
@@ -113,7 +122,7 @@ export function useSheetDrag(options: { onDismiss: () => void; initial?: Detent 
         if (v < 0) y.set(v * 0.6)
       },
       onDragEnd,
-      style: { y },
+      style: { y, opacity },
     },
     handleProps: {
       onPointerDown: (e: React.PointerEvent) => controls.start(e),
