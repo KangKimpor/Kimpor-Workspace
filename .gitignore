@@ -17,3 +17,6 @@ docs/verification/*.html
 docs/verification/*.json
 docs/verification/**/*.json
 supabase/.temp/
+
+# Local development and browser-test files; never commit private datasets or profiles.
+.private/
