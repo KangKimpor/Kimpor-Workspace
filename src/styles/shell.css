@@ -84,6 +84,9 @@
   padding: 0;
   list-style: none;
 }
+.nav-projects {
+  margin-left: var(--space-16);
+}
 .nav-item {
   display: flex;
   align-items: center;

@@ -422,6 +422,14 @@ input[type='checkbox'] {
   font-variant-numeric: tabular-nums;
   color: var(--accent-text);
 }
+.project-icon-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+.project-icon-choices [aria-pressed='true'] {
+  outline: 2px solid var(--accent-text);
+}
 .icon-tile {
   display: inline-grid;
   place-items: center;
@@ -1643,14 +1651,11 @@ html[data-motion='reduced'] .pill[data-tone='busy'] .dot { animation: none; }
 
 .account-brand-logo { display: block; width: min(100%, 280px); height: auto; margin-bottom: var(--space-24); border-radius: var(--radius-control); }
 
-/* Dense task rows follow the workspace reference; expanded fields stay in flow. */
-.table-task-name { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-8); align-items: center; }
-.table-task-name > .task-fields[open] { grid-column: 1 / -1; }
-.table-task-name .task-fields summary { font-size: var(--fs-caption); padding: var(--space-4); white-space: nowrap; }
+/* Dense task rows follow the workspace reference. */
 .task-table td { vertical-align: middle; }
 .task-table td .task-description { min-height: 30px; height: 30px; padding: 4px 6px; border-color: transparent; background: transparent; resize: vertical; }
 .task-table td .task-description:hover { border-color: var(--border-subtle); }
 .task-table td .task-description:focus { height: 90px; border-color: var(--border-strong); }
 .task-table .table-task-name > input { font-weight: 600; }
 .task-table td .glass-select { min-height: 30px; }
-@media (pointer: coarse) { .task-table .task-fields summary, .task-table td .glass-select, .task-table td input { min-height: 44px; } }
+@media (pointer: coarse) { .task-table td .glass-select, .task-table td input { min-height: 44px; } }

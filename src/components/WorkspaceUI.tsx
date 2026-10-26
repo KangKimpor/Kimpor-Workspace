@@ -9,6 +9,18 @@ import {
   NotebookPen,
   Smartphone,
   Star,
+  HardHat,
+  Hammer,
+  Wrench,
+  Construction,
+  Building2,
+  Warehouse,
+  Truck,
+  Ruler,
+  Paintbrush,
+  Drill,
+  BrickWall,
+  Pickaxe,
 } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
@@ -29,6 +41,29 @@ export function tint(color: PaletteColor): CSSProperties {
     '--tint-bg': `var(--chip-${color})`,
   } as CSSProperties
 }
+export const projectIcons = {
+  website: Globe,
+  mobile: Smartphone,
+  planning: BarChart3,
+  star: Star,
+  book: BookOpen,
+  layout: LayoutDashboard,
+  flag: Flag,
+  bulb: Lightbulb,
+  note: NotebookPen,
+  'hard-hat': HardHat,
+  hammer: Hammer,
+  wrench: Wrench,
+  construction: Construction,
+  building: Building2,
+  warehouse: Warehouse,
+  truck: Truck,
+  ruler: Ruler,
+  paintbrush: Paintbrush,
+  drill: Drill,
+  'brick-wall': BrickWall,
+  pickaxe: Pickaxe,
+} satisfies Record<string, typeof FileText>
 export function Tile({
   name,
   color = 'blue',
@@ -36,20 +71,7 @@ export function Tile({
   name: string
   color?: PaletteColor
 }) {
-  const Icon =
-    (
-      {
-        website: Globe,
-        mobile: Smartphone,
-        planning: BarChart3,
-        star: Star,
-        book: BookOpen,
-        layout: LayoutDashboard,
-        flag: Flag,
-        bulb: Lightbulb,
-        note: NotebookPen,
-      } as Record<string, typeof FileText>
-    )[name] ?? FileText
+  const Icon = (projectIcons as Record<string, typeof FileText>)[name] ?? FileText
   return (
     <span className="icon-tile" style={tint(color)}>
       {/^(storage:|local-file:)/.test(name) ? (

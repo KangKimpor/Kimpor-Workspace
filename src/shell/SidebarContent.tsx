@@ -6,7 +6,7 @@ import {
   Search,
   Settings,
   Trash2,
-  ChevronRight,
+  ChevronDown,
 } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useProjects } from '@/data'
@@ -22,12 +22,14 @@ function Item({
   label,
   meta,
   end,
+  children,
 }: {
   to: string
   icon: React.ReactNode
   label: string
   meta?: React.ReactNode
   end?: boolean
+  children?: React.ReactNode
 }) {
   const { search } = useLocation()
   return (
@@ -37,6 +39,7 @@ function Item({
         <span className="nav-label">{label}</span>
         {meta ? <span className="nav-meta">{meta}</span> : null}
       </NavLink>
+      {children}
     </li>
   )
 }
@@ -80,13 +83,16 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <div className="nav-section" key={workspace}>
             <div className="t-caption">{workspace === 'team' ? 'Team Workspace' : 'Personal Workspace'}</div>
             <ul className="nav-list">
-              {projects.filter((p) => (p.workspace ?? 'personal') === workspace).map((p) => (
-                <li key={p.id}><NavLink to={`/projects/${p.id}/table`} className="nav-item">
-                  <span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span>
-                  <span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span>
-                </NavLink></li>
-              ))}
-              <Item to={`/projects?workspace=${workspace}`} end icon={<FolderKanban {...ic} />} label={workspace === 'team' ? 'Team projects' : 'Personal projects'} meta={<ChevronRight size={13} />} />
+              <Item to={`/projects?workspace=${workspace}`} end icon={<FolderKanban {...ic} />} label={workspace === 'team' ? 'Team projects' : 'Personal projects'} meta={<ChevronDown size={13} />}>
+                <ul className="nav-list nav-projects" aria-label={workspace === 'team' ? 'Team projects' : 'Personal projects'}>
+                  {projects.filter((p) => (p.workspace ?? 'personal') === workspace).map((p) => (
+                    <li key={p.id}><NavLink to={`/projects/${p.id}/table`} className="nav-item">
+                      <span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span>
+                      <span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span>
+                    </NavLink></li>
+                  ))}
+                </ul>
+              </Item>
             </ul>
           </div>
         ))}

@@ -7,7 +7,6 @@ import type { ReactNode } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { priorities, statuses, useWorkspace } from '@/data'
 import type { Task } from '@/data'
-import { TaskFields } from './TaskFields'
 import { statusColor, tint } from '@/components/WorkspaceUI'
 
 export const columns = ['title', 'status', 'priority', 'due', 'notes'] as const
@@ -221,7 +220,6 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
                               update(task.id, { title: e.target.value })
                             }
                           />
-                          <TaskFields task={task} />
                           </div>
                         ) : column === 'notes' ? (
                           <textarea className="task-description" rows={1} aria-label={`Description for ${task.title}`} value={task.notes} onChange={(e) => update(task.id, { notes: e.target.value })} />

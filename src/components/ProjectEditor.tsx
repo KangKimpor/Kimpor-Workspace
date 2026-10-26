@@ -4,7 +4,7 @@ import { Check, X } from 'lucide-react'
 import { useState } from 'react'
 import { useWorkspace } from '@/data'
 import type { PaletteColor, ProjectSummary } from '@/data'
-import { Tile, tint } from './WorkspaceUI'
+import { projectIcons, Tile, tint } from './WorkspaceUI'
 
 export function ProjectEditor({ project, onClose }: { project: ProjectSummary; onClose: () => void }) {
   const [draft, setDraft] = useState(project)
@@ -34,6 +34,7 @@ export function ProjectEditor({ project, onClose }: { project: ProjectSummary; o
               <label>Status<GlassSelect value={draft.status || 'Active'} onChange={(e) => update({ status: e.target.value as ProjectSummary['status'] })}>{['Planned', 'Active', 'On hold', 'Completed', 'Archived'].map((s) => <option key={s}>{s}</option>)}</GlassSelect></label>
               <label>Icon<input maxLength={12} placeholder="Project icon" value={draft.icon || ''} onChange={(e) => update({ icon: e.target.value })} /></label>
             </div>
+            <fieldset className="project-colors"><legend>Project icon</legend><div className="project-icon-choices">{Object.keys(projectIcons).map((icon) => <button type="button" key={icon} className="ibtn" aria-label={`Use ${icon.replaceAll('-', ' ')} icon`} title={icon.replaceAll('-', ' ')} aria-pressed={(draft.icon || draft.id) === icon} onClick={() => update({ icon })}><Tile name={icon} color={draft.color} /></button>)}</div></fieldset>
             <div className="form-columns">
               <label>Start date<input type="date" value={draft.startDate || ''} onChange={(e) => update({ startDate: e.target.value })} /></label>
               <label>Target date<input type="date" min={draft.startDate || undefined} value={draft.target || ''} onChange={(e) => update({ target: e.target.value })} /></label>

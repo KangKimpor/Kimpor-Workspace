@@ -17,22 +17,23 @@ test('projects default to Personal, retain assignment and appear in only their g
   expect(JSON.parse(localStorage.getItem('kw-workspace-v1')!).projects.find((p: { id: string }) => p.id === personal).workspace).toBe('team')
   render(<MemoryRouter><SidebarContent /></MemoryRouter>)
   const group = screen.getByText('Team Workspace').closest('.nav-section')!
+  const parent = within(group as HTMLElement).getByRole('link', { name: /^Team projects$/ }).parentElement!
+  expect(within(parent).getByRole('list', { name: 'Team projects' })).toContainElement(screen.getByRole('link', { name: /Private planning/ }))
   expect(within(group as HTMLElement).getByRole('link', { name: /Private planning/ })).toBeInTheDocument()
   expect(screen.getAllByRole('link', { name: /Team planning/ })).toHaveLength(1)
   expect(useWorkspace.getState().projects.find((p) => p.id === team)?.workspace).toBe('team')
   for (const name of ['Favorites', 'Pages', 'New page', 'My tasks', 'Home', 'Calendar']) expect(screen.queryByText(name, { exact: true })).not.toBeInTheDocument()
   expect(useWorkspace.getState().pages).toEqual(initial.pages)
 })
-test('table edits description inline, keeps every field accessible and has the requested order', () => {
+test('table edits description inline without extra fields and has the requested order', () => {
   const task = initial.tasks[0]!
   render(<MemoryRouter><TaskTable tasks={[task]} mobile toolbar={null} actions={null} /></MemoryRouter>)
   expect(columns).toEqual(['title', 'status', 'priority', 'due', 'notes'])
   expect(screen.getAllByRole('columnheader').map((h) => h.textContent?.replace(/[^a-z ]/gi, '').trim())).toEqual(['AaTask name', 'Status', 'Priority', 'Due date', 'Description'])
   fireEvent.change(screen.getByLabelText(`Description for ${task.title}`), { target: { value: 'An editable description' } })
   expect(useWorkspace.getState().tasks.find((t) => t.id === task.id)?.notes).toBe('An editable description')
-  fireEvent.click(screen.getByText('More fields'))
-  expect(screen.getByLabelText('Reminder')).toBeInTheDocument()
-  expect(screen.getByLabelText('Parent task', { selector: 'button' })).toBeInTheDocument()
+  expect(screen.queryByText('More fields')).not.toBeInTheDocument()
+  expect(screen.queryByLabelText('Reminder')).not.toBeInTheDocument()
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: /^Open / })).not.toBeInTheDocument()
 })

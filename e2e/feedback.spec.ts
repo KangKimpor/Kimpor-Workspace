@@ -23,7 +23,8 @@ for (const preference of ['system', 'os-reduced', 'app-reduced']) {
     await expect(status.locator('.dot')).toHaveCSS('animation-name', preference === 'system' ? 'saving-pulse' : 'none')
     await status.evaluate((element) => { element.removeAttribute('data-tone') })
 
-    await page.getByRole('button', { name: 'New task', exact: true }).click()
+    await page.goto('/projects/website/board')
+    await page.getByRole('button', { name: 'New task', exact: true }).first().click()
     await page.getByText('More fields', { exact: true }).first().click()
     await page.getByRole('button', { name: 'Delete task', exact: true }).first().click()
     const toast = page.locator('.workspace-toast')
