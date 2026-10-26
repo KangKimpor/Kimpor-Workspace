@@ -197,3 +197,7 @@
 @media (max-width: 639px) {
   .project-page[data-view='board'] .project-heading h1 { font-size: 26px; line-height: 1.2; }
 }
+/* Status / priority pills must never clip their label */
+.task-table td .glass-select,
+.project-page[data-view='table'] .task-table td .glass-select { width: auto; min-width: max-content; max-width: none; overflow: visible; }
+.task-table td .glass-select > span { overflow: visible; text-overflow: clip; }

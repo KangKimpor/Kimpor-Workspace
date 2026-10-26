@@ -76,3 +76,46 @@ export function discardWeek(id: string) {
     return progress === a.progress ? a : { ...a, progress, updatedAt: at, history: [...a.history,{id:crypto.randomUUID(),at,editor:state.scope,previous:a.progress,progress,remark:a.remark,handler:a.handler}] }
   }) })
 }
+function assertSaved(message: string) {
+  const state = useWorkspace.getState()
+  if (state.scope !== 'guest' && state.sync.kind !== 'saved') throw new Error(message)
+}
+
+/** Edit the reporting date or note of a finalized update. Its progress snapshot is left untouched. */
+export function editFinalReport(id: string, patch: { date: string; note: string }) {
+  const state = useWorkspace.getState(), reports = state.nbc_reports ?? [], report = reports.find((r) => r.id === id)
+  if (!report || report.status !== 'final') throw new Error('Only a finalized update can be edited.')
+  assertSaved('Wait for changes to save before editing this update.')
+  if (patch.note.length > 4000) throw new Error('Keep the note under 4,000 characters.')
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(patch.date) || new Date(patch.date).toISOString().slice(0, 10) !== patch.date) throw new Error('Choose a valid week-ending date.')
+  const others = reports.filter((r) => r.projectId === report.projectId && r.id !== id)
+  if (others.some((r) => r.date === patch.date)) throw new Error('A report for this date already exists.')
+  const finals = others.filter((r) => r.status === 'final')
+  const before = finals.filter((r) => r.date < report.date).sort((a, b) => b.date.localeCompare(a.date))[0]
+  const after = finals.filter((r) => r.date > report.date).sort((a, b) => a.date.localeCompare(b.date))[0]
+  if ((before && patch.date <= before.date) || (after && patch.date >= after.date)) throw new Error('The date must stay between the neighbouring updates.')
+  const now = new Date().toISOString()
+  state.commitNbc({ nbc_reports: reports.map((r) => r.id === id ? { ...r, date: patch.date, note: patch.note, updatedAt: now } : r) })
+}
+
+/** Delete a finalized update. Deleting the newest one also rolls activity percentages back to the one before it. */
+export function deleteFinalReport(id: string) {
+  const state = useWorkspace.getState(), reports = state.nbc_reports ?? [], report = reports.find((r) => r.id === id)
+  if (!report || report.status !== 'final') throw new Error('Only a finalized update can be deleted here.')
+  if (reports.some((r) => r.projectId === report.projectId && r.status === 'draft')) throw new Error('Finish or delete the open update before deleting a past update.')
+  assertSaved('Wait for changes to save before deleting this update.')
+  const wasLatest = latestReport(reports, report.projectId)?.id === id
+  const rest = reports.filter((r) => r.id !== id).map((r) => ({
+    ...r,
+    ...(r.previousReportId === id ? { previousReportId: report.previousReportId } : {}),
+    ...(r.correctionOf === id ? { correctionOf: null } : {}),
+  }))
+  if (!wasLatest) { state.commitNbc({ nbc_reports: rest }); return }
+  const previous = latestReport(rest, report.projectId), values = new Map(previous?.entries.map((e) => [e.id, e.progress]))
+  const at = new Date().toISOString()
+  state.commitNbc({ nbc_reports: rest, nbc_activities: (state.nbc_activities ?? []).map((a) => {
+    if (a.projectId !== report.projectId || !a.editable) return a
+    const progress = values.get(a.id) ?? a.baseline
+    return progress === a.progress ? a : { ...a, progress, updatedAt: at, history: [...a.history, { id: crypto.randomUUID(), at, editor: state.scope, previous: a.progress, progress, remark: a.remark, handler: a.handler }] }
+  }) })
+}

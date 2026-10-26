@@ -29,7 +29,7 @@ test('table edits description inline without extra fields and has the requested 
   const task = initial.tasks[0]!
   render(<MemoryRouter><TaskTable tasks={[task]} mobile toolbar={null} actions={null} /></MemoryRouter>)
   expect(columns).toEqual(['title', 'status', 'priority', 'due', 'notes'])
-  expect(screen.getAllByRole('columnheader').map((h) => h.textContent?.replace(/[^a-z ]/gi, '').trim())).toEqual(['AaTask name', 'Status', 'Priority', 'Due date', 'Description'])
+  expect(screen.getAllByRole('columnheader').map((h) => h.textContent?.replace(/[^a-z ]/gi, '').trim())).toEqual(['Task name', 'Status', 'Priority', 'Due date', 'Description'])
   fireEvent.change(screen.getByLabelText(`Description for ${task.title}`), { target: { value: 'An editable description' } })
   expect(useWorkspace.getState().tasks.find((t) => t.id === task.id)?.notes).toBe('An editable description')
   expect(screen.queryByText('More fields')).not.toBeInTheDocument()

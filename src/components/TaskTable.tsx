@@ -36,8 +36,8 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
   const [hidden, setHidden] = useState<Column[]>([]),
     [widths, setWidths] = useState<Record<Column, number>>({
       title: mobile ? Math.min(360, innerWidth - 32) : 400,
-      status: mobile ? 170 : 150,
-      priority: mobile ? 140 : 110,
+      status: mobile ? 180 : 170,
+      priority: mobile ? 150 : 140,
       due: mobile ? 170 : 145,
       notes: 220,
     })
@@ -149,7 +149,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
                         }
                       }}
                     >
-                      {column === 'title' ? <span className="table-text-icon" aria-hidden="true">Aa</span> : column === 'status' ? <CircleDot size={14} aria-hidden="true" /> : column === 'due' ? <CalendarDays size={14} aria-hidden="true" /> : column === 'priority' ? <Flag size={14} aria-hidden="true" /> : <AlignLeft size={14} aria-hidden="true" />}{names[column]}{' '}
+                      {column === 'title' ? null : column === 'status' ? <CircleDot size={14} aria-hidden="true" /> : column === 'due' ? <CalendarDays size={14} aria-hidden="true" /> : column === 'priority' ? <Flag size={14} aria-hidden="true" /> : <AlignLeft size={14} aria-hidden="true" />}{names[column]}{' '}
                       {sort === column ? (descending ? '↓' : '↑') : ''}
                     </button>
                     <span
