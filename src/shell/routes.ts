@@ -42,11 +42,11 @@ export function useCrumb(pathname: string): Crumb & { meta: ScreenMeta } {
         blurb: 'Today, upcoming and overdue tasks arrive in Phase 2.',
       },
     }
-  if (head === 'projects')
+  if (head === 'projects' || head === 'projects-progress')
     return {
-      label: projects.find((p) => p.id === seg[1])?.name ?? 'Projects',
-      parent: seg[1] ? 'Projects' : undefined,
-      meta: { title: 'Projects' },
+      label: projects.find((p) => p.id === seg[1])?.name ?? (head === 'projects-progress' ? 'Projects Progress' : 'Projects'),
+      parent: seg[1] ? head === 'projects-progress' ? 'Projects Progress' : 'Projects' : undefined,
+      meta: { title: head === 'projects-progress' ? 'Projects Progress' : 'Projects' },
     }
   if (head === 'search')
     return {

@@ -9,5 +9,5 @@ export function workspaceStart(scope: string, projects: ProjectSummary[]) {
   const workspace = selected?.workspace === 'team' ? 'team' : 'personal'
   const available = projects.filter((p) => p.status !== 'Archived')
   const project = selected?.projectId ? available.find((p) => p.id === selected.projectId) : selected ? undefined : available.find((p) => (p.workspace ?? 'personal') === workspace)
-  return project ? `/projects/${encodeURIComponent(project.id)}/table` : `/projects?workspace=${workspace}`
+  return project ? project.nbcBp03 ? `/projects-progress/${encodeURIComponent(project.id)}/progress` : `/projects/${encodeURIComponent(project.id)}/table` : `/projects?workspace=${workspace}`
 }

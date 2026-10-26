@@ -15,6 +15,7 @@ export type PaletteColor =
   | 'red'
 
 export interface ProjectSummary {
+  nbcBp03?: boolean
   id: string
   name: string
   workspace?: 'team' | 'personal'
@@ -83,6 +84,7 @@ export interface WorkspacePage {
   position?: number
 }
 export interface Task {
+  nbcActivityId?: string | null
   id: string
   title: string
   projectId: string

@@ -1,5 +1,6 @@
 import Dexie from 'dexie'
 import type { Table } from 'dexie'
+import type { NbcActivity, NbcReport } from '@/nbc/types'
 import type {
   CalendarEvent,
   ProjectSummary,
@@ -9,6 +10,8 @@ import type {
 } from './types'
 
 export interface Content {
+  nbc_activities?: NbcActivity[]
+  nbc_reports?: NbcReport[]
   pages: WorkspacePage[]
   projects: ProjectSummary[]
   tasks: Task[]
@@ -17,14 +20,27 @@ export interface Content {
   taskViews: TaskView[]
   calendarPreferences?: { weekStart: 0 | 1; hour12: boolean }
 }
-export type Collection = 'pages' | 'projects' | 'tasks' | 'events'
+export type Collection = 'pages' | 'projects' | 'tasks' | 'events' | 'nbc_activities' | 'nbc_reports'
 export const collections: Collection[] = [
   'pages',
   'projects',
   'tasks',
   'events',
+  'nbc_activities',
+  'nbc_reports',
 ]
+export function discardedReports(previous: Content, content: Content) {
+  const remaining = new Set(content.nbc_reports?.map((r) => r.id))
+  return (previous.nbc_reports ?? []).filter((r) => r.status === 'draft' && !remaining.has(r.id))
+}
+/** Include legacy task notes that predate paired soft deletion. */
+export function purgedRows(collection: 'pages' | 'tasks', previous: Content, content: Content) {
+  const remaining = new Set(content[collection].map((row) => row.id)), tasks = new Set(content.tasks.map((task) => task.id))
+  const notes = new Set(previous.tasks.filter((task) => task.deletedAt && !tasks.has(task.id)).map((task) => task.pageId))
+  return previous[collection].filter((row) => !remaining.has(row.id) && (row.deletedAt || collection === 'pages' && notes.has(row.id)))
+}
 export interface Pending {
+  remove?: boolean
   key: string
   scope: string
   collection: Collection | 'profiles'
@@ -82,11 +98,13 @@ export function persist(scope: string, content: Content, previous: Content) {
             base: (await db.versions.get(key))?.value ?? null,
           })
         }
+        const discarded = discardedReports(previous, content)
         for (const collection of collections) {
           const old = new Map(
-            previous[collection].map((row) => [row.id, JSON.stringify(row)]),
+            (previous[collection] ?? []).map((row) => [row.id, JSON.stringify(row)]),
           )
-          for (const row of content[collection]) {
+          for (const row of content[collection] ?? []) {
+            if (collection === 'nbc_activities' && discarded.some((r) => r.projectId === (row as NbcActivity).projectId)) continue
             if (old.get(row.id) === JSON.stringify(row)) continue
             const key = `${scope}:${collection}:${row.id}`
             const base = (await db.versions.get(key))?.value ?? null
@@ -100,6 +118,16 @@ export function persist(scope: string, content: Content, previous: Content) {
               base,
             })
           }
+          if (collection === 'pages' || collection === 'tasks') {
+            for (const row of purgedRows(collection, previous, content)) {
+              const key = `${scope}:${collection}:${row.id}`
+              await db.outbox.put({ key, scope, collection, id: row.id, data: { id: row.id }, version: crypto.randomUUID(), base: (await db.versions.get(key))?.value ?? null, remove: true })
+            }
+          }
+        }
+        for (const report of discarded) {
+          const key = `${scope}:nbc_reports:${report.id}`
+          await db.outbox.put({key,scope,collection:'nbc_reports',id:report.id,data:{id:report.id},version:crypto.randomUUID(),base:(await db.versions.get(key))?.value??null,remove:true})
         }
       }),
     )

@@ -17,6 +17,7 @@ export { dateKey, relativeDate } from './seed'
 export type { Content } from './persistence'
 
 export interface Workspace extends Content {
+  commitNbc: (patch: Pick<Content, 'nbc_activities' | 'nbc_reports'>) => void
   scope: string
   storageError: boolean
   sync: SyncState
@@ -28,6 +29,8 @@ export interface Workspace extends Content {
     beforeId?: string,
   ) => boolean
   updateTask: (id: string, patch: Partial<Task>) => void
+  trashTask: (id: string) => void
+  emptyTrash: () => void
   moveTask: (id: string, status: Task['status'], beforeId?: string) => void
   addTask: (input: Pick<Task, 'title' | 'projectId'> & Partial<Task>) => string
   addProject: (name: string, workspace?: 'team' | 'personal') => string
@@ -41,6 +44,8 @@ export interface Workspace extends Content {
   ) => void
 }
 export const emptyContent: Content = {
+  nbc_activities: [],
+  nbc_reports: [],
   pages: [],
   projects: [],
   tasks: [],
@@ -58,6 +63,9 @@ export const sampleContent: Content = {
     'Review the Quiet Glass tokens and verify the Safari blur fallback before the next milestone.',
 }
 const KEY = 'kw-workspace-v1'
+function validWbsLink(state: Content, projectId: string, activityId?: string | null) {
+  return !activityId || (state.projects.some((p) => p.id === projectId && p.nbcBp03) && state.nbc_activities?.some((a) => a.id === activityId && a.projectId === projectId && a.editable))
+}
 function read(): Content {
   try {
     const raw = localStorage.getItem(KEY)
@@ -127,9 +135,32 @@ export const useWorkspace = create<Workspace>((set, get) => {
   }
   return {
     ...read(),
+    commitNbc: (patch) => commit(patch),
     scope: 'guest',
     storageError: false,
     sync: { kind: 'saved' },
+    trashTask: (id) => {
+      const scope = get().scope
+      const previous = get().tasks.find((task) => task.id === id)
+      if (!previous || previous.deletedAt) return
+      get().updateTask(id, { deletedAt: new Date().toISOString() })
+      useWorkspaceUI.getState().notify('Task moved to Trash', () => {
+        if (get().scope === scope) get().updateTask(id, { deletedAt: previous.deletedAt ?? null })
+      })
+    },
+    emptyTrash: () => {
+      const taskIds = new Set(get().tasks.filter((task) => task.deletedAt).map((task) => task.id))
+      const pageIds = new Set(get().pages.filter((page) => page.deletedAt || get().tasks.some((task) => taskIds.has(task.id) && task.pageId === page.id)).map((page) => page.id))
+      const now = new Date().toISOString()
+      commit({
+        pages: get().pages.filter((page) => !pageIds.has(page.id)).map((page) => page.parentId && pageIds.has(page.parentId) ? { ...page, parentId: null, updatedAt: now } : page),
+        tasks: get().tasks.filter((task) => !taskIds.has(task.id)).map((task) => ({
+          ...task,
+          ...(task.parentId && taskIds.has(task.parentId) ? { parentId: null, updatedAt: now } : {}),
+          ...(task.pageId && pageIds.has(task.pageId) ? { pageId: undefined, notes: '', updatedAt: now } : {}),
+        })),
+      })
+    },
     updatePage: (id, patch) =>
       commit({
         ...(patch.content || patch.blocks
@@ -208,6 +239,8 @@ export const useWorkspace = create<Workspace>((set, get) => {
     },
     updateTask: (id, patch) => {
       const previous = get().tasks.find((t) => t.id === id)
+      if (previous && patch.projectId && patch.projectId !== previous.projectId && patch.nbcActivityId === undefined) patch = { ...patch, nbcActivityId: null }
+      if (previous && !validWbsLink(get(), patch.projectId ?? previous.projectId, patch.nbcActivityId)) throw new Error('Choose a WBS activity from the same NBC BP03 project.')
       if (
         !previous ||
         (patch.parentId !== undefined &&
@@ -216,6 +249,7 @@ export const useWorkspace = create<Workspace>((set, get) => {
         return
       const completedAt = new Date().toISOString()
       commit({
+        ...(patch.deletedAt !== undefined && previous.pageId ? { pages: get().pages.map((page) => page.id === previous.pageId ? { ...page, deletedAt: patch.deletedAt ?? null, updatedAt: completedAt } : page) } : {}),
         tasks: get().tasks.map((t) =>
           t.id === id
             ? {
@@ -366,6 +400,7 @@ export const useWorkspace = create<Workspace>((set, get) => {
       const projectId = get().projects.some((p) => p.id === input.projectId)
         ? input.projectId
         : (get().projects[0]?.id ?? get().addProject('Personal'))
+      if (!validWbsLink(get(), projectId, input.nbcActivityId)) throw new Error('Choose a WBS activity from the same NBC BP03 project.')
       const id = crypto.randomUUID(),
         pageId = crypto.randomUUID(),
         now = new Date().toISOString()
@@ -467,6 +502,8 @@ export const useWorkspace = create<Workspace>((set, get) => {
 })
 export function contentOf(s: Content): Content {
   return {
+    nbc_activities: s.nbc_activities ?? [],
+    nbc_reports: s.nbc_reports ?? [],
     pages: s.pages,
     projects: s.projects,
     tasks: s.tasks,
@@ -496,7 +533,7 @@ export function usePages(): PageNode[] {
   return pageTree(pages.filter((p) => !tasks.some((t) => t.pageId === p.id)))
 }
 export function useProjects() {
-  const { tasks, projects } = useWorkspace()
+  const { tasks, projects, nbc_activities } = useWorkspace()
   return projects
     .filter((p) => p.status !== 'Archived')
     .map((project) => {
@@ -505,7 +542,7 @@ export function useProjects() {
       )
       return {
         ...project,
-        progress: list.length
+        progress: project.nbcBp03 ? (nbc_activities?.some((a) => a.projectId === project.id) ? nbc_activities.filter((a) => a.projectId === project.id && a.editable).reduce((sum, a) => sum + a.globalWeight * a.progress, 0) : project.progress) : list.length
           ? list.filter((t) => t.status === 'Done').length / list.length
           : 0,
       }

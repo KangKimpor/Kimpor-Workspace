@@ -3,9 +3,9 @@ import type { RealtimeChannel, Session } from '@supabase/supabase-js'
 import { supabase, initializeSupabase, hasStoredSession } from '@/lib/supabase'
 import { useWorkspaceUI } from '@/shell/workspace'
 import { contentOf, emptyContent, useWorkspace } from './index'
-import { collections, db, eventWriteReady } from './persistence'
+import { collections, db, eventWriteReady, purgedRows, discardedReports } from './persistence'
 import type { Collection, Content, Pending } from './persistence'
-import type { CalendarEvent, WorkspacePage } from './types'
+import type { CalendarEvent, Task, WorkspacePage } from './types'
 import { syncWorkspaceFiles } from './files'
 import { changedFields, rebaseWrite } from './sync-merge'
 
@@ -66,17 +66,33 @@ function queueRow(scope: string, collection: CloudCollection, id: string, before
 }
 function queueChanges(next: Content, previous: Content) {
   const scope = useWorkspace.getState().scope
+  const discarded = discardedReports(previous, next)
   for (const collection of collections) {
     if (next[collection] === previous[collection]) continue
-    const old = new Map(previous[collection].map((row) => [row.id, row]))
-    for (const row of next[collection]) {
+    const old = new Map((previous[collection] ?? []).map((row) => [row.id, row]))
+    for (const row of next[collection] ?? []) {
+      if (collection === 'nbc_activities' && discarded.some((r) => r.projectId === (row as {projectId:string}).projectId)) continue
       const before = old.get(row.id)
       if (JSON.stringify(row) !== JSON.stringify(before)) queueRow(scope, collection, row.id, (before ?? {}) as unknown as Data, row as unknown as Data)
     }
+    if (collection === 'pages' || collection === 'tasks') {
+      for (const row of purgedRows(collection, previous, next)) {
+        const key = keyFor(scope, collection, row.id), queued = pending.get(key)
+        pending.set(key, { key, scope, collection, id: row.id, data: { id: row.id }, original: row as unknown as Data, version: crypto.randomUUID(), base: queued ? queued.base : versions.get(key) ?? null, remove: true })
+      }
+    }
+  }
+  for (const report of discarded) {
+    const key = keyFor(scope,'nbc_reports',report.id), queued = pending.get(key)
+    pending.set(key,{key,scope,collection:'nbc_reports',id:report.id,data:{id:report.id},original:report as unknown as Data,version:crypto.randomUUID(),base:queued?queued.base:versions.get(key)??null,remove:true})
   }
   if (JSON.stringify(profile(next)) !== JSON.stringify(profile(previous))) queueRow(scope, 'profiles', scope, profile(previous), { id: scope, ...profile(next) })
   saveRecovery()
   void syncWorkspace(false)
+}
+export function pendingCollectionIds(collection: Collection) {
+  const scope = useWorkspace.getState().scope
+  return new Set([...pending.values()].filter((p) => p.scope === scope && p.collection === collection).map((p) => p.id))
 }
 export function pendingEventIds(scope: string) {
   return new Set([...pending.values()].filter((p) => p.scope === scope && p.collection === 'events').map((p) => p.id))
@@ -147,7 +163,7 @@ async function switchAccount(session: Session | null) {
     if (raw) applyRemotePatch(normalize(JSON.parse(raw)))
     if (scope !== 'guest') {
       const writes: Write[] = JSON.parse(localStorage.getItem(recoveryKey(scope)) || '[]')
-      for (const write of writes) if (write.scope === scope) { pending.set(write.key, write); applyRow(write.collection, { id: write.id, data: write.data, updated_at: String(write.data.updatedAt || '') }, write.id) }
+      for (const write of writes) if (write.scope === scope) { pending.set(write.key, write); applyRow(write.collection, write.remove ? null : { id: write.id, data: write.data, updated_at: String(write.data.updatedAt || '') }, write.id) }
     }
   } catch { /* An invalid cache cannot replace cloud content. */ }
   const google = await import('@/calendar/google')
@@ -157,7 +173,7 @@ async function switchAccount(session: Session | null) {
   await supabase.realtime.setAuth(session.access_token)
   if (current !== generation) return
   realtime = supabase.channel(`kw-workspace:${scope}`, { config: { private: true } })
-  for (const collection of [...collections, 'profiles']) for (const event of ['INSERT', 'UPDATE'] as const) realtime.on('postgres_changes', { event, schema: 'public', table: `kw_${collection}`, filter: `user_id=eq.${scope}` }, () => {
+  for (const collection of [...collections.filter((c) => !c.startsWith('nbc_')), 'profiles']) for (const event of ['INSERT', 'UPDATE'] as const) realtime.on('postgres_changes', { event, schema: 'public', table: `kw_${collection}`, ...(collection === 'projects' ? {} : {filter: `user_id=eq.${scope}`}) }, () => {
     if (current === generation) void syncWorkspace()
   })
   realtime.on('broadcast', { event: 'DELETE' }, () => { if (current === generation) void syncWorkspace() })
@@ -190,7 +206,7 @@ async function recoverAbandoned(scope: string, current: number) {
         if (existing && JSON.stringify(existing.data) !== JSON.stringify(write.data)) recoverConflict(write)
         else {
           pending.set(write.key, write)
-          applyRow(write.collection, { id: write.id, data: write.data, updated_at: String(write.data.updatedAt || '') }, write.id)
+          applyRow(write.collection, write.remove ? null : { id: write.id, data: write.data, updated_at: String(write.data.updatedAt || '') }, write.id)
         }
       }
       if (saveRecovery()) localStorage.removeItem(key)
@@ -229,9 +245,12 @@ export async function importLocalWorkspace() {
   guest ??= (await db.snapshots.get('guest'))?.content
   if (!guest) throw new Error('No local demo to import')
   const current = contentOf(useWorkspace.getState()), merged = { ...current }
+  const demoNbc = new Set(guest.projects.filter((p)=>p.nbcBp03).map((p)=>p.id))
   for (const collection of collections) {
-    const ids = new Set(current[collection].map((r) => r.id))
-    ;(merged[collection] as { id: string }[]) = [...current[collection], ...guest[collection].filter((r) => !ids.has(r.id))]
+    // Company BOQ data is initialized once administratively, never imported from a browser demo.
+    if (collection.startsWith('nbc_')) continue
+    const ids = new Set((current[collection] ?? []).map((r) => r.id))
+    ;(merged[collection] as { id: string }[]) = [...(current[collection] ?? []), ...(guest[collection] ?? []).filter((r) => !ids.has(r.id) && !(collection==='projects' && demoNbc.has(r.id)) && !(collection==='tasks' && demoNbc.has((r as Task).projectId??'')))]
   }
   merged.taskViews = [...current.taskViews, ...guest.taskViews.filter((v) => !current.taskViews.some((existing) => existing.id === v.id))]
   merged.scratchpad ||= guest.scratchpad
@@ -243,7 +262,7 @@ function applyRow(collection: CloudCollection, row: Row | null, id: string) {
     const data = row?.data ?? {}
     applyRemotePatch({ scratchpad: String(data.scratchpad || ''), taskViews: (data.taskViews ?? []) as Content['taskViews'], calendarPreferences: data.calendarPreferences as Content['calendarPreferences'] })
   } else {
-    const list = useWorkspace.getState()[collection].filter((r) => r.id !== id)
+    const list = (useWorkspace.getState()[collection] ?? []).filter((r) => r.id !== id)
     if (row) list.push({ ...row.data, ...(collection === 'projects' ? { workspace: row.data.workspace === 'team' ? 'team' : 'personal' } : {}), id, updatedAt: row.updated_at } as (typeof list)[number])
     applyRemotePatch({ [collection]: list })
   }
@@ -251,9 +270,14 @@ function applyRow(collection: CloudCollection, row: Row | null, id: string) {
 async function pullCloud(scope: string, current: number) {
   // ponytail: reconcile snapshots; use row deltas if workspace size makes this slow.
   for (const collection of [...collections, 'profiles'] as CloudCollection[]) {
+    // Older deployments and ordinary projects do not need the NBC tables.
+    if (collection.startsWith('nbc_') && !useWorkspace.getState().projects.some((p) => p.nbcBp03)) continue
     const rows: Row[] = []
     for (let offset = 0; ; offset += 1000) {
-      const result = await supabase!.from(`kw_${collection}`).select('id,data,updated_at').eq('user_id', scope).order('id').range(offset, offset + 999)
+      let query = supabase!.from(`kw_${collection}`).select('id,data,updated_at')
+      // RLS returns the caller's private projects plus the one shared NBC project.
+      if (collection !== 'projects' && !collection.startsWith('nbc_')) query = query.eq('user_id', scope)
+      const result = await query.order('id').range(offset, offset + 999)
       if (result.error) throw result.error
       if (current !== generation) return
       rows.push(...result.data)
@@ -264,7 +288,10 @@ async function pullCloud(scope: string, current: number) {
       if (!pending.has(keyFor(scope, collection, scope))) applyRow(collection, rows[0] ?? null, scope)
     } else {
       const merged = new Map<string, Data>(rows.map((r) => [r.id, { ...r.data, id: r.id, updatedAt: r.updated_at }]))
-      for (const write of pending.values()) if (write.collection === collection) merged.set(write.id, write.data as { id: string; updatedAt: string })
+      for (const write of pending.values()) if (write.collection === collection) {
+        if (write.remove) merged.delete(write.id)
+        else merged.set(write.id, write.data as { id: string; updatedAt: string })
+      }
       applyRemotePatch({ [collection]: [...merged.values()].map((r) => collection === 'projects' ? { ...r, workspace: r.workspace === 'team' ? 'team' : 'personal' } : r) } as Partial<Content>)
     }
   }
@@ -297,6 +324,49 @@ export function syncWorkspace(refresh = true): Promise<void> {
       for (;;) {
         const write = [...pending.values()].find((p) => p.collection !== 'events' || eventWriteReady(p.data as unknown as CalendarEvent))
         if (!write) break
+        if (write.remove) {
+          if (write.collection === 'nbc_reports') {
+            const result = await supabase!.rpc('kw_nbc_discard_update',{record_id:write.id,expected:write.base})
+            if (!valid()) return
+            if (result.error) throw result.error
+            pending.delete(write.key)
+            const remote = result.data.row as Row | null
+            if (remote) versions.set(write.key,remote.updated_at)
+            else versions.delete(write.key)
+            applyRow(write.collection,remote,write.id)
+            if (result.data.conflict) useWorkspaceUI.getState().notify('This update changed in another session and was kept. Review it before deleting again.')
+            void db.outbox.delete(write.key).catch(()=>{})
+            refreshRequested = true
+            cacheSnapshot(scope)
+            continue
+          }
+          if (!['pages', 'tasks'].includes(write.collection)) throw new Error('Only trashed pages and tasks can be permanently deleted.')
+          let remote: Row | null = null
+          if (write.base) {
+            const removed = await supabase!.from(`kw_${write.collection}`).delete().eq('user_id', scope).eq('id', write.id).eq('updated_at', write.base).select('id')
+            if (!valid()) return
+            if (removed.error) throw removed.error
+            if (!removed.data.length) {
+              const result = await supabase!.from(`kw_${write.collection}`).select('id,data,updated_at').eq('user_id', scope).eq('id', write.id).maybeSingle()
+              if (!valid()) return
+              if (result.error) throw result.error
+              remote = result.data as Row | null
+            }
+          } else {
+            const result = await supabase!.from(`kw_${write.collection}`).select('id,data,updated_at').eq('user_id', scope).eq('id', write.id).maybeSingle()
+            if (!valid()) return
+            if (result.error) throw result.error
+            remote = result.data as Row | null
+          }
+          pending.delete(write.key)
+          if (remote) versions.set(write.key, remote.updated_at)
+          else versions.delete(write.key)
+          if (remote) useWorkspaceUI.getState().notify('An item changed in another session and was kept. Review it before deleting again.')
+          applyRow(write.collection, remote, write.id)
+          void db.outbox.delete(write.key).catch(() => {})
+          cacheSnapshot(scope)
+          continue
+        }
         const google = write.collection === 'events' ? await import('@/calendar/google') : null
         if (google && !google.useCalendars.getState().calendars.length && write.data.calendarId) await google.syncGoogle()
         if (!valid()) return
@@ -304,11 +374,32 @@ export function syncWorkspace(refresh = true): Promise<void> {
         if (!valid()) return
         const { data, error } = await supabase!.rpc('kw_workspace_write', { collection: write.collection, record_id: write.id, payload, expected: write.base })
         if (!valid()) return
+        if (error && write.collection === 'nbc_reports' && ['P0001', '23505', '23514'].includes(error.code)) {
+          // A rejected snapshot must return to a reviewable server draft, not retry forever as a local final.
+          const saved = await supabase!.from('kw_nbc_reports').select('id,data,updated_at').eq('id', write.id).maybeSingle()
+          if (!valid()) return
+          if (saved.error) throw saved.error
+          recoverConflict(pending.get(write.key)!)
+          pending.delete(write.key)
+          applyRow(write.collection, saved.data as Row | null, write.id)
+          refreshRequested = true
+          useWorkspaceUI.getState().notify(`Report was not finalized: ${error.message}. Review the current period and try again; your draft was preserved in Search.`)
+          cacheSnapshot(scope)
+          continue
+        }
         if (error) throw error
         const latest = pending.get(write.key)!
         const row = data.row as Row | null
         if (data.conflict) {
           if (++conflicts > 8) throw new Error('This item is changing in another session. Your edits are retained; retry shortly.')
+          if (latest.remove) {
+            pending.delete(write.key)
+            if (row) versions.set(write.key, row.updated_at)
+            applyRow(write.collection, row, write.id)
+            useWorkspaceUI.getState().notify('An item changed in another session and was kept. Review it before deleting again.')
+            cacheSnapshot(scope)
+            continue
+          }
           const rebased = rebaseWrite(write.original, latest.data, row?.data ?? null)
           if (rebased.conflicts) {
             recoverConflict(latest)

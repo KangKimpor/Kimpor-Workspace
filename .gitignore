@@ -17,3 +17,5 @@ docs/verification/*.html
 docs/verification/*.json
 docs/verification/**/*.json
 supabase/.temp/
+.private/
+*.xlsx
