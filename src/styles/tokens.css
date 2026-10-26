@@ -173,6 +173,13 @@
   --w-inspector: 340px;
   --h-tabbar: 56px;
 
+  /* NBC BP03 treegrid: compact rows, stacked phone rows, sticky column and tab offsets. */
+  --h-nbc-row: 48px;
+  --h-nbc-mobile-row: 104px;
+  --h-nbc-tablet-row: 64px;
+  --w-nbc-wbs: 160px;
+  --h-nbc-tabs: 48px;
+
   /* Content width (§9) */
   --content-width: 720px;
   --content-width-full: 1100px;

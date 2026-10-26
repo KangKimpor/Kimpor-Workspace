@@ -8,7 +8,7 @@ const cloud = vi.hoisted(() => {
   const session = (id: string) => ({ user: { id }, access_token: `token-${id}` })
   const state = { scope: 'account-a', gate: null as Promise<void> | null, handlers: [] as (() => void)[], records, session,
     switch(id: string | null) { state.scope = id || ''; authChange('SIGNED_IN', id ? session(id) : null) },
-    row(collection: string, id: string, data: Record<string, unknown>) { const row = { id, data: { ...data, id }, updated_at: String(++sequence) }; records.set(`${state.scope}:${collection}:${id}`, row); return row },
+    row(collection: string, id: string, data: Record<string, unknown>, owner?: string): Row { const row = { id, data: { ...data, id }, updated_at: String(++sequence) }; records.set(`${owner ?? state.scope}:${collection}:${id}`, row); return row },
   }
   const client = {
     auth: { onAuthStateChange: vi.fn((fn) => { authChange = fn }), getSession: vi.fn(async () => ({ data: { session: session(state.scope) }, error: null })) },
@@ -19,15 +19,41 @@ const cloud = vi.hoisted(() => {
     }),
     removeChannel: vi.fn(async () => {}),
     from: vi.fn((table: string) => {
-      let scope = ''
-      const query = { select: () => query, eq: (_key: string, value: string) => { scope = value; return query }, order: () => query,
-        range: async (start: number, end: number) => ({ error: null, data: [...records.entries()].filter(([key]) => key.startsWith(`${scope}:${table.slice(3)}:`)).map(([, row]) => structuredClone(row)).slice(start, end + 1) }),
+      const caller = state.scope
+      let scope = '', id = '', expected = '', removing = false
+      const visible = () => [...records.entries()].filter(([key,row]) => {
+        if (scope) return key.startsWith(`${scope}:${table.slice(3)}:`)
+        if (!key.includes(`:${table.slice(3)}:`)) return false
+        if (table === 'kw_projects') return key.startsWith(`${caller}:`) || row.data.nbcBp03 === true
+        const company = [...records.entries()].find(([key,row]) => key.includes(':projects:') && row.data.nbcBp03 === true)?.[0].split(':')[0]
+        return table.startsWith('kw_nbc_') && key.startsWith(`${company}:`)
+      }).map(([,row]) => row)
+      const query = { select: () => query, delete: () => { removing = true; return query }, eq: (key: string, value: string) => { if (key === 'id') id = value; else if (key === 'updated_at') expected = value; else scope = value; return query }, order: () => query,
+        // oxlint-disable-next-line unicorn/no-thenable -- Supabase query builders are awaitable.
+        then: async (resolve: (value: { error: null; data: { id: string }[] }) => unknown) => {
+          const key = `${scope}:${table.slice(3)}:${id}`, row = records.get(key)
+          const removed = removing && row?.updated_at === expected
+          if (removed) records.delete(key)
+          return resolve({ error: null, data: removed ? [{ id }] : [] })
+        },
+        maybeSingle: async () => ({ error: null, data: visible().find((row)=>row.id===id) ?? null }),
+        range: async (start: number, end: number) => ({ error: null, data: visible().map((row)=>structuredClone(row)).slice(start, end + 1) }),
       }
       return query
     }),
     rpc: vi.fn(async (_name: string, args: { collection: string; record_id: string; payload: Record<string, unknown>; expected: string | null }) => {
-      const scope = state.scope, gate = state.gate
+      const actor = state.scope, scope = args.collection?.startsWith('nbc_') || _name === 'kw_nbc_discard_update' ? [...records.entries()].find(([key,row])=>key.includes(':projects:')&&row.data.nbcBp03===true)?.[0].split(':')[0] ?? actor : actor, gate = state.gate
       if (gate) await gate
+      if (_name === 'kw_nbc_discard_update') {
+        const key = `${scope}:nbc_reports:${args.record_id}`, report = records.get(key)
+        if (!report) return {error:null,data:{conflict:false,row:null}}
+        if (report.updated_at !== args.expected || report.data.status !== 'draft') return {error:null,data:{conflict:true,row:report}}
+        const previous = records.get(`${scope}:nbc_reports:${report.data.previousReportId}`)
+        const entries = previous?.data.entries as {id:string;progress:number}[] | undefined
+        for (const [recordKey,activity] of records) if (recordKey.startsWith(`${scope}:nbc_activities:`) && activity.data.projectId === report.data.projectId && activity.data.editable) state.row('nbc_activities',activity.id,{...activity.data,progress:entries?.find((e)=>e.id===activity.id)?.progress??activity.data.baseline},scope)
+        records.delete(key)
+        return {error:null,data:{conflict:false,row:null}}
+      }
       const key = `${scope}:${args.collection}:${args.record_id}`, existing = records.get(key)
       if ((existing && existing.updated_at !== args.expected) || (!existing && args.expected)) return { error: null, data: { conflict: true, row: existing ? structuredClone(existing) : null } }
       const row = { id: args.record_id, data: structuredClone(args.payload), updated_at: String(++sequence) }
@@ -38,8 +64,9 @@ const cloud = vi.hoisted(() => {
   return { ...state, state, client }
 })
 vi.mock('@/lib/supabase', () => ({ supabase: cloud.client, hasStoredSession: () => true, initializeSupabase: async () => cloud.client }))
-vi.mock('@/data/persistence', () => ({
-  collections: ['pages', 'projects', 'tasks', 'events'], eventWriteReady: () => true,
+vi.mock('@/data/persistence', async () => ({
+  ...await vi.importActual<typeof import('@/data/persistence')>('@/data/persistence'),
+  collections: ['pages', 'projects', 'tasks', 'events', 'nbc_activities', 'nbc_reports'], eventWriteReady: () => true,
   db: { snapshots: { get: async () => { throw Error('IndexedDB disabled') }, put: async () => { throw Error('IndexedDB disabled') } }, outbox: { where: () => ({ equals: () => ({ toArray: async () => { throw Error('IndexedDB disabled') } }) }), delete: async () => {} } },
 }))
 vi.mock('@/calendar/google', () => ({ clearGoogleSession: vi.fn(), syncGoogle: vi.fn(async () => {}), useCalendars: { getState: () => ({ calendars: [] }) } }))
@@ -57,7 +84,7 @@ test('cloud writes need no local database, retain in-flight edits, refresh live,
   await waitFor(() => expect(cloud.state.records.get('account-a:pages:legacy-page')?.data.title).toBe('Legacy recovery'))
   expect(cloud.client.channel).toHaveBeenCalledWith('kw-workspace:account-a', { config: { private: true } })
   const registrations = cloud.client.channel.mock.results[0]!.value.on.mock.calls as [string, { filter?: string; event?: string }][]
-  expect(registrations.filter(([type]) => type === 'postgres_changes').every(([, filter]) => filter.filter === 'user_id=eq.account-a' && filter.event !== 'DELETE')).toBe(true)
+  expect(registrations.filter(([type]) => type === 'postgres_changes').every(([, filter]) => ((filter as {table?:string}).table==='kw_projects' ? !filter.filter : filter.filter === 'user_id=eq.account-a') && filter.event !== 'DELETE')).toBe(true)
   expect(registrations.some(([type, filter]) => type === 'broadcast' && filter.event === 'DELETE')).toBe(true)
 
   let release!: () => void
@@ -97,18 +124,96 @@ test('cloud writes need no local database, retain in-flight edits, refresh live,
   cloud.state.row('projects', 'project', original)
   cloud.state.handlers[0]!()
   await waitFor(() => expect(useWorkspace.getState().projects).toHaveLength(1))
+  const { fixtureActivities, fixtureProject } = await import('@/nbc/test-fixture')
+  const { updateActivity, startWeek, finalizeWeek, discardWeek } = await import('@/nbc/actions')
+  cloud.state.row('projects', fixtureProject.id, fixtureProject)
+  for (const activity of fixtureActivities()) cloud.state.row('nbc_activities', activity.id, activity as unknown as Record<string, unknown>)
+  cloud.state.handlers[0]!()
+  await waitFor(() => expect(useWorkspace.getState().nbc_activities).toHaveLength(4))
+  startWeek(fixtureProject.id, '2026-10-25')
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  updateActivity('nbc:1.6.1.2', { progress: 0.5, remark: 'Saved through existing cloud queue' })
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  expect(cloud.state.records.get('account-a:nbc_activities:nbc:1.6.1.2')?.data.progress).toBe(0.5)
+  const reportId = useWorkspace.getState().nbc_reports![0]!.id
+  cloud.client.rpc.mockImplementationOnce(async () => ({ error: { code: 'P0001', message: 'Activity data changed' }, data: null }) as never)
+  finalizeWeek(reportId)
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  expect(useWorkspace.getState().nbc_reports![0]!.status).toBe('draft')
+  expect(useWorkspace.getState().pages.some((p) => JSON.stringify(p.blocks).includes('nbc:1.6.1.2'))).toBe(true)
+  finalizeWeek(reportId)
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  expect(cloud.state.records.get(`account-a:nbc_reports:${reportId}`)?.data.status).toBe('final')
+  startWeek(fixtureProject.id,'2026-11-01')
+  await waitFor(()=>expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  const discardId=useWorkspace.getState().nbc_reports!.find((r)=>r.status==='draft')!.id
+  updateActivity('nbc:1.6.1.2',{progress:0.99})
+  await waitFor(()=>expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  const calls=cloud.client.rpc.mock.calls.length
+  discardWeek(discardId)
+  await waitFor(()=>expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  expect(cloud.client.rpc.mock.calls.slice(calls).map(([name])=>name)).toEqual(['kw_nbc_discard_update'])
+  expect(cloud.state.records.has(`account-a:nbc_reports:${discardId}`)).toBe(false)
+  expect(useWorkspace.getState().nbc_activities!.find((a)=>a.wbs==='1.6.1.2')!.progress).toBe(0.5)
+  const disposable = useWorkspace.getState().addTask({ title: 'Disposable task', projectId: 'project' })
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  const notesId = useWorkspace.getState().tasks.find((task) => task.id === disposable)!.pageId!
+  useWorkspace.getState().trashTask(disposable)
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  // Legacy trashed tasks may still have an active notes page. Empty Trash must purge it too.
+  useWorkspace.setState({ pages: useWorkspace.getState().pages.map((page) => page.id === notesId ? { ...page, deletedAt: null } : page) })
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  const offline = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+  useWorkspace.getState().emptyTrash()
+  expect(useWorkspace.getState().tasks.some((task) => task.id === disposable)).toBe(false)
+  expect(Object.keys(localStorage).some((key) => key.startsWith('kw-cloud-pending:account-a:') && localStorage.getItem(key)?.includes('"remove":true'))).toBe(true)
+  offline.mockRestore()
+  await syncWorkspace()
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  expect(cloud.state.records.has(`account-a:tasks:${disposable}`)).toBe(false)
+  expect(cloud.state.records.has(`account-a:pages:${notesId}`)).toBe(false)
+  const changedTask = useWorkspace.getState().addTask({ title: 'Review before permanent delete', projectId: 'project' })
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  useWorkspace.getState().trashTask(changedTask)
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  const remoteTask = cloud.state.records.get(`account-a:tasks:${changedTask}`)!
+  cloud.state.row('tasks', changedTask, { ...remoteTask.data, title: 'Changed remotely' })
+  useWorkspace.getState().emptyTrash()
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  expect(useWorkspace.getState().tasks.find((task) => task.id === changedTask)?.title).toBe('Changed remotely')
+  useWorkspace.getState().emptyTrash()
+  await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  expect(cloud.state.records.has(`account-a:tasks:${changedTask}`)).toBe(false)
   cloud.state.gate = new Promise<void>((resolve) => { release = resolve })
   useWorkspace.getState().updateProject('project', { name: 'Account A pending' })
   await waitFor(() => expect(cloud.client.rpc.mock.calls.at(-1)?.[1].payload.name).toBe('Account A pending'))
   const oldHandler = cloud.state.handlers[0]!
   cloud.state.switch('account-b')
   await waitFor(() => expect(useWorkspace.getState().scope).toBe('account-b'))
-  expect(useWorkspace.getState().projects).toEqual([])
+  expect(useWorkspace.getState().projects.some((p)=>p.id==='project')).toBe(false)
+  expect(useWorkspace.getState().tasks).toEqual([])
   cloud.state.gate = null; release(); oldHandler()
   await waitFor(() => expect(useWorkspace.getState().sync.kind).toBe('saved'))
-  expect(useWorkspace.getState().projects).toEqual([])
+  expect(useWorkspace.getState().projects.map((p)=>p.id)).toEqual([fixtureProject.id])
+  expect(useWorkspace.getState().nbc_activities).toHaveLength(4)
+  expect(useWorkspace.getState().nbc_reports).toHaveLength(1)
   expect(cloud.client.removeChannel).toHaveBeenCalled()
   expect(useAccount.getState().session?.user.id).toBe('account-b')
+  // A second account edits the canonical rows; a brand-new account sees that exact update.
+  startWeek(fixtureProject.id,'2026-11-01')
+  await waitFor(()=>expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  updateActivity('nbc:1.6.1.2',{progress:0.875})
+  await waitFor(()=>expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  expect(cloud.state.records.get('account-a:nbc_activities:nbc:1.6.1.2')?.data.progress).toBe(0.875)
+  expect(cloud.state.records.has('account-b:nbc_activities:nbc:1.6.1.2')).toBe(false)
+  cloud.state.switch('brand-new-account')
+  await waitFor(()=>expect(useWorkspace.getState().scope).toBe('brand-new-account'))
+  await waitFor(()=>expect(useWorkspace.getState().sync.kind).toBe('saved'))
+  expect(useWorkspace.getState().projects.map((p)=>p.id)).toEqual([fixtureProject.id])
+  expect(useWorkspace.getState().nbc_activities!.find((a)=>a.wbs==='1.6.1.2')?.progress).toBe(0.875)
+  expect(useWorkspace.getState().nbc_reports!.find((r)=>r.status==='draft')?.editor).toBe('account-b')
+  expect(useWorkspace.getState().tasks).toEqual([])
+  expect(useWorkspace.getState().pages).toEqual([])
   cloud.state.switch(null)
   await waitFor(() => expect(useWorkspace.getState().scope).toBe('guest'))
 })

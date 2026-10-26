@@ -5,15 +5,16 @@ import { TaskTable } from '@/components/TaskTable'
 import { ProjectBoard } from '@/components/ProjectBoard'
 import { ProjectEditor } from '@/components/ProjectEditor'
 import { ArrowLeft, ChevronDown, Kanban, Pencil, Plus, Search, SlidersHorizontal, Star, Table2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { ProjectCards, Tile } from '@/components/WorkspaceUI'
 import { useProjects, useWorkspace } from '@/data'
 import type { TaskStatus } from '@/data'
 import { rememberWorkspace } from '@/shell/landing'
 import { useMediaQuery } from '@/motion/hooks'
+const NbcProject = lazy(() => import('@/nbc/NbcProject'))
 
-export default function Projects() {
+export default function Projects({ progressSection = false }: { progressSection?: boolean }) {
   const mobile = useMediaQuery('(max-width: 639px)')
   const { id, view = 'table' } = useParams()
   const projects = useProjects()
@@ -29,6 +30,8 @@ export default function Projects() {
   useEffect(() => {
     if (!id || projectId) rememberWorkspace(scope, { workspace: projectWorkspace ?? workspace, projectId })
   }, [id, projectId, projectWorkspace, scope, workspace])
+  if (project?.nbcBp03 && !progressSection) return <Navigate to={`/projects-progress/${id}/${view}${params.size ? `?${params}` : ''}`} replace />
+  if (progressSection && !id) return <div className="page workspace-page" data-wide="true"><header className="page-heading"><div><h1 className="t-title">Projects Progress</h1><p className="muted small">Project quantities, progress updates and reporting.</p></div><Link className="btn-secondary" to="/projects">Workspace projects</Link></header><ProjectCards progressOnly /></div>
   if (!id)
     return (
       <div className="page workspace-page" data-wide="true">
@@ -39,12 +42,13 @@ export default function Projects() {
           <button className="btn-accent" onClick={() => setEditing(true)}><Plus size={16} />New project</button>
         </header>
         {editing && <ProjectEditor workspace={workspace} onClose={() => setEditing(false)} />}
+        <Link className="text-link" to="/projects-progress">Projects Progress →</Link>
         <ProjectCards workspace={workspace} />
         {projects.some((p) => p.status === 'Archived') && (
           <details className="flat-card settings-section">
             <summary>Archived projects</summary>
             {projects
-              .filter((p) => p.status === 'Archived')
+              .filter((p) => p.status === 'Archived' && !p.nbcBp03)
               .map((p) => (
                 <div className="settings-row" key={p.id}>
                   <Link to={`/projects/${p.id}/table`}>{p.name}</Link>
@@ -67,6 +71,7 @@ export default function Projects() {
         <Link to="/projects">All projects</Link>
       </div>
     )
+  if (project.nbcBp03) return <Suspense fallback={<p className="quiet-empty">Loading NBC BP03…</p>}><NbcProject key={`${scope}:${project.id}`} project={project} view={view} /></Suspense>
   const allTasks = tasks.filter((t) => !t.deletedAt && t.projectId === id)
   const filtered = allTasks.filter(
     (t) =>

@@ -12,6 +12,7 @@ interface SideSheetProps {
   onOpenChange: (open: boolean) => void
   title: string
   className: 'drawer' | 'rsheet'
+  trigger?: ReactNode
   children: ReactNode
 }
 
@@ -22,12 +23,14 @@ export function SideSheet({
   onOpenChange,
   title,
   className,
+  trigger,
   children,
 }: SideSheetProps) {
   const reduced = useMotionReduced()
   const from = side === 'left' ? '-110%' : '110%'
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      {trigger && <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>}
       <AnimatePresence>
         {open ? (
           <Dialog.Portal forceMount>
@@ -44,7 +47,7 @@ export function SideSheet({
               />
             </Dialog.Overlay>
             <Dialog.Content asChild aria-describedby={undefined}>
-              <motion.aside
+              <motion.div
                 className={`glass ${className}`}
                 data-material="regular"
                 initial={reduced ? { opacity: 0 } : { x: from }}
@@ -72,7 +75,7 @@ export function SideSheet({
                   </Dialog.Close>
                 </div>
                 {children}
-              </motion.aside>
+              </motion.div>
             </Dialog.Content>
           </Dialog.Portal>
         ) : null}
@@ -82,6 +85,8 @@ export function SideSheet({
 }
 
 interface BottomSheetProps {
+  initial?: 'medium' | 'large'
+  trigger?: ReactNode
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
@@ -90,6 +95,8 @@ interface BottomSheetProps {
 
 /** Touch bottom sheet: drag handle, medium (50%) and large (92%) detents, velocity dismissal (§11, §12). */
 export function BottomSheet({
+  initial = 'medium',
+  trigger,
   open,
   onOpenChange,
   title,
@@ -97,8 +104,9 @@ export function BottomSheet({
 }: BottomSheetProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      {trigger && <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>}
       {open ? (
-        <SheetBody title={title} onClose={() => onOpenChange(false)}>
+        <SheetBody title={title} initial={initial} onClose={() => onOpenChange(false)}>
           {children}
         </SheetBody>
       ) : null}
@@ -107,19 +115,21 @@ export function BottomSheet({
 }
 
 function SheetBody({
+  initial,
   title,
   onClose,
   children,
 }: {
+  initial: 'medium' | 'large'
   title: string
   onClose: () => void
   children: ReactNode
 }) {
-  const sheet = useSheetDrag({ onDismiss: onClose })
+  const sheet = useSheetDrag({ onDismiss: onClose, initial })
   const { open, close } = sheet
   useEffect(() => {
-    open('medium')
-  }, [open])
+    open(initial)
+  }, [open, initial])
 
   return (
     <Dialog.Portal>
@@ -129,13 +139,21 @@ function SheetBody({
         aria-describedby={undefined}
         onEscapeKeyDown={(e) => {
           e.preventDefault()
-          close()
+          if (initial === 'large') onClose()
+          else close()
         }}
       >
         <motion.div
           className="glass bsheet"
           data-material="thick"
           {...sheet.sheetProps}
+          onKeyDown={(e) => {
+            if (initial === 'large' && e.key === 'Escape') {
+              e.preventDefault()
+              e.stopPropagation()
+              onClose()
+            }
+          }}
         >
           <div className="grabber" role="presentation" {...sheet.handleProps} />
           <Dialog.Title
@@ -144,6 +162,7 @@ function SheetBody({
           >
             {title}
           </Dialog.Title>
+          {initial === 'large' && <button className="ibtn" aria-label={`Close ${title.toLowerCase()}`} onClick={onClose} style={{ position: 'absolute', top: 'var(--space-16)', right: 'var(--space-16)' }}><X size={18} /></button>}
           {children}
         </motion.div>
       </Dialog.Content>

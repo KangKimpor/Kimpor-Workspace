@@ -141,7 +141,7 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
   return (
     <Link
       className="project-card flat-card"
-      to={`/projects/${project.id}/table`}
+      to={project.nbcBp03 ? `/projects-progress/${project.id}/progress` : `/projects/${project.id}/table`}
       style={tint(project.color)}
     >
       <div className="row-between">
@@ -166,10 +166,10 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
     </Link>
   )
 }
-export function ProjectCards({ workspace }: { workspace?: 'team' | 'personal' } = {}) {
+export function ProjectCards({ workspace, progressOnly = false }: { workspace?: 'team' | 'personal'; progressOnly?: boolean } = {}) {
   return (
     <div className="project-grid">
-      {useProjects().filter((p) => !workspace || (p.workspace ?? 'personal') === workspace).map((p) => (
+      {useProjects().filter((p) => progressOnly ? p.nbcBp03 : !p.nbcBp03 && (!workspace || (p.workspace ?? 'personal') === workspace)).map((p) => (
         <ProjectCard key={p.id} project={p} />
       ))}
     </div>

@@ -1,8 +1,8 @@
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { GlassPopover } from '@/components/glass/GlassPopover'
-import { AlignLeft, CalendarDays, CircleDot, Columns3, Flag } from 'lucide-react'
+import { AlignLeft, CalendarDays, CircleDot, Columns3, Flag, Trash2 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { priorities, statuses, useWorkspace } from '@/data'
@@ -18,13 +18,15 @@ const names = {
   due: 'Due date',
   notes: 'Description',
 }
-export function TaskTable({ tasks, mobile, toolbar, actions }: {
+export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
+  nbcActivities?: { id: string; wbs: string; name: string }[]
   tasks: Task[]
   mobile: boolean
   toolbar: ReactNode
   actions: ReactNode
 }) {
   const [params] = useSearchParams()
+  const [wbsQuery, setWbsQuery] = useState('')
   const targetTask = params.get('task')
   const focusedTask = useRef<string | null>(null)
   const availableColumns = columns
@@ -220,6 +222,8 @@ export function TaskTable({ tasks, mobile, toolbar, actions }: {
                               update(task.id, { title: e.target.value })
                             }
                           />
+                          <button className="ibtn task-delete-button" aria-label={`Delete task ${task.title}`} title="Move task to Trash" onClick={() => useWorkspace.getState().trashTask(task.id)}><Trash2 size={15} /></button>
+                          {nbcActivities && <div className="nbc-task-link">{task.nbcActivityId && <Link className="pill" to={`/projects-progress/${task.projectId}/progress?wbs=${encodeURIComponent(nbcActivities.find((a) => a.id === task.nbcActivityId)?.wbs ?? '')}`}>{nbcActivities.find((a) => a.id === task.nbcActivityId)?.wbs ?? 'WBS'}</Link>}<GlassPopover label="Link WBS activity" trigger={<button className="text-link small" aria-label={`Link WBS for ${task.title}`} onClick={() => setWbsQuery('')}>WBS</button>}><div className="nbc-wbs-picker"><input aria-label="Search WBS activity" placeholder="WBS code or activity name" value={wbsQuery} onChange={(e) => setWbsQuery(e.target.value)} /><div className="nbc-wbs-options"><button onClick={() => update(task.id, { nbcActivityId: null })}>No WBS link</button>{nbcActivities.filter((a) => `${a.wbs} ${a.name}`.toLowerCase().includes(wbsQuery.toLowerCase())).slice(0, 50).map((a) => <button key={a.id} onClick={() => update(task.id, { nbcActivityId: a.id })}>{a.wbs} · {a.name}</button>)}</div><p className="small muted">Search all activities by code or name.</p></div></GlassPopover></div>}
                           </div>
                         ) : column === 'notes' ? (
                           <textarea className="task-description" rows={1} aria-label={`Description for ${task.title}`} value={task.notes} onChange={(e) => update(task.id, { notes: e.target.value })} />

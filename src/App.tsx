@@ -34,6 +34,9 @@ export function App() {
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:id" element={<Projects />} />
           <Route path="projects/:id/:view" element={<Projects />} />
+          <Route path="projects-progress" element={<Projects progressSection />} />
+          <Route path="projects-progress/:id" element={<Projects progressSection />} />
+          <Route path="projects-progress/:id/:view" element={<Projects progressSection />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="p/:id" element={<PageEditor />} />
           <Route path="calendar/:view/:date" element={<Calendar />} />

@@ -29,6 +29,11 @@ export function GlassPopover({ trigger, children, label, align = 'end', side = '
           side={side}
           sideOffset={8}
           collisionPadding={8}
+          onCloseAutoFocus={(event) => {
+            // An exiting menu must not steal focus from a menu opened immediately after it.
+            const active = document.activeElement
+            if (event.target instanceof HTMLElement && active instanceof HTMLElement && !event.target.contains(active) && (active.closest('.popover[data-state="open"]') || active.matches('[aria-haspopup][data-state="open"]'))) event.preventDefault()
+          }}
         >
           {children}
         </Popover.Content>

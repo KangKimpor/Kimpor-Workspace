@@ -1,3 +1,4 @@
+import * as Dialog from '@radix-ui/react-dialog'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { Download, Plus, Star, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -290,39 +291,15 @@ export default function PageEditor() {
   )
 }
 export function Trash() {
-  const { pages, updatePage } = useWorkspace()
-  const deleted = pages.filter(
-    (p) =>
-      p.deletedAt &&
-      Date.now() - new Date(p.deletedAt).getTime() < 30 * 86400000,
-  )
-  return (
-    <div className="page" data-wide="true">
-      <header className="page-heading">
-        <div>
-          <h1 className="t-title">Trash</h1>
-          <p className="muted">
-            Restore pages deleted within the last 30 days.
-          </p>
-        </div>
-      </header>
-      {deleted.map((p) => (
-        <div className="trash-row flat-card" key={p.id}>
-          <Tile name={p.icon} />
-          <strong>{p.title || 'Untitled'}</strong>
-          <button
-            className="btn-secondary"
-            onClick={() =>
-              updatePage(p.id, { deletedAt: null, parentId: null })
-            }
-          >
-            Restore page
-          </button>
-        </div>
-      ))}
-      {!deleted.length && (
-        <div className="quiet-empty flat-card">Your trash is empty.</div>
-      )}
-    </div>
-  )
+  const { pages, tasks, updatePage, updateTask, emptyTrash } = useWorkspace()
+  const [confirm, setConfirm] = useState(false)
+  const deletedTasks = tasks.filter((task) => task.deletedAt)
+  const deleted = pages.filter((page) => page.deletedAt && !deletedTasks.some((task) => task.pageId === page.id))
+  const total = deleted.length + deletedTasks.length
+  return <div className="page" data-wide="true"><header className="page-heading"><div><h1 className="t-title">Trash</h1><p className="muted">Restore deleted pages and tasks, or permanently empty Trash.</p></div><button className="btn-secondary danger-text" disabled={!total} onClick={() => setConfirm(true)}>Empty Trash</button></header>
+    {deletedTasks.map((task) => <div className="trash-row flat-card" key={task.id}><Trash2 size={16} /><strong>{task.title || 'Untitled task'}</strong><span className="small muted">Task</span><button className="btn-secondary" onClick={() => updateTask(task.id, { deletedAt: null, ...(task.parentId && !tasks.some((parent) => parent.id === task.parentId && !parent.deletedAt) ? { parentId: null } : {}) })}>Restore task</button></div>)}
+    {deleted.map((page) => <div className="trash-row flat-card" key={page.id}><Tile name={page.icon} /><strong>{page.title || 'Untitled'}</strong><span className="small muted">Page</span><button className="btn-secondary" onClick={() => updatePage(page.id, { deletedAt: null, parentId: null })}>Restore page</button></div>)}
+    {!total && <div className="quiet-empty flat-card">Your trash is empty.</div>}
+    <Dialog.Root open={confirm} onOpenChange={setConfirm}><Dialog.Portal><Dialog.Overlay className="scrim" /><Dialog.Content className="glass event-editor" data-material="thick"><Dialog.Title className="t-h3">Empty Trash?</Dialog.Title><Dialog.Description>Permanently delete all {total} trashed items and their task notes. This cannot be undone.</Dialog.Description><div className="inline" style={{ justifyContent: 'flex-end', marginTop: 'var(--space-20)' }}><Dialog.Close className="btn-secondary">Cancel</Dialog.Close><button className="btn-accent" onClick={() => { emptyTrash(); setConfirm(false) }}>Delete everything</button></div></Dialog.Content></Dialog.Portal></Dialog.Root>
+  </div>
 }

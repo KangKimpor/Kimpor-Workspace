@@ -2,7 +2,7 @@
 import {
   FileText,
   FolderKanban,
-  Palette,
+  ChartNoAxesCombined,
   Search,
   Settings,
   Trash2,
@@ -85,7 +85,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             <ul className="nav-list">
               <Item to={`/projects?workspace=${workspace}`} end icon={<FolderKanban {...ic} />} label={workspace === 'team' ? 'Team projects' : 'Personal projects'} meta={<ChevronDown size={13} />}>
                 <ul className="nav-list nav-projects" aria-label={workspace === 'team' ? 'Team projects' : 'Personal projects'}>
-                  {projects.filter((p) => (p.workspace ?? 'personal') === workspace).map((p) => (
+                  {projects.filter((p) => !p.nbcBp03 && (p.workspace ?? 'personal') === workspace).map((p) => (
                     <li key={p.id}><NavLink to={`/projects/${p.id}/table`} className="nav-item">
                       <span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span>
                       <span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span>
@@ -96,6 +96,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             </ul>
           </div>
         ))}
+        <div className="nav-section"><div className="t-caption">Projects Progress</div><ul className="nav-list"><Item to="/projects-progress" end icon={<ChartNoAxesCombined {...ic} />} label="Projects Progress" /><li><ul className="nav-list nav-projects" aria-label="Progress projects">{projects.filter((p) => p.nbcBp03).map((p) => <li key={p.id}><NavLink to={`/projects-progress/${p.id}/progress`} className="nav-item"><span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span><span className="nav-label">{p.name}</span><span className="nav-meta">{(p.progress * 100).toFixed(2)}%</span></NavLink></li>)}</ul></li></ul></div>
       </nav>
 
       <div className="sidebar-foot">
@@ -106,7 +107,6 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             icon={<Settings {...ic} />}
             label="Settings"
           />
-          <Item to="/design" icon={<Palette {...ic} />} label="Design system" />
         </ul>
 
       </div>

@@ -6,7 +6,6 @@ import { priorities, statuses, useWorkspace } from '@/data'
 import type { Task } from '@/data'
 import { canParentTask } from '@/data/task-tree'
 import { GlassSelect } from './glass/GlassSelect'
-import { useWorkspaceUI } from '@/shell/workspace'
 
 export function TaskStatusSelect({ task }: { task: Task }) {
   return <GlassSelect aria-label={`Status for ${task.title}`} value={task.status} onChange={(e) => useWorkspace.getState().updateTask(task.id, { status: e.target.value as Task['status'] })}>{statuses.map((s) => <option key={s}>{s}</option>)}</GlassSelect>
@@ -36,6 +35,6 @@ export function TaskFields({ task, compact = false, children }: { task: Task; co
       <form className="inline" onSubmit={(e) => { e.preventDefault(); if (subtask.trim()) { update({ subtasks: [...task.subtasks, { id: crypto.randomUUID(), title: subtask.trim(), done: false }] }); setSubtask('') } }}><input aria-label="New subtask" placeholder="Add a subtask…" value={subtask} onChange={(e) => setSubtask(e.target.value)} /><button className="btn-secondary">Add</button></form>
     </fieldset>
     <details><summary>Activity</summary>{(task.activity || []).slice().reverse().map((a, i) => <p className="small muted" key={i}>{a.text} · {new Date(a.at).toLocaleString()}</p>)}</details>
-    <button className="btn-text danger-text" onClick={() => { update({ deletedAt: new Date().toISOString() }); useWorkspaceUI.getState().notify('Task deleted', () => update({ deletedAt: null })) }}>Delete task</button>
+    <button className="btn-text danger-text" onClick={() => useWorkspace.getState().trashTask(task.id)}>Delete task</button>
   </details>
 }

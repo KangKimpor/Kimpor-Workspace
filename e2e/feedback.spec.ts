@@ -28,7 +28,7 @@ for (const preference of ['system', 'os-reduced', 'app-reduced']) {
     await page.getByLabel(/^More fields for /).first().click()
     await page.getByRole('button', { name: 'Delete task', exact: true }).first().click()
     const toast = page.locator('.workspace-toast')
-    await expect(toast).toContainText(/Task deleted/)
+    await expect(toast).toContainText(/Task moved to Trash/)
     await expect(toast).toHaveCSS('animation-name', preference === 'system' ? 'toast-in' : 'none')
     await toast.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect(toast).not.toBeVisible()

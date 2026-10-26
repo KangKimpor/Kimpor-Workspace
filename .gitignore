@@ -20,3 +20,4 @@ supabase/.temp/
 
 # Local development and browser-test files; never commit private datasets or profiles.
 .private/
+*.xlsx
