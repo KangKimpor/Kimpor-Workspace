@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useMediaQuery } from '@/motion/hooks'
 import { reportingToday, reportingWeek, weeklyHandlerStatus } from './reporting-week'
 import { shortDate } from './format'
 import type { NbcActivity, NbcReport } from './types'
 
 export default function WeeklyHandlers({ reports, activities, report, date }: { reports: NbcReport[]; activities: NbcActivity[]; report?: NbcReport; date?: string }) {
-  const mobile = useMediaQuery('(max-width: 767px)')
   const [selectedWeek, setSelectedWeek] = useState<string|null>(null)
-  const [expanded, setExpanded] = useState(!mobile), [now, setNow] = useState(Date.now)
+  const [expanded, setExpanded] = useState(false), [now, setNow] = useState(Date.now)
   const { ending, deadline } = reportingWeek(report?.date || date || selectedWeek || reportingToday(new Date(now)))
   useEffect(() => {
     const timer = setTimeout(() => setNow(Date.now()), deadline > now ? Math.min(60000, deadline - now) : 60000)
