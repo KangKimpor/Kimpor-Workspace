@@ -83,5 +83,4 @@ html[data-motion=reduced]:has(.nbc-project) button:active { transform: none; }
 .nbc-project .nbc-num { font-variant-numeric: tabular-nums; }
 @media (max-width: 767px) {
   .nbc-project.workspace-surface { padding: var(--space-16); }
-  .nbc-update-bar { position: static; }
 }

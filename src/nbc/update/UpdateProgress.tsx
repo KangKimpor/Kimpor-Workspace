@@ -53,7 +53,7 @@ function Editor({ projectId, week, handler, activities, submission }: { projectI
                 <input ref={(el) => { if (el) inputs.current.set(a.id, el); else inputs.current.delete(a.id) }} disabled={busy} aria-label={`This week % for ${a.wbs}`} aria-invalid={draft.invalid.has(a.id) || undefined} inputMode="decimal" value={draft.text(a.id)}
                   onFocus={(event) => { beforeFocus.current = event.target.value; setFocusId(a.id) }} onBlur={() => setFocusId((old) => old === a.id ? '' : old)}
                   onChange={(event) => draft.setText(a.id, event.target.value)}
-                  onKeyDown={(event) => { if (event.key === 'Escape') draft.setText(a.id, beforeFocus.current); if (event.key === 'Enter') advance(a.id) }}/>
+                  onKeyDown={(event) => { if (event.key === 'Escape') draft.setText(a.id, beforeFocus.current); if (event.key === 'Enter') advance(a.id) }}/><span className="nbc-unit" aria-hidden="true">%</span>
                 {focusId === a.id && <span className="nbc-quick">{[25, 50, 75, 100].map((n) => <button key={n} tabIndex={-1} aria-label={`Set ${a.wbs} to ${n}%`} onMouseDown={(event) => event.preventDefault()} onClick={() => draft.setText(a.id, formatPercent(n / 100))}>{n}</button>)}</span>}
               </div>}
           remark={({ activity: a }) => confirmed ? <span>{shownById.get(a.id)?.remark || '—'}</span> : <input className="nbc-remark" disabled={busy} aria-label={`Remark for ${a.wbs}`} placeholder="Add remark…" maxLength={4000} value={draft.remark(a.id)} onChange={(event) => draft.setRemark(a.id, event.target.value)}/>}/>}

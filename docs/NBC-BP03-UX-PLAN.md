@@ -1,58 +1,39 @@
 # NBC BP03 weekly progress UX
 
-## References and scope
+The full design rationale is in `docs/superpowers/specs/2026-10-27-nbc-progress-redesign-design.md`; this page is the short reference for what the app does.
 
-Use the downloaded Stitch Overview, Update Progress and Past Updates screens in `stitch/13035619905198052579/` for layout, alongside the existing SingBuild tokens and components. The real handlers are Sitha, Lychhinh, Chhorvaon, Srun, Kheng and Tola. Reference screenshots contain sample names and data; those do not replace real project data.
+## Structure
 
-Navigation has four tabs: **Overview · Update Progress · Past Updates · Activities**. Earlier progress/weekly/handler URLs redirect to the corresponding new view. Issues and the task board remain accessible from Activities. Standard project pages are unchanged.
+Three tabs, in this order: **Overview · Activities · Update Progress**. Routes are `/projects-progress/:id/overview|activities|update`. `issues` and `board` open from the Activities view switcher (**Table · Board · Issues**). Earlier URLs redirect: `past` and `handlers` to Overview, `progress` and `boq` to Activities, `weekly` to Update Progress. Standard project pages are unchanged.
 
-Weeks are Monday–Sunday in Asia/Phnom_Penh. Display a range such as `26 Oct – 1 Nov`; there is no date picker. The deadline is **Sunday end of day**, with lateness beginning at Monday 00:00. The Update page contains **only the current week and no week tabs**, following the revised decision.
+Weeks are Monday–Sunday in Asia/Phnom_Penh and are shown as a range such as `26 Oct – 1 Nov`. The deadline is the end of Sunday; lateness starts at Monday 00:00. This week and last week are the only editable weeks.
 
-## Update Progress
+The look is flat and Notion-like: hairline dividers instead of cards, 14px text, tabular numerals, soft tinted status pills (Updated, Updated late, Not yet, Overdue, Needs review) that always carry a text label, and `···` menus for secondary actions.
 
-The left header contains the title, week range and This week label. A single, always-visible handler selector sits on the right and remembers the device's last choice. It is an honor system; there is no inferred account identity or second selector.
+## WBS table
 
-The remaining height belongs to an internally scrolling activities table with a sticky header. Columns are Activity, Previous %, This week %, Change and Remark. Show only the selected handler's assigned activities, plus GR&P marked **Shared**. Collapsible groups show average progress. Highlight changed rows subtly. Decimal input accepts `%`; quick-set works on desktop and phone, with increment/decrement buttons on desktop.
+Activities and Update Progress share one table that mirrors the source workbook: `WBS · Description · Previous week % · This week % · Remark` (Activities adds `Handler`). There are only two percentage columns.
 
-The bottom bar stays below the scroll area. It shows changed count, weighted percentage change and an honest autosave status, plus **Add note** and one primary **Confirm update** button. Add note expands a labeled inline textarea; its label becomes Edit note once populated. With no changed activities, use **Confirm, no changes**. Remarks and notes are optional.
-
-Every keystroke is locally journaled immediately. Valid edits autosave into the handler draft, without updating live progress or remarks. Leaving requires no dialog. Confirmation is one click, with no review screen or confirmation dialog. Invalid input remains visible/recoverable and blocks submission. Cloud confirmation waits for the saved draft; offline drafts remain available for later confirmation.
-
-After confirming, make the table read-only, show a green confirmation banner with local time and changed count, and show Late when appropriate. Replace the draft bar with **Edit** and an overflow menu containing **Delete update**. Delete opens a small popover with Delete and Cancel, explaining rollback and preservation of newer confirmed updates. The confirmation toast offers Undo.
-
-Edit keeps the preceding confirmed values live while a new draft is prepared. A shared GR&P conflict has an inline explanation and **Reload shared GR&P**, preserving all other draft edits.
+- The real WBS number is shown and never renumbered; levels run from `1.6.1` down to seven number segments (for example `1.6.1.3.4.2.4`) and the description is indented one step per level.
+- Parent rows are bold and tinted (level 1 strongest), collapsible, show a leaf count and show the calculated weighted average in `This week %`. Parent progress is never editable.
+- `This week %` is the editable cumulative progress; `Previous week %` is read-only. The change from last week appears only as a faint tint on changed rows, in the footer total and in Overview counts.
 
 ## Overview
 
-Keep compact KPIs, the all-week trend and existing work-area/floor/trade breakdowns. Include **N of 6 handlers updated this week**.
+A summary line (`42.02% overall · 4 of 6 handlers updated this week · 26 Oct – 1 Nov`), the all-week trend (with a table alternative), and a handler table with `This week · Last week · Changed · Contribution`. A handler row expands inline to This week, Last week and a collapsed **Older weeks**. Each week has a `···` menu: **Open** (read-only side panel with entries and note), **Edit** (this week and last week only; opens Update Progress) and **Export CSV**. Older weeks offer only Open and Export CSV. A missing last-week update is shown as Missing, with no create action. Area, floor and trade breakdowns sit behind a collapsed **Breakdown** toggle.
 
-Show a six-row handler strip with Last week and This week columns. Each chip is itself the link; there are no row action buttons. Status text is Updated (green), Updated late (amber), Not yet (neutral), Overdue (red outline) or Needs review (amber outline). Show confirmation time and `N changed`. Current-week links open Update Progress; last-week links open Past Updates.
+## Activities
 
-Trend uses stored summaries for every historical week, with a text/table alternative. Percentages use `%`, including tooltips and accessible labels.
+The full tree with search (`/` focuses it), handler / area / progress-range / changed-this-week filters, optional columns, expand/collapse all, virtualized scrolling, an activity detail side panel (audit history, issue links) and audited handler reassignment (`···` menu → Reassign group…). Progress and remarks are read-only here.
 
-## Past Updates
+## Update Progress
 
-Show six collapsible handler sections. Each has This week and Last week rows containing the range, status, changed count, weighted change, confirmation time and one overflow menu. Handler filter chips include All and remember the last choice.
+The header holds the title, the week range with the Sunday deadline, an inline handler selector (remembered per device, honor system) and a **This week | Last week** switch. Last week is enabled only when that handler already has a last-week update; missing updates are never created.
 
-An existing this-week or last-week submission offers Open, Edit, Delete and Export. Editing last week stays inside Past Updates; it is not a tab or a week chooser on Update Progress. Missing last-week updates are shown as missing, with no creation action. Editing or deleting last week automatically re-chains this week's previous values and changes.
+The table lists the selected handler's activities under their ancestor groups, then shared GR&P (marked **Shared**). **Hide completed** is on by default and never hides a row that was edited or changed. Enter moves to the next row, Tab moves to Remark, and the focused row shows quick-set chips (25, 50, 75, 100). Invalid text stays visible, keeps its group expanded and blocks confirmation.
 
-Each handler has a collapsed **Older weeks** section covering all older records. Its actions are Open and Export only. Opening displays read-only entries and the note. Preserve historical details and summaries; do not truncate history to the edit window.
-
-## Activities and responsibility
-
-Keep the existing hierarchy, search, handler/area/range filters, optional columns, virtualized scrolling, grouping, audit details, issue links and reassignment tools. Progress and remarks are read-only here; Update Progress is the place for draft edits. Reassignment stays audited and can mark a prior confirmation Needs review. GR&P remains shared and counted once in overall progress.
-
-## Responsive and accessibility checks
-
-- Desktop: wide table, compact header, internal scrolling and bottom bar within the viewport. Sticky table headers require no scroll listeners.
-- Tablet: retain the same table flow and scroll containment.
-- Phone: rows stack remarks beneath the activity/value/change fields, with decimal entry and native quick-set. Avoid horizontal page overflow. Preserve room for the bottom bar and safe-area navigation, including a shorter keyboard viewport.
-- Reuse theme tokens; changed rows, banners and status chips must retain contrast in light and dark themes. Use text labels with color, accessible input names, visible focus, semantic table headers, expanded-state announcements and reduced-motion support.
-
-## Removed flow
-
-There is no project-wide start/finalize cycle, stepper, Review stage, date picker, duplicated identity dropdown, three-choice leave dialog, correction request/log or historical snapshot banner. Earlier reports remain archived for data preservation, without exposing the removed workflow.
+The footer shows `N changed · +x.x%`, the autosave status, **Hide/Show completed**, **Add note** and one **Confirm update** button (**Confirm, no changes** when nothing changed). After confirming, the table is read-only and one line shows `Confirmed … · N changed` with **Edit** and a `···` menu containing **Delete update**. The confirmation toast offers Undo. A shared GR&P conflict shows an inline notice with **Reload shared GR&P**.
 
 ## Release boundary
 
-The database schema and frontend must be released together. Production already has NBC data, so use the prepared forward migration, never a reset or baseline reapplication. The user approved the database migration, and both the handler-submission and table-privilege migrations are applied. The matching frontend remains committed locally, with deployment still pending. Local verification alone is not a frontend release.
+Frontend only. The database already contains the handler-submission migrations. The redesigned frontend is committed locally on the `nbc-progress-redesign` branch and has not been deployed.

@@ -1,4 +1,4 @@
-.nbc-update { display: flex; flex-direction: column; min-height: 0; gap: var(--space-12); }
+.nbc-update { display: flex; flex-direction: column; gap: var(--space-12); }
 .nbc-update-head { display: flex; justify-content: space-between; align-items: end; gap: var(--space-16); flex-wrap: wrap; }
 .nbc-update-head h2 { margin: 0; }
 .nbc-update-head p { margin: var(--space-2) 0 0; }
@@ -18,7 +18,9 @@
 .nbc-remark { width: 100%; min-width: 12rem; border: 1px solid transparent; background: transparent; border-radius: var(--radius-control); padding: var(--space-2) var(--space-4); font: inherit; color: var(--text-primary); }
 .nbc-remark:hover { border-color: var(--border-subtle); }
 .nbc-remark:focus { border-color: var(--accent); background: var(--bg-canvas); }
-.nbc-update > .nbc-wbs-scroll { flex: 1 1 auto; max-height: calc(100dvh - 20rem); }
+.nbc-update { height: calc(100dvh - 17rem); min-height: 24rem; }
+.nbc-update > .nbc-wbs-scroll { flex: 1 1 auto; min-height: 8rem; }
+.nbc-unit { color: var(--text-tertiary); font-size: var(--fs-small); }
 .nbc-update-empty { padding: var(--space-32) var(--space-16); text-align: center; color: var(--text-secondary); border-block: 1px solid var(--border-subtle); }
 .nbc-note { display: grid; gap: var(--space-4); font-size: var(--fs-small); }
 .nbc-note textarea { width: 100%; font: inherit; }

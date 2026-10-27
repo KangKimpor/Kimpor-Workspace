@@ -7,7 +7,7 @@
 .nbc-handlers td { padding: var(--space-6) var(--space-8); border-bottom: 1px solid var(--border-subtle); height: 40px; }
 .nbc-handlers .nbc-num { text-align: end; }
 .nbc-handlers tbody tr:not(.nbc-weeks):hover { background: var(--bg-hover); }
-.nbc-handlers td:first-child { display: flex; align-items: center; gap: var(--space-4); }
+.nbc-handlers td:first-child .nbc-toggle { vertical-align: middle; margin-inline-end: var(--space-4); }
 .nbc-handlers a { text-decoration: none; color: inherit; }
 .nbc-weeks > td { padding: 0 0 var(--space-8) var(--space-32); background: var(--bg-canvas); }
 .nbc-weeks ul { list-style: none; margin: 0; padding: 0; }
@@ -25,3 +25,4 @@
 .nbc-peek-table th, .nbc-peek-table td { text-align: start; padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--border-subtle); }
 .nbc-peek-table .nbc-num { text-align: end; }
 .nbc-peek-note { font-size: var(--fs-small); color: var(--text-secondary); }
+.nbc-trend svg { max-width: 640px; margin-top: var(--space-8); }
