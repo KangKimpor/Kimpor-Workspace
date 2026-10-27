@@ -25,7 +25,8 @@ for (const week of [frozen,last]) {
   await db.query('insert into public.kw_nbc_reports(id,user_id,data) values($1,$2,$3)',[r.id,owner,JSON.stringify(r)])
 }
 await db.exec('alter table public.kw_nbc_reports enable trigger nbc_report_guard')
-for (const name of ['20261026130000_nbc_company_access.sql','20261026160634_nbc_handler_weekly_confirmations.sql',...(await readdir('supabase/migrations')).filter((s)=>s.endsWith('_nbc_handler_submissions.sql'))]) await db.exec(await readFile(`supabase/migrations/${name}`,'utf8'))
+await db.exec('alter default privileges in schema public grant all on tables to anon,authenticated')
+for (const name of ['20261026130000_nbc_company_access.sql','20261026160634_nbc_handler_weekly_confirmations.sql',...(await readdir('supabase/migrations')).filter((s)=>s.endsWith('_nbc_handler_submissions.sql')||s.endsWith('_nbc_submission_privileges.sql')).sort()]) await db.exec(await readFile(`supabase/migrations/${name}`,'utf8'))
 const select = async (table,id) => (await db.query(`select * from public.${table} where id=$1`,[id])).rows[0]
 const progress = async(id='tola') => (await select('kw_nbc_activities',id)).data.progress
 const id=(week,h='Tola')=>`nbc-bp03:${week}:${h}`
@@ -82,6 +83,8 @@ assert.equal((await call('save',current,'Tola',[entry(.6)],'2000-01-01')).confli
 await assert.rejects(db.exec("update public.kw_nbc_activities set data=jsonb_set(data,'{progress}','0.8') where id='tola'"),/handler draft/)
 await assert.rejects(db.exec("update public.kw_nbc_activities set data=jsonb_set(data,'{handler}','\"Unknown\"') where id='tola'"),/kw_nbc_assigned_handler/)
 await assert.rejects(db.exec('delete from public.kw_nbc_submissions'),/permission denied/)
+await assert.rejects(db.exec('truncate public.kw_nbc_submissions'),/permission denied/)
+await assert.rejects(db.exec('truncate public.kw_nbc_summaries'),/permission denied/)
 await assert.rejects(db.exec('update public.kw_nbc_summaries set data=data'),/permission denied/)
 await assert.rejects(db.exec('update public.kw_nbc_reports set data=data'),/permission denied/)
 await db.exec("select set_config('request.jwt.claim.sub','',false)")
