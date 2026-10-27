@@ -42,7 +42,6 @@ export default function Projects({ progressSection = false }: { progressSection?
           <button className="btn-accent" onClick={() => setEditing(true)}><Plus size={16} />New project</button>
         </header>
         {editing && <ProjectEditor workspace={workspace} onClose={() => setEditing(false)} />}
-        <Link className="text-link" to="/projects-progress">Projects Progress →</Link>
         <ProjectCards workspace={workspace} />
         {projects.some((p) => p.status === 'Archived') && (
           <details className="flat-card settings-section">
