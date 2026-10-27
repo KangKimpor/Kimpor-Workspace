@@ -2,6 +2,7 @@ import { GlassSelect } from '@/components/glass/GlassSelect'
 import { GlassPopover } from '@/components/glass/GlassPopover'
 import { AlignLeft, CalendarDays, CircleDot, Columns3, Flag, Trash2 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -27,6 +28,27 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
 }) {
   const [params] = useSearchParams()
   const [wbsQuery, setWbsQuery] = useState('')
+  const [menu, setMenu] = useState<{ x: number; y: number; id: string; title: string } | null>(null)
+  useEffect(() => {
+    if (!menu) return
+    const close = () => setMenu(null)
+    const outside = (e: Event) => { if (!(e.target as Element | null)?.closest?.('.row-context-menu')) close() }
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.row-context-menu button')?.focus())
+    window.addEventListener('pointerdown', outside)
+    window.addEventListener('contextmenu', outside)
+    window.addEventListener('keydown', key)
+    window.addEventListener('resize', close)
+    window.addEventListener('scroll', close, true)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('pointerdown', outside)
+      window.removeEventListener('contextmenu', outside)
+      window.removeEventListener('keydown', key)
+      window.removeEventListener('resize', close)
+      window.removeEventListener('scroll', close, true)
+    }
+  }, [menu])
   const targetTask = params.get('task')
   const focusedTask = useRef<string | null>(null)
   const availableColumns = columns
@@ -111,6 +133,14 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
         </div>
       </GlassPopover>
       {actions}
+      {menu && createPortal(
+        <div className="row-context-menu" role="menu" aria-label="Task actions" style={{ left: Math.max(8, Math.min(menu.x, innerWidth - 188)), top: Math.max(8, Math.min(menu.y, innerHeight - 52)) }}>
+          <button role="menuitem" className="danger-text" aria-label={`Delete task ${menu.title}`} onClick={() => { useWorkspace.getState().trashTask(menu.id); setMenu(null) }}>
+            <Trash2 size={15} aria-hidden="true" />Delete
+          </button>
+        </div>,
+        document.body,
+      )}
       </div>
       <div
         className="table-scroll"
@@ -209,6 +239,11 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
                   data-index={item.index}
                   ref={large ? virtual.measureElement : undefined}
                   aria-rowindex={item.index + 2}
+                  onContextMenu={(e) => {
+                    if ((e.target as HTMLElement).closest('textarea')) return
+                    e.preventDefault()
+                    setMenu({ x: e.clientX, y: e.clientY, id: task.id, title: task.title })
+                  }}
                 >
                   {visibleColumns
                     .map((column) => (
@@ -222,7 +257,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
                               update(task.id, { title: e.target.value })
                             }
                           />
-                          <button className="ibtn task-delete-button" aria-label={`Delete task ${task.title}`} title="Move task to Trash" onClick={() => useWorkspace.getState().trashTask(task.id)}><Trash2 size={15} /></button>
+                          
                           {nbcActivities && <div className="nbc-task-link">{task.nbcActivityId && <Link className="pill" to={`/projects-progress/${task.projectId}/progress?wbs=${encodeURIComponent(nbcActivities.find((a) => a.id === task.nbcActivityId)?.wbs ?? '')}`}>{nbcActivities.find((a) => a.id === task.nbcActivityId)?.wbs ?? 'WBS'}</Link>}<GlassPopover label="Link WBS activity" trigger={<button className="text-link small" aria-label={`Link WBS for ${task.title}`} onClick={() => setWbsQuery('')}>WBS</button>}><div className="nbc-wbs-picker"><input aria-label="Search WBS activity" placeholder="WBS code or activity name" value={wbsQuery} onChange={(e) => setWbsQuery(e.target.value)} /><div className="nbc-wbs-options"><button onClick={() => update(task.id, { nbcActivityId: null })}>No WBS link</button>{nbcActivities.filter((a) => `${a.wbs} ${a.name}`.toLowerCase().includes(wbsQuery.toLowerCase())).slice(0, 50).map((a) => <button key={a.id} onClick={() => update(task.id, { nbcActivityId: a.id })}>{a.wbs} · {a.name}</button>)}</div><p className="small muted">Search all activities by code or name.</p></div></GlassPopover></div>}
                           </div>
                         ) : column === 'notes' ? (

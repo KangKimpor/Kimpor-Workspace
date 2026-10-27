@@ -201,3 +201,8 @@
 .task-table td .glass-select,
 .project-page[data-view='table'] .task-table td .glass-select { width: auto; min-width: max-content; max-width: none; overflow: visible; }
 .task-table td .glass-select > span { overflow: visible; text-overflow: clip; }
+/* Right-click row menu (Notion-style) */
+.row-context-menu { position: fixed; z-index: 1000; min-width: 168px; padding: var(--space-4); background: var(--bg-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-popover); box-shadow: 0 0 0 1px var(--border-subtle), 0 6px 16px rgb(15 15 15 / 12%); }
+.row-context-menu button { display: flex; align-items: center; gap: var(--space-8); width: 100%; height: var(--h-sidebar-item); min-height: var(--h-sidebar-item); padding: 0 var(--space-8); border: 0; border-radius: var(--radius-chip); background: transparent; color: var(--text-primary); font: inherit; font-size: var(--fs-label); text-align: left; cursor: pointer; }
+.row-context-menu button:hover, .row-context-menu button:focus-visible { background: var(--bg-hover); outline: none; }
+.row-context-menu button.danger-text { color: var(--danger-text); }
