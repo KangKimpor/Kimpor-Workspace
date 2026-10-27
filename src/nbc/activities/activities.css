@@ -1,0 +1,16 @@
+.nbc-activities-page, .nbc-activities { display: grid; gap: var(--space-12); min-width: 0; }
+.nbc-views { display: inline-flex; gap: var(--space-4); }
+.nbc-view { padding: var(--space-4) var(--space-12); border-radius: var(--radius-control); font-size: var(--fs-small); color: var(--text-secondary); text-decoration: none; }
+.nbc-view:hover { background: var(--bg-hover); }
+.nbc-view.active { background: var(--bg-selected); color: var(--text-primary); font-weight: 600; }
+.nbc-hint { margin: 0; }
+.nbc-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
+.nbc-chip { display: inline-flex; align-items: center; gap: var(--space-4); border: 1px solid var(--border-subtle); background: transparent; border-radius: var(--radius-pill); padding: var(--space-2) var(--space-8); font-size: var(--fs-small); color: var(--text-secondary); }
+.nbc-chip[aria-pressed=true] { background: var(--bg-selected); color: var(--text-primary); }
+.nbc-chip:hover { background: var(--bg-hover); }
+.nbc-spacer { flex: 1; }
+.nbc-columns { display: grid; gap: var(--space-8); padding: var(--space-8); }
+.nbc-handler-button { border: 0; background: transparent; padding: 0; font: inherit; color: var(--text-primary); text-decoration: underline dotted; cursor: pointer; }
+.nbc-activities > .nbc-wbs-scroll { max-height: calc(100dvh - 18rem); }
+.nbc-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-block: var(--space-8); }
+.nbc-pill[data-status=Issue] { background: var(--status-warning-bg); text-decoration: none; }

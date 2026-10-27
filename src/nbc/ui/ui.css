@@ -32,3 +32,5 @@ html[data-theme=dark] .nbc-pill[data-status=Overdue] { background: color-mix(in 
 .nbc-peek-head { display: flex; justify-content: space-between; align-items: center; padding: var(--space-12) var(--space-16); border-bottom: 1px solid var(--border-subtle); }
 .nbc-peek-head h2 { margin: 0; font-size: var(--fs-label); font-weight: 600; }
 .nbc-peek-body { padding: var(--space-16); overflow: auto; }
+.nbc-name-button { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; text-align: start; cursor: pointer; }
+.nbc-name-button:hover { text-decoration: underline; }

@@ -19,11 +19,12 @@ export interface WbsTableProps {
   rowAttrs?: (row: WbsRow) => Record<string, string | boolean | undefined>
   virtual?: boolean
   onRowClick?: (row: WbsRow) => void
+  nameSuffix?: (row: WbsRow) => ReactNode
 }
 
 const ROW = 36
 
-export function WbsTable({ rows, caption, collapsed, onToggle, previous, current, remark, extra = [], rowAttrs, virtual = false, onRowClick }: WbsTableProps) {
+export function WbsTable({ rows, caption, collapsed, onToggle, previous, current, remark, extra = [], rowAttrs, virtual = false, onRowClick, nameSuffix }: WbsTableProps) {
   const scroll = useRef<HTMLDivElement>(null)
   // oxlint-disable-next-line react/incompatible-library -- React Compiler is not enabled; this virtualizer is not memoized.
   const virtualizer = useVirtualizer({ count: virtual ? rows.length : 0, getScrollElement: () => scroll.current, estimateSize: () => ROW, overscan: 12, initialRect: { width: 1200, height: 800 } })
@@ -37,11 +38,11 @@ export function WbsTable({ rows, caption, collapsed, onToggle, previous, current
       {before > 0 && <tr aria-hidden="true"><td aria-hidden="true" colSpan={columns} style={{ height: before, padding: 0, border: 0 }}/></tr>}
       {items.map(({ index }) => {
         const row = rows[index]!, a = row.activity, open = !collapsed.has(a.id)
-        return <tr key={a.id} data-level={row.level} data-group={row.group} data-wbs={a.wbs} onClick={onRowClick && (() => onRowClick(row))} {...rowAttrs?.(row)}>
+        return <tr key={a.id} data-level={row.level} data-group={row.group} data-wbs={a.wbs} {...rowAttrs?.(row)}>
           <td className="nbc-wbs-no">{a.wbs}</td>
           <td className="nbc-desc" style={{ paddingInlineStart: `${row.depth * 16 + 8}px` }}>
             {row.group ? <button className="nbc-toggle" aria-expanded={open} aria-label={`${open ? 'Collapse' : 'Expand'} ${a.wbs}`} onClick={(e) => { e.stopPropagation(); onToggle(a.id) }}>{open ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button> : <span className="nbc-toggle-gap"/>}
-            <span className="nbc-name">{a.name}</span>{row.group && <span className="nbc-count">{row.leafCount}</span>}{a.wbs === 'GR&P' && <span className="nbc-pill" data-status="Shared">Shared</span>}
+            {onRowClick ? <button className="nbc-name nbc-name-button" onClick={() => onRowClick(row)}>{a.name}</button> : <span className="nbc-name">{a.name}</span>}{row.group && <span className="nbc-count">{row.leafCount}</span>}{a.wbs === 'GR&P' && <span className="nbc-pill" data-status="Shared">Shared</span>}{nameSuffix?.(row)}
           </td>
           <td className="nbc-num">{percent(previous(a))}</td>
           <td className="nbc-num">{row.group ? percent(row.progress) : current(row)}</td>
