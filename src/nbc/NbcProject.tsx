@@ -65,10 +65,11 @@ function Issues({projectId,activities,board}:{projectId:string;activities:NbcAct
 }
 
 export default function NbcProject({project,view}:{project:ProjectSummary;view:string}) {
-  const reduced=useMotionReduced(), scope=useWorkspace((s)=>s.scope)
+  const reduced=useMotionReduced(), scope=useWorkspace((s)=>s.scope),[now,setNow]=useState(Date.now)
+  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return()=>clearInterval(timer)},[])
   const allActivities=useWorkspace((s)=>s.nbc_activities??EMPTY_ACTIVITIES),allSubmissions=useWorkspace((s)=>s.nbc_submissions??EMPTY_SUBMISSIONS),allSummaries=useWorkspace((s)=>s.nbc_summaries??EMPTY_SUMMARIES)
   const activities=useMemo(()=>allActivities.filter((a)=>a.projectId===project.id),[allActivities,project.id]),submissions=useMemo(()=>allSubmissions.filter((s)=>s.projectId===project.id),[allSubmissions,project.id]),summaries=useMemo(()=>allSummaries.filter((s)=>s.projectId===project.id),[allSummaries,project.id])
-  const nav=useRef<HTMLElement>(null),navigate=useNavigate(),current=weekStart(),[dismissed,setDismissed]=useState(false)
+  const nav=useRef<HTMLElement>(null),navigate=useNavigate(),current=weekStart(new Date(now).toLocaleDateString('en-CA',{timeZone:'Asia/Phnom_Penh'})),[dismissed,setDismissed]=useState(false)
   const calculation=useMemo(()=>{try{return calculate(activities)}catch{return null}},[activities])
   const baseline=useMemo(()=>{const values=new Map(activities.map((a)=>[a.id,a.progress]));for(const s of [...submissions].filter((s)=>s.weekStart===current).sort((a,b)=>(b.confirmedAt??'').localeCompare(a.confirmedAt??'')))for(const e of appliedEntries(s))values.set(e.activityId,e.previous);return values},[activities,submissions,current])
   useEffect(()=>{if(!supabase||scope==='guest')return;const client=supabase,channel=client.channel(`nbc-bp03:${scope}`);for(const table of ['kw_nbc_activities','kw_nbc_submissions','kw_nbc_summaries'])channel.on('postgres_changes',{event:'*',schema:'public',table},()=>{void syncWorkspace()});channel.subscribe((status)=>{if(status==='SUBSCRIBED')void syncWorkspace()});return()=>{void client.removeChannel(channel)}},[scope])

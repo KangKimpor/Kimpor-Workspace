@@ -66,7 +66,7 @@
   .nbc-submission-table thead th:nth-child(2),.nbc-submission-table td:nth-child(2) { display: none; }
   .nbc-submission-table,.nbc-submission-table thead,.nbc-submission-table tbody { display: block; width: 100%; }
   .nbc-submission-table thead tr { display: grid; grid-template-columns: 42% 32% 26%; }
-  .nbc-submission-table thead th { width: auto; }
+  .nbc-submission-table thead th:nth-child(n) { width: auto; min-width: 0; }
   .nbc-submission-table td { display: block; min-width: 0; }
   .nbc-submission-table td:first-child { overflow-wrap: normal; }
   .nbc-submission-group,.nbc-submission-group th { display: block; }
