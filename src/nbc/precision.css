@@ -11,7 +11,7 @@ html:has(.nbc-project) {
   --status-neutral: #787774; --status-neutral-bg: #e3e2e0;
   --bg-canvas: var(--surface-canvas); --bg-sidebar: var(--surface-sidebar); --bg-raised: var(--surface-raised);
   --bg-hover: var(--surface-hover); --bg-pressed: var(--surface-selected); --bg-selected: var(--surface-selected);
-  --accent: var(--accent-blue); --accent-fill: var(--accent-blue); --accent-text: var(--accent-blue); --selection: var(--accent-selection);
+  --accent: var(--accent-blue); --accent-fill: var(--accent-blue); --selection: var(--accent-selection);
   --dur-instant: 80ms; --dur-fast: 140ms; --dur-base: 220ms; --dur-slow: 340ms;
   --ease-standard: cubic-bezier(0.2,0,0,1); --ease-enter: cubic-bezier(0,0,0.2,1); --ease-exit: cubic-bezier(0.4,0,1,1);
   --w-sidebar: 260px; --h-topbar: 44px; --w-nbc-wbs: 160px; --h-button: 32px; --h-input: 32px;
@@ -56,7 +56,7 @@ html:has(.nbc-project) :is(.bsheet,.rsheet,.drawer,[role=dialog]) { box-shadow: 
 .nbc-project .nbc-header-progress .nbc-flat-bar { width: 136px; flex: 0 0 136px; }
 .nbc-project .nbc-tabs { overflow-x: auto; flex-wrap: nowrap; padding: 0; height: 48px; align-items: stretch; }
 .nbc-project .nbc-tabs .view-tab { border: 0; border-radius: 0; background: transparent; padding: 12px; font-size: 12px; color: var(--text-secondary); }
-.nbc-project .nbc-tabs .view-tab[aria-current=page] { color: var(--accent-blue); border-bottom: 0; }
+.nbc-project .nbc-tabs .view-tab[aria-current=page] { color: var(--accent-text); border-bottom: 0; }
 .nbc-project .nbc-banner { min-height: 44px; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 12px; color: var(--text-secondary); }
 .nbc-project .nbc-table-tools { position: static; }
 .nbc-project .nbc-toolbar { flex-wrap: nowrap; gap: 8px; }
@@ -161,11 +161,7 @@ html:has(.nbc-project) .nav-list > li { min-width: 0; }
 html:has(.nbc-project) .nav-projects { width: calc(100% - 16px); }
 html:has(.nbc-project) :is(.nbc-variance,.topbar [data-testid=sync-pill]) { color: #37352f; }
 .nbc-project .nbc-progress-main .nbc-flat-bar { min-width: 0; }
-@media(min-width:1280px) {
- .nbc-project .nbc-weekly .nbc-boq[data-updating=true] .nbc-progress-main { display: flex; }
- .nbc-project .nbc-weekly .nbc-boq[data-updating=true] .nbc-progress-main > .nbc-number,.nbc-project .nbc-weekly .nbc-boq[data-updating=true] .nbc-progress-main > input { width: 56px; min-width: 56px; min-height: 28px; }
- .nbc-project .nbc-weekly .nbc-boq[data-updating=true] .nbc-flat-bar { width: 136px; flex-basis: 136px; }
-}
+
 .nbc-project .nbc-positioned-row:has(input[aria-invalid=true]) { z-index: 20; }
 .nbc-project .nbc-grid-row > .nbc-name-cell:has(.nbc-issue-chip) { padding-block: 0; line-height: 14px; }
 .nbc-project .nbc-name-cell .nbc-issue-chip { height: 16px; padding-block: 0; }
@@ -202,37 +198,6 @@ html:has(.nbc-project) .skeleton { background: var(--surface-selected); backgrou
 .nbc-project .nbc-grid-row[data-depth] > .nbc-name-cell:has(.nbc-issue-chip) { padding-block: 0; }
 .nbc-project .nbc-name-cell .nbc-activity-name { flex: 1 1 auto; }
 /* Weekly confirmations use the same flat status and handler tokens. */
-.nbc-week-checklist { border: 1px solid var(--border-subtle); border-radius: 6px; background: var(--surface-raised); margin-bottom: 16px; min-width: 0; }
-.nbc-week-checklist > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px; cursor: pointer; list-style: none; }
-.nbc-week-checklist > summary::-webkit-details-marker { display: none; }
-.nbc-week-checklist > summary > span:first-child { display: grid; gap: 4px; }
-.nbc-week-checklist > summary strong { font-size: 14px; }
-.nbc-checklist-body { padding: 0 12px 12px; }
-.nbc-checklist-week { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; color: var(--text-secondary); }
-.nbc-checklist-week input { border: 1px solid var(--border-strong); border-radius: 6px; padding: 4px 8px; background: var(--surface-canvas); color: var(--text-primary); font: 12px var(--font-mono); }
-.nbc-confirmation-grid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 8px; }
-.nbc-handler-confirmation { display: grid; align-content: start; gap: 8px; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px; font-size: 12px; min-width: 0; }
-.nbc-handler-confirmation .inline { gap: 6px; }
-.nbc-handler-confirmation .small { font-size: 10px; }
-.nbc-confirmation-status { display: inline-flex; width: fit-content; align-items: center; min-height: 22px; padding: 0 6px; white-space: nowrap; border-radius: 4px; font-size: 11px; background: var(--status-neutral-bg); color: #37352f; }
-.nbc-confirmation-status[data-tone=success] { background: var(--status-success-bg); }
-.nbc-confirmation-status[data-tone=warning] { background: var(--status-warning-bg); }
-.nbc-handler-session { display: flex; align-items: end; gap: 16px; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 6px; }
-.nbc-handler-session .nbc-field { min-width: 180px; }
-.nbc-handler-session p { flex: 1; margin: 0; }
-.nbc-project .nbc-start-week form { display: flex; flex-wrap: wrap; align-items: end; justify-content: center; gap: 12px; }
-.nbc-project .nbc-start-week form > .nbc-field { min-width: 180px; }
-.nbc-weekly .nbc-week-checklist { margin: 0; }
-@media(max-width:1000px) {
- .nbc-confirmation-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
- .nbc-handler-session { flex-wrap: wrap; }
-}
-@media(max-width:767px) {
- .nbc-week-checklist > summary { align-items: start; gap: 8px; }
- .nbc-week-checklist > summary .small { font-size: 10px; }
- .nbc-confirmation-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
- .nbc-handler-session { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
- .nbc-project .nbc-start-week form { display: grid; }
-}
 
-@media(max-width:767px) { .nbc-week-checklist > summary { flex-wrap: wrap; } }
+
+
