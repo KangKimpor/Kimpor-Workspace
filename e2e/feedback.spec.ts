@@ -19,9 +19,10 @@ for (const preference of ['system', 'os-reduced', 'app-reduced']) {
     await expect(button).toHaveCSS('scale', 'none')
 
     const status = page.getByTestId('sync-pill')
-    await status.evaluate((element) => { element.setAttribute('data-tone', 'busy') })
-    await expect(status.locator('.dot')).toHaveCSS('animation-name', preference === 'system' ? 'saving-pulse' : 'none')
-    await status.evaluate((element) => { element.removeAttribute('data-tone') })
+    await expect(status).toHaveAttribute('data-tone', 'success')
+    await expect(status).toContainText('Demo · local')
+    await expect(status.locator('.sync-check')).toBeVisible()
+    await expect(status.locator('.dot')).toHaveCount(0)
 
     await page.goto('/projects/website/board')
     await page.getByRole('button', { name: 'New task', exact: true }).first().click()

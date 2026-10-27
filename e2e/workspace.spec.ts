@@ -169,12 +169,12 @@ test('project creation and editable, hideable, resizable task table', async ({
     page.getByRole('columnheader', { name: 'Priority', exact: true }),
   ).toHaveCount(0)
   await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Table columns', exact: true })).toHaveCount(0)
   const handle = page.getByRole('separator', {
     name: 'Resize Task name column',
     exact: true,
   })
-  await handle.focus()
-  await page.keyboard.press('ArrowRight')
+  await handle.press('ArrowRight')
   await expect(handle).toHaveAttribute('aria-valuenow', '416')
   await page.reload()
   await expect(
@@ -227,6 +227,7 @@ test('board cards can move between statuses', async ({ page }) => {
     source.y + source.height / 2,
     { steps: 3 },
   )
+  await expect(card).toHaveAttribute('aria-pressed', 'true')
   await page.mouse.move(target.x + target.width / 2, target.y + 120, {
     steps: 20,
   })

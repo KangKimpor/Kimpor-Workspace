@@ -55,4 +55,4 @@ There is no project-wide start/finalize cycle, stepper, Review stage, date picke
 
 ## Release boundary
 
-The database schema and frontend must be released together. Production already has NBC data, so use the prepared forward migration, never a reset or baseline reapplication. Migration/deployment require explicit approval; local verification alone is not a live release.
+The database schema and frontend must be released together. Production already has NBC data, so use the prepared forward migration, never a reset or baseline reapplication. The user approved the database migration, and both the handler-submission and table-privilege migrations are applied. The matching frontend remains committed locally, with deployment still pending. Local verification alone is not a frontend release.
