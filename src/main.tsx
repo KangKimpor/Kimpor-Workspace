@@ -59,13 +59,16 @@ const render = () =>
       </BrowserRouter>
     </StrictMode>,
   )
+const FIRST_PAINT_WAIT_MS = 3000
 const initialize = () =>
   import('./data/sync').then((module) => module.initializeData())
 if (
   hasStoredSession() ||
   /^\/settings\/(account|accounts)/.test(location.pathname)
 ) {
-  void initialize().finally(render)
+  // Signed-in users wait briefly so the right account paints first, but a slow or blocked
+  // connection must never leave a blank page: initialization carries on after first paint.
+  void Promise.race([initialize().catch(() => {}), new Promise((resolve) => setTimeout(resolve, FIRST_PAINT_WAIT_MS))]).then(render)
 } else {
   render()
   let guestInitialized = false

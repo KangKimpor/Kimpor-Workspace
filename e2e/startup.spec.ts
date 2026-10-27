@@ -56,3 +56,10 @@ test('a fresh guest initializes data on interaction and keeps the first edit', a
   await page.reload()
   await expect(page.getByLabel('Description for Finalize token contrasts for WCAG AA', { exact: true })).toHaveValue('My first guest edit')
 })
+
+test('a stored sign-in never leaves a blank page when the cloud does not answer', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('sb-nlcpjdokfvawlpzyfytx-auth-token', JSON.stringify({ access_token: 'x', refresh_token: 'y', expires_at: 1, expires_in: 1, token_type: 'bearer', user: { id: 'u1', email: 'a@b.c' } })))
+  await page.route(/supabase\.co/, () => {})
+  await page.goto('/')
+  await expect(page.getByRole('main')).toBeVisible({ timeout: 10_000 })
+})
