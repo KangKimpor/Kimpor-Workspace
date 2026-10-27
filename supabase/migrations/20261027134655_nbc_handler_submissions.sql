@@ -5,6 +5,8 @@ do $$ begin
     raise exception 'An unfinished legacy report exists. Preserve/review its live edits before applying this migration';
   end if;
 end $$;
+alter table public.kw_nbc_activities add constraint kw_nbc_assigned_handler
+  check(data->>'editable'<>'true' or data->>'wbs'='GR&P' or data->>'handler' in('Sitha','Lychhinh','Chhorvaon','Srun','Kheng','Tola'));
 create table public.kw_nbc_submissions (
   user_id uuid not null references auth.users(id), id text not null,
   data jsonb not null, updated_at timestamptz not null default clock_timestamp(),
