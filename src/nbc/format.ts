@@ -2,7 +2,8 @@ import { weekLabel } from './submissions'
 import type { NbcActivity, NbcSubmission } from './types'
 export const percent = (n: number, digits = 2) => `${(n * 100).toFixed(digits)}%`
 export const delta = (n: number) => Math.abs(n) < 1e-10 ? '0.0' : `${n > 0 ? '▲ +' : '▼ −'}${Math.abs(n * 100).toFixed(2)}`
-export const money = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+export const confirmationTime = (date: string) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Phnom_Penh', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(date))
+export const money =(n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
 export const shortDate = (date: string) => new Intl.DateTimeFormat('en-GB', {day:'numeric',month:'short',year:'numeric'}).format(new Date(`${date.slice(0,10)}T12:00:00`))
 export function exportSubmission(submission: NbcSubmission, activities: NbcActivity[]) {
   const cell = (value: string | number) => `"${String(typeof value === 'string' && /^[=+\-@\t\r\n]/.test(value) ? `'${value}` : value).replaceAll('"', '""')}"`
