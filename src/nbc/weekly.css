@@ -2,7 +2,7 @@
 .nbc-project .nbc-project-header { align-items: center; }
 .nbc-project-week { display: grid; gap: var(--space-4); text-align: right; }
 .canvas:has(> .nbc-project[data-view=update]) { padding-bottom: 0; }
-.nbc-project[data-view=update] { height: calc(100dvh - var(--h-topbar)); display: flex; flex-direction: column; padding-bottom: 0; overflow: hidden; }
+.nbc-project[data-view=update] { height: calc(100dvh - var(--h-topbar) - 1px); display: flex; flex-direction: column; padding-bottom: 0; overflow: hidden; }
 .nbc-project[data-view=update] > .nbc-project-header,.nbc-project[data-view=update] > .nbc-tabs { flex-shrink: 0; }
 .nbc-project[data-view=update] .nbc-project-header { margin-bottom: var(--space-8); }
 .nbc-project[data-view=update] h1 { font-size: var(--fs-label); line-height: var(--lh-label); }
@@ -75,7 +75,7 @@
   .nbc-submission-table td:last-child { display: block; padding-top: 0; }
   .nbc-submission-table tbody tr:not(.nbc-submission-group) { display: grid; grid-template-columns: 42% 32% 26%; }
   .nbc-submission-table tbody tr:not(.nbc-submission-group) td:last-child { grid-column: 1 / -1; }
-  .nbc-submission-number .ibtn,.nbc-submission-number select { display: none; }
+  .nbc-submission-number .ibtn { display: none; }
   .nbc-submission-table input { min-height: var(--space-40); font-size: var(--fs-label); }
   .nbc-submission-bar { align-items: start; flex-wrap: wrap; }
   .nbc-submission-bar > .inline { margin-left: auto; }

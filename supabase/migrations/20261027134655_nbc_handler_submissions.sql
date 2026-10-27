@@ -1,4 +1,10 @@
 -- Forward-only. Original project reports stay intact as a read-only archive.
+-- ponytail: abort on unfinished legacy reports; convert their live edits explicitly if one appears before release.
+do $$ begin
+  if exists(select 1 from public.kw_nbc_reports where data->>'status'='draft') then
+    raise exception 'An unfinished legacy report exists. Preserve/review its live edits before applying this migration';
+  end if;
+end $$;
 create table public.kw_nbc_submissions (
   user_id uuid not null references auth.users(id), id text not null,
   data jsonb not null, updated_at timestamptz not null default clock_timestamp(),
@@ -34,20 +40,23 @@ $$;
 -- If multiple legacy reports fall in one Monday week, the last dated report supplies
 -- its cumulative values. Every original detail/correction remains in kw_nbc_reports.
 do $$
-declare r record; h text; week date; entries jsonb; contributions jsonb; stamp timestamptz;
+declare r record; h text; week date; entries jsonb; contributions jsonb; stamp timestamptz; handler_stamp timestamptz; first_snapshot jsonb;
 begin
   for r in select distinct on(user_id,project_id,date_trunc('week',(data->>'date')::date)) *
     from public.kw_nbc_reports where data->>'status'='final'
     order by user_id,project_id,date_trunc('week',(data->>'date')::date),data->>'date' desc,data->>'finalizedAt' desc,id desc loop
     week=date_trunc('week',(r.data->>'date')::date)::date;
     stamp=coalesce((r.data->>'finalizedAt')::timestamptz,r.updated_at);
+    select data into first_snapshot from public.kw_nbc_reports where user_id=r.user_id and project_id=r.project_id and data->>'status'='final'
+      and date_trunc('week',(data->>'date')::date)::date=week order by data->>'date',data->>'finalizedAt',id limit 1;
     foreach h in array array['Sitha','Lychhinh','Chhorvaon','Srun','Kheng','Tola'] loop
-      select coalesce(jsonb_agg(jsonb_build_object('activityId',e->>'id','previous',e->'previous','progress',e->'progress','remark',coalesce(e->>'remark',''),'previousRemark','') order by e->>'id'),'[]'::jsonb)
+      handler_stamp=coalesce((r.data->('handlerUpdate'||h)->>'at')::timestamptz,stamp);
+      select coalesce(jsonb_agg(jsonb_build_object('activityId',e->>'id','previous',coalesce((select f->'previous' from jsonb_array_elements(first_snapshot->'entries') f where f->>'id'=e->>'id'),e->'previous'),'progress',e->'progress','remark',coalesce(e->>'remark',''),'previousRemark','') order by e->>'id'),'[]'::jsonb)
         into entries from jsonb_array_elements(r.data->'entries') e
         where e->>'handler'=h or (e->>'wbs'='GR&P' and h=coalesce(r.data->>'startedBy','Tola'));
       insert into public.kw_nbc_submissions(user_id,id,data,updated_at) values(r.user_id,r.project_id||':'||week||':'||h,
         jsonb_build_object('id',r.project_id||':'||week||':'||h,'projectId',r.project_id,'weekStart',week,'handler',h,'status','confirmed',
-          'confirmedAt',stamp,'confirmedBy',r.data->>'editor','late',stamp>=kw_private.nbc_deadline(week),'note',coalesce(r.data->>'note',''),
+          'confirmedAt',handler_stamp,'confirmedBy',coalesce(r.data->('handlerUpdate'||h)->>'editor',r.data->>'editor'),'late',handler_stamp>=kw_private.nbc_deadline(week),'note',coalesce(r.data->>'note',''),
           'entries',entries,'updatedAt',r.updated_at),r.updated_at);
     end loop;
     select jsonb_object_agg(handler,contribution) into contributions from (
@@ -56,20 +65,7 @@ begin
       from jsonb_array_elements(r.data->'entries') e group by 1) c;
     insert into public.kw_nbc_summaries(user_id,id,data,updated_at) values(r.user_id,r.project_id||':'||week,
       jsonb_build_object('id',r.project_id||':'||week,'projectId',r.project_id,'weekStart',week,'overall',r.data->'overall',
-        'previous',r.data->'previous','contributions',contributions,'updatedAt',r.updated_at),r.updated_at);
-  end loop;
-  -- Preserve existing unfinished live edits as handler drafts before blocking direct edits.
-  for r in select * from public.kw_nbc_reports where data->>'status'='draft' loop
-    week=date_trunc('week',(r.data->>'date')::date)::date;
-    foreach h in array array['Sitha','Lychhinh','Chhorvaon','Srun','Kheng','Tola'] loop
-      select coalesce(jsonb_agg(jsonb_build_object('activityId',a.id,'previous',a.data->'progress','progress',a.data->'progress',
-        'remark',a.data->>'remark','baseRevision',a.data->>'updatedAt')),'[]'::jsonb) into entries
-        from public.kw_nbc_activities a where a.user_id=r.user_id and a.project_id=r.project_id and a.data->>'editable'='true' and a.data->>'handler'=h;
-      insert into public.kw_nbc_submissions(user_id,id,data) values(r.user_id,r.project_id||':'||week||':'||h,
-        jsonb_build_object('id',r.project_id||':'||week||':'||h,'projectId',r.project_id,'weekStart',week,'handler',h,'status','draft',
-          'confirmedAt',null,'confirmedBy',null,'late',false,'note',coalesce(r.data->>'note',''),'entries',entries,'updatedAt',r.updated_at))
-        on conflict do nothing;
-    end loop;
+        'previous',first_snapshot->'previous','contributions',contributions,'updatedAt',r.updated_at),r.updated_at);
   end loop;
 end $$;
 
@@ -159,6 +155,18 @@ begin
   running=bases;
   -- Re-chain all affected submissions, including other handlers' shared GR&P entries.
   for s in select * from public.kw_nbc_submissions where user_id=owner_id and project_id=pid and week_start>=(current_week-7)::text order by week_start,data->>'confirmedAt',id loop
+    if s.data->>'status'='draft' then
+      entries=s.data->'entries'; idx=0;
+      for entry in select * from jsonb_array_elements(entries) loop
+        value=running->(entry->>'activityId');
+        if value is not null then entries=jsonb_set(entries,array[idx::text],entry||jsonb_build_object('previous',value->'progress')); end if;
+        idx=idx+1;
+      end loop;
+      if entries is distinct from s.data->'entries' then
+        s.data=jsonb_set(s.data,'{entries}',entries)||jsonb_build_object('updatedAt',stamp);
+        update public.kw_nbc_submissions set data=s.data,updated_at=stamp where user_id=owner_id and id=s.id;
+      end if;
+    end if;
     entries=kw_private.nbc_applied(s.data); idx=0;
     for entry in select * from jsonb_array_elements(entries) loop
       value=running->(entry->>'activityId');

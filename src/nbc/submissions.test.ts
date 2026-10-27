@@ -81,3 +81,15 @@ test('all handlers may edit shared GR&P; stale shared changes and foreign activi
   s.submissions[0]!.entries[0]!.activityId = 'nbc:1.6.1.1'
   expect(() => transitionSubmission(s, id, 'confirm', 'actor', now)).toThrow('only your activities')
 })
+
+test('unconfirmed current drafts are re-chained and the late flag flips at Monday midnight', () => {
+  let s = initial(), last = draft('Tola', addDays(week, -7), .4)
+  s.submissions.push(last)
+  s = transitionSubmission(s, last.id, 'confirm', 'actor', now)
+  expect(s.submissions[0]!.entries[0]!.previous).toBe(.4)
+  let onTime = initial()
+  onTime = transitionSubmission(onTime, onTime.submissions[0]!.id, 'confirm', 'actor', new Date('2026-11-01T16:59:59.999Z'))
+  expect(onTime.submissions[0]!.late).toBe(false)
+  const late = transitionSubmission(initial(), initial().submissions[0]!.id, 'confirm', 'actor', new Date('2026-11-01T17:00:00Z'))
+  expect(late.submissions[0]!.late).toBe(true)
+})

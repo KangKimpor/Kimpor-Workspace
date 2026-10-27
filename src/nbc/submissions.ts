@@ -83,12 +83,18 @@ export function transitionSubmission(input: SubmissionState, id: string, operati
   const editableStart = addDays(weekStart(now.toLocaleDateString('en-CA', { timeZone: REPORTING_TIMEZONE })), -7)
   const chain = state.submissions.filter((s) => s.projectId === submission.projectId && s.weekStart >= editableStart).sort(order)
   const running = new Map(bases)
-  for (const s of chain) for (const e of appliedEntries(s)) {
-    const base = running.get(e.activityId)
-    if (!base) continue
-    if (e.previous !== base.progress || e.previousRemark !== base.remark) s.updatedAt = at
-    e.previous = base.progress; e.previousRemark = base.remark
-    running.set(e.activityId, { progress: e.progress, remark: e.remark })
+  for (const s of chain) {
+    if (s.status === 'draft') for (const e of s.entries) {
+      const base = running.get(e.activityId)
+      if (base && e.previous !== base.progress) { e.previous = base.progress; s.updatedAt = at }
+    }
+    for (const e of appliedEntries(s)) {
+      const base = running.get(e.activityId)
+      if (!base) continue
+      if (e.previous !== base.progress || e.previousRemark !== base.remark) s.updatedAt = at
+      e.previous = base.progress; e.previousRemark = base.remark
+      running.set(e.activityId, { progress: e.progress, remark: e.remark })
+    }
   }
   for (const a of state.activities) {
     const value = a.projectId === submission.projectId ? running.get(a.id) : undefined

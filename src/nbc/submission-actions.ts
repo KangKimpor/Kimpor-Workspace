@@ -53,7 +53,7 @@ async function operate(week: string, handler: Handler, operation: SubmissionOper
     ;({ state, submission } = context(week, handler))
     if (!submission) throw new Error('This update changed. Reload before continuing.')
     const { data, error } = await supabase.rpc('kw_nbc_submission_write', { operation, payload: { projectId: submission.projectId, weekStart: week, handler }, expected: submission.updatedAt })
-    if (error) throw new Error(error.message)
+    if (error) { await syncWorkspace(); throw new Error(error.message) }
     await syncWorkspace()
     if (useWorkspace.getState().scope !== scope) throw new Error('Account changed.')
     if (data.conflict) throw new Error('This update changed in another session. Review it and try again.')

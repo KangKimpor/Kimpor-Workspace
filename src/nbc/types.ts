@@ -33,9 +33,6 @@ export interface NbcWeekSummary {
   contributions: Record<string, number>
   updatedAt: string
 }
-export interface HandlerConfirmation { at: string; editor: string; assignedCount: number; changedCount: number }
-// Separate fields let the existing sync merge confirmations from different handlers.
-type HandlerConfirmations = Partial<Record<`handlerUpdate${Handler}`, HandlerConfirmation>>
 export interface ProgressChange {
   id: string
   at: string
@@ -73,37 +70,4 @@ export interface NbcActivity {
   history: ProgressChange[]
   sourceRow?: number
   sourceFormulas?: Record<string, string>
-}
-export interface ReportEntry {
-  id: string
-  wbs: string
-  name: string
-  area: string
-  location: string
-  trade: string
-  handler: string
-  previous: number
-  progress: number
-  difference: number
-  weight: number
-  remark: string
-  updatedAt: string | null
-}
-export interface NbcReport extends HandlerConfirmations {
-  startedBy?: Handler
-  note?: string
-  id: string
-  projectId: string
-  date: string
-  status: 'draft' | 'final'
-  previousReportId: string | null
-  correctionOf: string | null
-  reason: string
-  entries: ReportEntry[]
-  overall: number
-  previous: number
-  createdAt: string
-  updatedAt: string
-  finalizedAt: string | null
-  editor: string
 }

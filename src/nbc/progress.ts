@@ -1,4 +1,4 @@
-import type { NbcActivity, NbcReport, ReportEntry } from './types'
+import type { NbcActivity } from './types'
 
 export function parseProgress(text: string) {
   const clean = text.trim().replace(/%$/, '').trim()
@@ -39,21 +39,6 @@ export function calculate(activities: NbcActivity[], values?: Map<string, number
   const leaves = activities.filter((a) => a.editable)
   const overall = leaves.reduce((sum, a) => sum + a.globalWeight * progress.get(a.id)!, 0)
   return { byId, children, progress, leaves, overall }
-}
-export function latestReport(reports: NbcReport[], projectId: string) {
-  return reports.filter((r) => r.projectId === projectId && r.status === 'final').sort((a, b) => b.date.localeCompare(a.date))[0]
-}
-export function previousValues(activities: NbcActivity[], previous?: NbcReport) {
-  const entries = new Map(previous?.entries.map((e) => [e.id, e.progress]))
-  return new Map(activities.map((a) => [a.id, entries.get(a.id) ?? a.baseline]))
-}
-export function reportEntries(activities: NbcActivity[], previous?: NbcReport): ReportEntry[] {
-  const baseline = previousValues(activities, previous)
-  return activities.filter((a) => a.editable).sort((a, b) => a.order - b.order).map((a) => ({
-    id: a.id, wbs: a.wbs, name: a.name, area: a.area, location: a.location, trade: a.trade,
-    handler: a.handler, previous: baseline.get(a.id)!, progress: a.progress,
-    difference: a.progress - baseline.get(a.id)!, weight: a.globalWeight, remark: a.remark, updatedAt: a.updatedAt ?? null,
-  }))
 }
 export function summarize(activities: NbcActivity[], previous?: Map<string, number>, since?: string) {
   const leaves = activities.filter((a) => a.editable)

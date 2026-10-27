@@ -1,12 +1,19 @@
 import { beforeEach, expect, test } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
-import { calculate, parseProgress, percentage, previousValues, reportEntries, summarize, visibleHierarchy } from './progress'
+import { calculate, parseProgress, percentage, summarize, visibleHierarchy } from './progress'
 import { fixtureActivities, fixtureProject } from './test-fixture'
-import { assignActivities, discardWeek, finalizeWeek, startWeek, updateActivity } from './actions'
+import { assignActivities, updateActivity } from './actions'
 import { emptyContent, useWorkspace } from '@/data'
 import type { NbcActivity } from './types'
 
 beforeEach(() => { localStorage.clear(); useWorkspace.setState({ ...structuredClone(emptyContent), projects: [fixtureProject], nbc_activities: fixtureActivities(), scope: 'guest' }) })
+
+test('live progress and remarks require confirmation; reassignment remains audited', () => {
+  expect(() => updateActivity('nbc:1.6.1.2', { progress: .5 })).toThrow('handler draft')
+  expect(() => updateActivity('nbc:1.6.1.2', { remark: 'Draft only' })).toThrow('handler draft')
+  updateActivity('nbc:1.6.1.2', { handler: 'Sitha' })
+  expect(useWorkspace.getState().nbc_activities![3]!.history.at(-1)!.handler).toBe('Sitha')
+})
 
 test('percentage entry accepts decimals and percent signs, clamps bounds and rejects invalid text', () => {
   expect(parseProgress(' 37.5% ').progress).toBe(0.375)
@@ -59,18 +66,6 @@ test('filters preserve ancestors, collapse works, and sorting preserves grouping
   expect(visibleHierarchy(a, (n) => n.handler === 'Tola', new Set(), 'progress', p).map((r) => r.activity.wbs)).toEqual(['1.6.1', '1.6.1.2'])
   expect(visibleHierarchy(a, (n) => n.handler === 'Tola', new Set([a[1]!.id]), 'wbs', p).map((r) => r.activity.wbs)).toEqual(['1.6.1'])
 })
-test('edits persist with audit history, do not complete tasks and cannot edit parents', () => {
-  expect(() => updateActivity('nbc:1.6.1.2', { progress: 0.5 })).toThrow('Start a reporting week')
-  startWeek(fixtureProject.id, '2026-10-25')
-  const state = useWorkspace.getState()
-  state.addTask({ title: 'Independent action', projectId: fixtureProject.id })
-  updateActivity('nbc:1.6.1.2', { progress: 1, remark: 'Completed', handler: 'Sitha' })
-  expect(useWorkspace.getState().tasks[0]?.status).toBe('Not started')
-  expect(() => updateActivity('nbc:1.6.1', { progress: 1 })).toThrow('Only leaf')
-  const saved = JSON.parse(localStorage.getItem('kw-workspace-v1')!)
-  expect(saved.nbc_activities[3].progress).toBe(1)
-  expect(saved.nbc_activities[3].history).toHaveLength(1)
-})
 test('task WBS links remain in their project and clear when a task moves', () => {
   const state = useWorkspace.getState()
   const task = state.addTask({ title: 'Inspection', projectId: fixtureProject.id, nbcActivityId: 'nbc:1.6.1.2' })
@@ -81,29 +76,6 @@ test('task WBS links remain in their project and clear when a task moves', () =>
   state.updateTask(task, { projectId: standard })
   expect(useWorkspace.getState().tasks.find((t) => t.id === task)?.nbcActivityId).toBeNull()
 })
-test('report workflow carries baseline, preserves immutable history and audits corrections', () => {
-  startWeek(fixtureProject.id, '2026-10-25')
-  expect(() => startWeek(fixtureProject.id, '2026-11-01')).toThrow('open period')
-  updateActivity('nbc:1.6.1.2', { progress: 0.5 })
-  const id = useWorkspace.getState().nbc_reports![0]!.id
-  finalizeWeek(id)
-  const report = structuredClone(useWorkspace.getState().nbc_reports![0]!)
-  expect(report.overall).toBeCloseTo(0.5, 14)
-  expect(report.previous).toBeCloseTo(0.35, 14)
-  expect(report.entries[2]!.difference).toBe(0.25)
-  expect(() => finalizeWeek(id)).toThrow('Only an open')
-  expect(() => startWeek(fixtureProject.id, '2026-10-25')).toThrow()
-  expect(() => startWeek(fixtureProject.id, '2026-11-01', id)).toThrow('reason')
-  startWeek(fixtureProject.id, '2026-11-01', id, 'Site measurement correction')
-  updateActivity('nbc:1.6.1.2', { progress: 0.375 })
-  const activities = useWorkspace.getState().nbc_activities!
-  expect(previousValues(activities, report).get('nbc:1.6.1.2')).toBe(0.5)
-  expect(reportEntries(activities, report)[2]!.difference).toBe(-0.125)
-  expect(useWorkspace.getState().nbc_reports![0]).toEqual(report)
-  finalizeWeek(useWorkspace.getState().nbc_reports![1]!.id)
-  expect(useWorkspace.getState().nbc_reports![1]!.correctionOf).toBe(id)
-})
-
 const privatePath = '.private/nbc-bp03/initial.json'
 test.skipIf(!existsSync(privatePath))('private workbook reconciliation: all 790 nodes, 561 handlers, every parent and effective weight', () => {
   const { activities, reconciliation: r } = JSON.parse(readFileSync(privatePath, 'utf8')) as { activities: NbcActivity[]; reconciliation: { overall: number; boqValue: number; handlers: Record<string, number> } }
@@ -131,20 +103,4 @@ test.skipIf(!existsSync(privatePath))('private workbook reconciliation: all 790 
   const leaf = c.leaves.find((a) => a.handler)!, prior = leaf.progress
   leaf.progress = 0.123456789
   expect(calculate(activities).overall).toBeCloseTo(c.overall + leaf.globalWeight * (leaf.progress - prior), 13)
-})
-
-test('deleting an open update undoes percentages to the last finalized snapshot or initial baseline',()=>{
- startWeek(fixtureProject.id,'2026-10-25');updateActivity('nbc:1.6.1.2',{progress:0.8,remark:'Keep site context'})
- discardWeek(useWorkspace.getState().nbc_reports![0]!.id)
- expect(useWorkspace.getState().nbc_reports).toHaveLength(0)
- expect(useWorkspace.getState().nbc_activities![3]!.progress).toBe(0.25)
- expect(useWorkspace.getState().nbc_activities![3]!.remark).toBe('Keep site context')
- expect(useWorkspace.getState().nbc_activities![3]!.history.at(-1)?.progress).toBe(0.25)
- startWeek(fixtureProject.id,'2026-10-25');updateActivity('nbc:1.6.1.2',{progress:0.5});finalizeWeek(useWorkspace.getState().nbc_reports![0]!.id)
- const finalized=structuredClone(useWorkspace.getState().nbc_reports![0]!)
- startWeek(fixtureProject.id,'2026-11-01');updateActivity('nbc:1.6.1.2',{progress:0.9});discardWeek(useWorkspace.getState().nbc_reports![1]!.id)
- expect(useWorkspace.getState().nbc_activities![3]!.progress).toBe(0.5)
- expect(useWorkspace.getState().nbc_reports).toEqual([finalized])
- expect(()=>discardWeek(finalized.id)).toThrow('Only an open update')
- const saved=JSON.parse(localStorage.getItem('kw-workspace-v1')!);expect(saved.nbc_activities[3].progress).toBe(0.5)
 })

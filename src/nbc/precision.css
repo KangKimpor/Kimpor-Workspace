@@ -97,8 +97,6 @@ html:has(.nbc-project) :is(.bsheet,.rsheet,.drawer,[role=dialog]) { box-shadow: 
 .nbc-project .nbc-progress-main input:focus { outline: 2px solid var(--accent-blue); outline-offset: 2px; box-shadow: none; }
 .nbc-project .nbc-progress-main input[aria-invalid=true] { animation: precision-nudge var(--dur-fast); border-color: var(--status-danger); }
 .nbc-project .nbc-inline-error { position: absolute; right: 0; top: calc(100% + 2px); z-index: 10; background: var(--surface-raised); border: 1px solid var(--status-danger); padding: 4px 8px; width: max-content; max-width: 280px; border-radius: 4px; color: var(--text-primary); font-size: 11px; animation: precision-fade var(--dur-fast); }
-.nbc-project .nbc-autosave-caption,.nbc-project .nbc-correction-note,.nbc-project .nbc-cancel-edit,.nbc-project .nbc-quick { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.nbc-project .nbc-cancel-edit:focus-visible { position: fixed; width: auto; height: auto; clip-path: none; background: var(--surface-raised); z-index: 20; }
 .nbc-flat-bar { display: block; flex: 0 0 136px; width: 136px; height: 4px; background: var(--surface-hover); overflow: hidden; }
 .nbc-flat-bar > span { display: block; width: 100%; height: 100%; background: var(--accent-blue); transform-origin: left; transition: transform var(--dur-slow) var(--ease-standard); }
 .nbc-flat-bar[data-complete=true] > span { background: var(--status-success); }
@@ -197,7 +195,3 @@ html:has(.nbc-project) .skeleton { background: var(--surface-selected); backgrou
 
 .nbc-project .nbc-grid-row[data-depth] > .nbc-name-cell:has(.nbc-issue-chip) { padding-block: 0; }
 .nbc-project .nbc-name-cell .nbc-activity-name { flex: 1 1 auto; }
-/* Weekly confirmations use the same flat status and handler tokens. */
-
-
-
