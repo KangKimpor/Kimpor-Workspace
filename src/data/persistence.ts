@@ -1,6 +1,6 @@
 import Dexie from 'dexie'
 import type { Table } from 'dexie'
-import type { NbcActivity, NbcReport } from '@/nbc/types'
+import type { NbcActivity, NbcSubmission, NbcWeekSummary } from '@/nbc/types'
 import type {
   CalendarEvent,
   ProjectSummary,
@@ -11,7 +11,8 @@ import type {
 
 export interface Content {
   nbc_activities?: NbcActivity[]
-  nbc_reports?: NbcReport[]
+  nbc_submissions?: NbcSubmission[]
+  nbc_summaries?: NbcWeekSummary[]
   pages: WorkspacePage[]
   projects: ProjectSummary[]
   tasks: Task[]
@@ -20,19 +21,16 @@ export interface Content {
   taskViews: TaskView[]
   calendarPreferences?: { weekStart: 0 | 1; hour12: boolean }
 }
-export type Collection = 'pages' | 'projects' | 'tasks' | 'events' | 'nbc_activities' | 'nbc_reports'
+export type Collection = 'pages' | 'projects' | 'tasks' | 'events' | 'nbc_activities' | 'nbc_submissions' | 'nbc_summaries'
 export const collections: Collection[] = [
   'pages',
   'projects',
   'tasks',
   'events',
   'nbc_activities',
-  'nbc_reports',
+  'nbc_submissions',
+  'nbc_summaries',
 ]
-export function discardedReports(previous: Content, content: Content) {
-  const remaining = new Set(content.nbc_reports?.map((r) => r.id))
-  return (previous.nbc_reports ?? []).filter((r) => r.status === 'draft' && !remaining.has(r.id))
-}
 /** Include legacy task notes that predate paired soft deletion. */
 export function purgedRows(collection: 'pages' | 'tasks', previous: Content, content: Content) {
   const remaining = new Set(content[collection].map((row) => row.id)), tasks = new Set(content.tasks.map((task) => task.id))
@@ -98,13 +96,11 @@ export function persist(scope: string, content: Content, previous: Content) {
             base: (await db.versions.get(key))?.value ?? null,
           })
         }
-        const discarded = discardedReports(previous, content)
         for (const collection of collections) {
           const old = new Map(
             (previous[collection] ?? []).map((row) => [row.id, JSON.stringify(row)]),
           )
           for (const row of content[collection] ?? []) {
-            if (collection === 'nbc_activities' && discarded.some((r) => r.projectId === (row as NbcActivity).projectId)) continue
             if (old.get(row.id) === JSON.stringify(row)) continue
             const key = `${scope}:${collection}:${row.id}`
             const base = (await db.versions.get(key))?.value ?? null
@@ -125,10 +121,7 @@ export function persist(scope: string, content: Content, previous: Content) {
             }
           }
         }
-        for (const report of discarded) {
-          const key = `${scope}:nbc_reports:${report.id}`
-          await db.outbox.put({key,scope,collection:'nbc_reports',id:report.id,data:{id:report.id},version:crypto.randomUUID(),base:(await db.versions.get(key))?.value??null,remove:true})
-        }
+
       }),
     )
   return writeQueue

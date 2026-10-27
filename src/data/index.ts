@@ -17,7 +17,7 @@ export { dateKey, relativeDate } from './seed'
 export type { Content } from './persistence'
 
 export interface Workspace extends Content {
-  commitNbc: (patch: Pick<Content, 'nbc_activities' | 'nbc_reports'>) => void
+  commitNbc: (patch: Pick<Content, 'nbc_activities' | 'nbc_submissions' | 'nbc_summaries'>) => void
   scope: string
   storageError: boolean
   sync: SyncState
@@ -45,7 +45,8 @@ export interface Workspace extends Content {
 }
 export const emptyContent: Content = {
   nbc_activities: [],
-  nbc_reports: [],
+  nbc_submissions: [],
+  nbc_summaries: [],
   pages: [],
   projects: [],
   tasks: [],
@@ -503,7 +504,8 @@ export const useWorkspace = create<Workspace>((set, get) => {
 export function contentOf(s: Content): Content {
   return {
     nbc_activities: s.nbc_activities ?? [],
-    nbc_reports: s.nbc_reports ?? [],
+    nbc_submissions: s.nbc_submissions ?? [],
+    nbc_summaries: s.nbc_summaries ?? [],
     pages: s.pages,
     projects: s.projects,
     tasks: s.tasks,

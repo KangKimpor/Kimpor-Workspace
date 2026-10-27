@@ -3,7 +3,7 @@ import type { RealtimeChannel, Session } from '@supabase/supabase-js'
 import { supabase, initializeSupabase, hasStoredSession } from '@/lib/supabase'
 import { useWorkspaceUI } from '@/shell/workspace'
 import { contentOf, emptyContent, useWorkspace } from './index'
-import { collections, db, eventWriteReady, purgedRows, discardedReports } from './persistence'
+import { collections, db, eventWriteReady, purgedRows } from './persistence'
 import type { Collection, Content, Pending } from './persistence'
 import type { CalendarEvent, Task, WorkspacePage } from './types'
 import { syncWorkspaceFiles } from './files'
@@ -66,12 +66,10 @@ function queueRow(scope: string, collection: CloudCollection, id: string, before
 }
 function queueChanges(next: Content, previous: Content) {
   const scope = useWorkspace.getState().scope
-  const discarded = discardedReports(previous, next)
   for (const collection of collections) {
     if (next[collection] === previous[collection]) continue
     const old = new Map((previous[collection] ?? []).map((row) => [row.id, row]))
     for (const row of next[collection] ?? []) {
-      if (collection === 'nbc_activities' && discarded.some((r) => r.projectId === (row as {projectId:string}).projectId)) continue
       const before = old.get(row.id)
       if (JSON.stringify(row) !== JSON.stringify(before)) queueRow(scope, collection, row.id, (before ?? {}) as unknown as Data, row as unknown as Data)
     }
@@ -82,10 +80,7 @@ function queueChanges(next: Content, previous: Content) {
       }
     }
   }
-  for (const report of discarded) {
-    const key = keyFor(scope,'nbc_reports',report.id), queued = pending.get(key)
-    pending.set(key,{key,scope,collection:'nbc_reports',id:report.id,data:{id:report.id},original:report as unknown as Data,version:crypto.randomUUID(),base:queued?queued.base:versions.get(key)??null,remove:true})
-  }
+
   if (JSON.stringify(profile(next)) !== JSON.stringify(profile(previous))) queueRow(scope, 'profiles', scope, profile(previous), { id: scope, ...profile(next) })
   saveRecovery()
   void syncWorkspace(false)
@@ -325,21 +320,6 @@ export function syncWorkspace(refresh = true): Promise<void> {
         const write = [...pending.values()].find((p) => p.collection !== 'events' || eventWriteReady(p.data as unknown as CalendarEvent))
         if (!write) break
         if (write.remove) {
-          if (write.collection === 'nbc_reports') {
-            const result = await supabase!.rpc('kw_nbc_discard_update',{record_id:write.id,expected:write.base})
-            if (!valid()) return
-            if (result.error) throw result.error
-            pending.delete(write.key)
-            const remote = result.data.row as Row | null
-            if (remote) versions.set(write.key,remote.updated_at)
-            else versions.delete(write.key)
-            applyRow(write.collection,remote,write.id)
-            if (result.data.conflict) useWorkspaceUI.getState().notify('This update changed in another session and was kept. Review it before deleting again.')
-            void db.outbox.delete(write.key).catch(()=>{})
-            refreshRequested = true
-            cacheSnapshot(scope)
-            continue
-          }
           if (!['pages', 'tasks'].includes(write.collection)) throw new Error('Only trashed pages and tasks can be permanently deleted.')
           let remote: Row | null = null
           if (write.base) {
@@ -374,16 +354,16 @@ export function syncWorkspace(refresh = true): Promise<void> {
         if (!valid()) return
         const { data, error } = await supabase!.rpc('kw_workspace_write', { collection: write.collection, record_id: write.id, payload, expected: write.base })
         if (!valid()) return
-        if (error && write.collection === 'nbc_reports' && ['P0001', '23505', '23514'].includes(error.code)) {
-          // A rejected snapshot must return to a reviewable server draft, not retry forever as a local final.
-          const saved = await supabase!.from('kw_nbc_reports').select('id,data,updated_at').eq('id', write.id).maybeSingle()
+        if (error && write.collection === 'nbc_submissions' && ['P0001', '23505', '23514'].includes(error.code)) {
+          // Preserve rejected autosaves for recovery without retrying an invalid draft forever.
+          const saved = await supabase!.from('kw_nbc_submissions').select('id,data,updated_at').eq('id', write.id).maybeSingle()
           if (!valid()) return
           if (saved.error) throw saved.error
           recoverConflict(pending.get(write.key)!)
           pending.delete(write.key)
           applyRow(write.collection, saved.data as Row | null, write.id)
           refreshRequested = true
-          useWorkspaceUI.getState().notify(`Report was not finalized: ${error.message}. Review the current period and try again; your draft was preserved in Search.`)
+          useWorkspaceUI.getState().notify(`Draft could not be saved: ${error.message}. Your edits were preserved in Search.`)
           cacheSnapshot(scope)
           continue
         }
