@@ -34,16 +34,14 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
     const close = () => setMenu(null)
     const outside = (e: Event) => { if (!(e.target as Element | null)?.closest?.('.row-context-menu')) close() }
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
-    const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.row-context-menu button')?.focus())
+    const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.row-context-menu button')?.focus({ preventScroll: true }))
     window.addEventListener('pointerdown', outside)
-    window.addEventListener('contextmenu', outside)
     window.addEventListener('keydown', key)
     window.addEventListener('resize', close)
     window.addEventListener('scroll', close, true)
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener('pointerdown', outside)
-      window.removeEventListener('contextmenu', outside)
       window.removeEventListener('keydown', key)
       window.removeEventListener('resize', close)
       window.removeEventListener('scroll', close, true)
