@@ -1,0 +1,36 @@
+/* Shared flat, Notion-like primitives. Tokens come from the workspace and the NBC palette block. */
+.nbc-wbs-scroll { overflow: auto; min-width: 0; min-height: 0; border-block: 1px solid var(--border-subtle); }
+.nbc-wbs { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-small); font-variant-numeric: tabular-nums; }
+.nbc-wbs thead th { position: sticky; top: 0; z-index: 2; background: var(--bg-canvas); color: var(--text-secondary); font-weight: 500; text-align: start; padding: var(--space-8); border-bottom: 1px solid var(--border-subtle); white-space: nowrap; }
+.nbc-wbs td { padding: var(--space-4) var(--space-8); border-bottom: 1px solid var(--border-subtle); height: 36px; vertical-align: middle; }
+.nbc-wbs .nbc-num { text-align: end; white-space: nowrap; }
+.nbc-wbs tbody tr:hover { background: var(--bg-hover); }
+.nbc-wbs-no { color: var(--text-secondary); white-space: nowrap; font-size: var(--fs-caption); }
+.nbc-desc { display: flex; align-items: center; gap: var(--space-4); min-width: 16rem; }
+.nbc-name { overflow-wrap: anywhere; }
+.nbc-count { color: var(--text-tertiary); font-size: var(--fs-caption); margin-inline-start: var(--space-4); }
+.nbc-toggle { display: inline-grid; place-items: center; width: 20px; height: 20px; border: 0; background: transparent; color: var(--text-secondary); border-radius: var(--radius-control); }
+.nbc-toggle:hover { background: var(--bg-pressed); }
+.nbc-toggle-gap { display: inline-block; width: 20px; flex: none; }
+.nbc-wbs tr[data-group=true] td { font-weight: 600; background: var(--bg-hover); }
+.nbc-wbs tr[data-group=true][data-level="1"] td { background: color-mix(in srgb, var(--status-warning) 12%, var(--bg-canvas)); }
+.nbc-wbs tr[data-changed=true] td { background: color-mix(in srgb, var(--accent) 7%, var(--bg-canvas)); }
+.nbc-pill { display: inline-flex; align-items: center; gap: var(--space-6); padding: var(--space-2) var(--space-6); border-radius: var(--radius-control); font-size: var(--fs-caption); white-space: nowrap; background: var(--status-neutral-bg); color: var(--text-primary); }
+.nbc-pill[data-status=Updated] { background: var(--status-success-bg); }
+.nbc-pill[data-status='Updated late'], .nbc-pill[data-status='Needs review'] { background: var(--status-warning-bg); }
+.nbc-pill[data-status=Overdue] { background: var(--status-danger-bg); }
+.nbc-pill-time { color: var(--text-secondary); }
+html[data-theme=dark] .nbc-pill { color: #fff; background: color-mix(in srgb, var(--status-neutral) 45%, var(--bg-canvas)); }
+html[data-theme=dark] .nbc-pill[data-status=Updated] { background: color-mix(in srgb, var(--status-success) 45%, var(--bg-canvas)); }
+html[data-theme=dark] .nbc-pill[data-status='Updated late'], html[data-theme=dark] .nbc-pill[data-status='Needs review'] { background: color-mix(in srgb, var(--status-warning) 45%, var(--bg-canvas)); }
+html[data-theme=dark] .nbc-pill[data-status=Overdue] { background: color-mix(in srgb, var(--status-danger) 45%, var(--bg-canvas)); }
+.nbc-more-menu { display: grid; min-width: 11rem; padding: var(--space-4); }
+.nbc-more-menu > * { text-align: start; padding: var(--space-8); border: 0; background: transparent; color: var(--text-primary); border-radius: var(--radius-control); font-size: var(--fs-small); }
+.nbc-more-menu > *:hover:not(:disabled) { background: var(--bg-hover); }
+.nbc-peek-scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 40; }
+.nbc-peek { position: fixed; inset-block: 0; inset-inline-end: 0; width: min(520px, 100vw); background: var(--bg-canvas); border-inline-start: 1px solid var(--border-subtle); z-index: 41; display: flex; flex-direction: column; }
+.nbc-peek-head { display: flex; justify-content: space-between; align-items: center; padding: var(--space-12) var(--space-16); border-bottom: 1px solid var(--border-subtle); }
+.nbc-peek-head h2 { margin: 0; font-size: var(--fs-label); font-weight: 600; }
+.nbc-peek-body { padding: var(--space-16); overflow: auto; }
+.nbc-name-button { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; text-align: start; cursor: pointer; }
+.nbc-name-button:hover { text-decoration: underline; }

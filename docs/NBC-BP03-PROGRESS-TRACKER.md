@@ -2,7 +2,7 @@
 
 ## Current implementation
 
-NBC uses one submission per handler per Monday–Sunday week. The four project tabs are **Overview · Update Progress · Past Updates · Activities**. The three exported Stitch screens under `stitch/13035619905198052579/` supplied the layout references; the existing workspace tokens, components, real handler names, themes and navigation are retained.
+NBC uses one submission per handler per Monday–Sunday week. The three project tabs are **Overview · Activities · Update Progress**; Past Updates is now part of Overview (handler rows expand to weekly history, and `/past` redirects to Overview). Activities and Update Progress share a WBS table that mirrors the source workbook (`WBS · Description · Previous week % · This week % · Remark`, indented by level from `1.6.1`). The layout and rationale are in `docs/NBC-BP03-UX-PLAN.md` and `docs/superpowers/specs/2026-10-27-nbc-progress-redesign-design.md`; the earlier Stitch exports remain only as historical references.
 
 The deadline is **the end of Sunday in Asia/Phnom_Penh**. Monday 00:00 is the exclusive late boundary, rather than Sunday noon. `src/nbc/submissions.ts` owns the client deadline constant; `kw_private.nbc_deadline()` is its server equivalent. The database stamps the authenticated actor and receipt time and calculates the authoritative late flag.
 
@@ -28,7 +28,7 @@ If last week changes, this week's confirmed entries and drafts retain their prop
 
 `kw_nbc_summaries` stores overall progress, previous progress and per-handler weighted contributions for every recorded week. GR&P has a separate contribution and is counted once. Only the two editable weekly summaries are recalculated by submission operations; older summaries are frozen. Trend reads summaries across all weeks. KPIs use current live values and weekly summaries. Past Updates retains all handler submissions, with read-only Older weeks sections and formula-safe UTF-8 CSV export.
 
-Overview shows six handler rows with Last week and This week columns. Chips show Updated, Updated late, Not yet, Overdue or Needs review, together with confirmation time and changed counts. Clicking opens the relevant handler/week. A KPI reads `N of 6 handlers updated this week`. NBC Realtime watches activities, submissions and summaries; confirmation also refreshes the canonical cloud state.
+Overview shows a six-row handler table (This week, Last week, Changed, Contribution) whose rows expand to weekly history. Chips show Updated, Updated late, Not yet, Overdue or Needs review, together with confirmation time and changed counts. Clicking opens the relevant handler/week. A KPI reads `N of 6 handlers updated this week`. NBC Realtime watches activities, submissions and summaries; confirmation also refreshes the canonical cloud state.
 
 ## Production state and applied migrations
 
@@ -61,7 +61,7 @@ The source workbook and extraction outputs remain private and excluded from Git.
 
 ## Verification
 
-Final verification passed **97 unit tests and all 192 runnable Chromium/WebKit browser checks**, with **zero failures**. Six credential-dependent live-cloud checks remain explicitly skipped. Lint, typecheck, production build, `git diff --check` and the disposable database check also passed. The stale feedback/task-heading assertions now match the current UI, startup tests observe real IndexedDB initialization instead of a bundler chunk filename, and WebKit keyboard/drag tests wait for the relevant UI state. Product behavior was not changed to accommodate those assertions.
+The three-tab redesign was verified locally on 27 October 2026: **130 unit tests and 200 Chromium/WebKit browser checks passed with zero failures**; six credential-dependent live-cloud checks remain skipped. Lint, typecheck, production build and `git diff --check` also passed. The redesigned frontend is committed on the `nbc-progress-redesign` branch and has **not** been deployed or merged.
 
 - `corepack pnpm lint`, `corepack pnpm typecheck`, `corepack pnpm test`, `corepack pnpm build` and `git diff --check` are the release checks.
 - `node scripts/nbc-bp03-db-check.mjs` uses disposable PGlite and synthetic activities. It never reads credentials or connects to production. It executes the original migrations followed by the forward migration, checks archive conversion, account sharing, autosave isolation, confirmation, edit/delete/undo, re-chaining, shared GR&P conflicts, frozen summaries, CAS, direct-write rejection and anonymous denial. If needed, install its pinned test runtime outside the app: `npm install --prefix .private/validation --no-save @electric-sql/pglite@0.5.11`.
