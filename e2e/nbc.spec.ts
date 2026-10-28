@@ -88,11 +88,11 @@ test('Overview edits last week, re-chains this week, and keeps older history rea
 test('tabs are Overview, Activities, Update Progress and old Past Updates links land on Overview', async ({ page }) => {
   await setup(page); await page.goto('/projects-progress/nbc-bp03/past')
   await expect(page).toHaveURL(/\/overview/)
-  await expect(page.locator('.nbc-tabs a')).toHaveText(['Overview', 'Activities', 'Update Progress'])
+  await expect(page.locator('.nbc-tabs a')).toHaveText(['Overview', 'Progress', 'Update Progress'])
   await page.goto('/projects-progress/nbc-bp03/board?wbs=1.6.1.2')
   await expect(page).toHaveURL(/\/issues\?wbs=1\.6\.1\.2$/)
   await expect(page.locator('.nbc-views a')).toHaveText(['Table', 'Issues'])
-  await expect(page.locator('.nbc-tabs a[aria-current=page]')).toHaveText('Activities')
+  await expect(page.locator('.nbc-tabs a[aria-current=page]')).toHaveText('Progress')
 })
 test('Activities shows real WBS numbers with deeper levels indented and no editable progress', async ({ page }) => {
   await setup(page); await page.goto('/projects-progress/nbc-bp03/activities')
@@ -144,5 +144,5 @@ test('real BOQ keeps all six handler groups usable and supplies shared GR&P', as
     const group = page.locator('.nbc-update tr[data-group=true] button').last(); await group.click(); await expect(group).toHaveAttribute('aria-expanded', 'false'); await group.click(); await expect(group).toHaveAttribute('aria-expanded', 'true')
     await page.getByRole('button', { name: /^Change handler/ }).click()
   }
-  await page.getByRole('link', { name: 'Activities', exact: true }).click(); await expect(page.getByRole('table', { name: 'Activities by WBS', exact: true })).toBeVisible()
+  await page.locator('.nbc-tabs').getByRole('link', { name: 'Progress', exact: true }).click(); await expect(page.getByRole('table', { name: 'Activities by WBS', exact: true })).toBeVisible()
 })

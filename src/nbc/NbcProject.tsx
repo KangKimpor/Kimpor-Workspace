@@ -1,7 +1,7 @@
 import './nbc.css'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { Download, Play, X } from 'lucide-react'
+import { Download, X } from 'lucide-react'
 import type { ProjectSummary } from '@/data'
 import { useWorkspace } from '@/data'
 import { Tile } from '@/components/WorkspaceUI'
@@ -15,7 +15,7 @@ import { appliedEntries, weekLabel, weekStart } from './submissions'
 import type { NbcActivity, NbcSubmission, NbcWeekSummary } from './types'
 
 const EMPTY_ACTIVITIES: NbcActivity[] = [], EMPTY_SUBMISSIONS: NbcSubmission[] = [], EMPTY_SUMMARIES: NbcWeekSummary[] = []
-const views = [['overview', 'Overview'], ['activities', 'Activities'], ['update', 'Update Progress']] as const
+const views = [['overview', 'Overview'], ['activities', 'Progress'], ['update', 'Update Progress']] as const
 const ExportWorkbook = lazy(() => import('./export/ExportWorkbook'))
 /** Earlier URLs keep working: Past Updates now lives inside Overview. */
 const aliases: Record<string, string> = { boq: 'activities', progress: 'activities', weekly: 'update', handlers: 'overview', past: 'overview', board: 'issues' }
@@ -47,7 +47,7 @@ export default function NbcProject({ project, view }: { project: ProjectSummary;
   if (!views.some(([key]) => key === view) && view !== 'issues') return <Navigate to={`/projects-progress/${project.id}/overview`} replace/>
   const activityView = view === 'issues' ? view : 'activities'
   return <div className="workspace-surface project-page nbc-project" data-view={view}>
-    <header className="nbc-project-header"><Tile name={project.icon || 'building'} color={project.color}/><div><h1>{project.name}</h1><p className="small muted">{weekLabel(current)} · This week · Due Saturday 12:00 PM</p></div><div className="nbc-project-actions"><button className="btn-secondary nbc-export-button" aria-label="Export XLSX" title="Export XLSX" disabled={!activities.length || !calculation} onClick={() => setExportOpen(true)}><Download size={15} aria-hidden="true"/><span>Export XLSX</span></button><Link className="btn-accent nbc-start-update" to={`/projects-progress/${project.id}/update`}><Play size={14} aria-hidden="true"/>Start update</Link></div></header>
+    <header className="nbc-project-header"><Tile name={project.icon || 'building'} color={project.color}/><div><h1>{project.name}</h1><p className="small muted">{weekLabel(current)} · This week · Due Saturday 12:00 PM</p></div><div className="nbc-project-actions"><button className="btn-secondary nbc-export-button" aria-label="Export XLSX" title="Export XLSX" disabled={!activities.length || !calculation} onClick={() => setExportOpen(true)}><Download size={15} aria-hidden="true"/><span>Export XLSX</span></button></div></header>
     <nav className="view-tabs nbc-tabs" aria-label="Project views">{views.map(([key, label]) => <Link className="view-tab" key={key} aria-current={key === view || key === 'activities' && view === 'issues' ? 'page' : undefined} to={`/projects-progress/${project.id}/${key}`}>{label}</Link>)}</nav>
     {!activities.length
       ? <section><h2>BOQ data has not been initialized.</h2><p>Complete the private project setup.</p></section>

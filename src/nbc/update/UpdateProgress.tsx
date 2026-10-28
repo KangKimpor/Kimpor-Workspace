@@ -24,13 +24,13 @@ function UpdateScreen({ projectId, activities, submissions, handler, onChange }:
   const deadline = deadlineNote(week, now)
   return <section className="nbc-update" aria-label="Weekly progress update">
     <header className="nbc-update-head">
-      <div><span className="nbc-eyebrow">Site audit &amp; progress ledger · Phnom Penh, KH</span><h2>Update Progress</h2>
+      <div><h2>Update Progress</h2>
         <p className="small muted">{handler} · {weekLabel(week)} · {assigned.count} items · {percent(assigned.progress, 1)} complete</p></div>
       <div className="nbc-update-controls">
         {selected?.status === 'confirmed'
           ? <span className="nbc-deadline" data-tone={selected.late ? 'late' : 'ok'}>{selected.late ? 'Late' : 'On time'}</span>
           : <span className="nbc-deadline" data-tone={deadline.tone}>{deadline.text}</span>}
-        <button className="nbc-chip" aria-label={`Change handler, currently ${handler}`} onClick={onChange}>{handler} · Change</button>
+        <button className="nbc-chip" aria-label={`Change handler, currently ${handler}`} onClick={onChange}>Change Handler</button>
         <div className="nbc-seg" role="group" aria-label="Week">
           <button aria-pressed={week === current} onClick={() => setChosen(current)}>This week</button>
           <button aria-pressed={week === last} disabled={!lastUpdate} title={lastUpdate ? undefined : 'No update to edit'} onClick={() => setChosen(last)}>Last week</button>

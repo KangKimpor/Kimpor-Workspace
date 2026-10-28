@@ -9,9 +9,8 @@ interface Props { projectId: string; week: string; activities: NbcActivity[]; su
 export function HandlerGate({ projectId, week, activities, submissions, onChoose }: Props) {
   const [picked, setPicked] = useState<Handler | null>(null)
   return <div className="nbc-gate">
-    <span className="nbc-eyebrow">Site audit &amp; progress ledger · Phnom Penh, KH</span>
     <h2>Who is updating?</h2>
-    <p className="muted">Choose your handler name before you update progress. You will see and edit only your own activities, plus the shared GR&amp;P row. Week of {weekLabel(week)}.</p>
+    <p className="muted">Choose your handler name before you update progress. You will see and edit only your own activities. Week of {weekLabel(week)}.</p>
     <div className="nbc-gate-list" role="group" aria-label="Handler">
       {handlers.map((h) => {
         const done = submissions.find((s) => s.id === submissionId(projectId, week, h))?.status === 'confirmed'

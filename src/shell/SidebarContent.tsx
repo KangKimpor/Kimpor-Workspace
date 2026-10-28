@@ -101,7 +101,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             {projects.filter((p) => p.nbcBp03).map((p) => <li key={p.id} data-current={pathname.startsWith(`/projects-progress/${p.id}/`)}>
               <NavLink to={`/projects-progress/${p.id}/overview`} className="nav-item"><span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span></NavLink>
               <ul className="nav-list nav-project-views" aria-label={`${p.name} views`}>
-                <li><NavLink to={`/projects-progress/${p.id}/activities`} className="nav-item"><span className="nav-label">Activities Stream</span></NavLink></li>
+                <li><NavLink to={`/projects-progress/${p.id}/activities`} className="nav-item"><span className="nav-label">Progress</span></NavLink></li>
                 <li><NavLink to={`/projects-progress/${p.id}/update`} className="nav-item" aria-label={`${p.name} Update Progress`}><span className="nav-label">Update Progress</span></NavLink></li>
               </ul>
             </li>)}

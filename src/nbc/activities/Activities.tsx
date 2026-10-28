@@ -2,7 +2,7 @@ import './activities.css'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, NavLink, useSearchParams } from 'react-router-dom'
-import { ChevronsDown, ChevronsUp, Columns3, Info, Search, X } from 'lucide-react'
+import { ChevronsDown, ChevronsUp, Columns3, Search, X } from 'lucide-react'
 import { GlassPopover } from '@/components/glass/GlassPopover'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { useWorkspace } from '@/data'
@@ -99,6 +99,6 @@ export default function Activities({ projectId, activities, baseline, view }: { 
   const base = `/projects-progress/${projectId}`
   const switcher: ReactNode = <nav className="nbc-views" aria-label="Activity views"><NavLink className="nbc-view" end to={`${base}/activities`}>Table</NavLink><NavLink className="nbc-view" to={`${base}/issues`}>Issues</NavLink></nav>
   return <div className="nbc-activities-page">
-    {view === 'activities' ? <><div className="nbc-activity-band">{switcher}<p className="small muted nbc-hint"><Info size={14} aria-hidden="true"/>Progress is applied when a handler confirms an update. <Link className="text-link" to={`${base}/update`}>Update Progress →</Link></p></div><ActivityTable projectId={projectId} activities={activities} baseline={baseline}/></> : <Issues projectId={projectId} activities={activities} switcher={switcher}/>}
+    {view === 'activities' ? <><div className="nbc-activity-band">{switcher}</div><ActivityTable projectId={projectId} activities={activities} baseline={baseline}/></> : <Issues projectId={projectId} activities={activities} switcher={switcher}/>}
   </div>
 }

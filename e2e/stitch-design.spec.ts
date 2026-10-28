@@ -28,9 +28,9 @@ for (const width of [1280, 820, 393]) for (const theme of ['light', 'dark'] as c
       await expect(parent.getByRole('link', { name: new RegExp(fixtureProject.name) }).first()).toBeVisible()
       expect((await children.boundingBox())!.x).toBeGreaterThan((await parent.boundingBox())!.x)
     }
-    for (const [view, label] of [['overview', 'Overview'], ['activities', 'Activities'], ['issues', 'Issues'], ['update', 'Update Progress']] as const) {
+    for (const [view, label] of [['overview', 'Overview'], ['activities', 'Progress'], ['issues', 'Issues'], ['update', 'Update Progress']] as const) {
       await page.locator(view === 'issues' ? '.nbc-views' : '.nbc-tabs').getByRole('link', { name: label, exact: true }).click()
-      await expect(page.locator('.nbc-tabs a[aria-current=page]')).toHaveText(view === 'issues' ? 'Activities' : label)
+      await expect(page.locator('.nbc-tabs a[aria-current=page]')).toHaveText(view === 'issues' ? 'Progress' : label)
       await expect(page.getByRole('heading', { name: fixtureProject.name, exact: true })).toBeVisible()
       if (view === 'overview') {
         await expect(page.getByLabel('Overall project progress')).toHaveAttribute('value', '0.35')
