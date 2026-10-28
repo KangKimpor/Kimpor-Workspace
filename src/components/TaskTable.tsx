@@ -1,8 +1,9 @@
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { GlassPopover } from '@/components/glass/GlassPopover'
-import { AlignLeft, CalendarDays, CircleDot, Columns3, Flag, Trash2 } from 'lucide-react'
+import { AlignLeft, CalendarDays, CircleDot, Columns3, Flag } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { RowActions } from './RowActions'
+import type { RowActionTarget } from './RowActions'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -28,25 +29,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
 }) {
   const [params] = useSearchParams()
   const [wbsQuery, setWbsQuery] = useState('')
-  const [menu, setMenu] = useState<{ x: number; y: number; id: string; title: string } | null>(null)
-  useEffect(() => {
-    if (!menu) return
-    const close = () => setMenu(null)
-    const outside = (e: Event) => { if (!(e.target as Element | null)?.closest?.('.row-context-menu')) close() }
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
-    const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.row-context-menu button')?.focus({ preventScroll: true }))
-    window.addEventListener('pointerdown', outside)
-    window.addEventListener('keydown', key)
-    window.addEventListener('resize', close)
-    window.addEventListener('scroll', close, true)
-    return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('pointerdown', outside)
-      window.removeEventListener('keydown', key)
-      window.removeEventListener('resize', close)
-      window.removeEventListener('scroll', close, true)
-    }
-  }, [menu])
+  const [menu, setMenu] = useState<RowActionTarget | null>(null)
   const targetTask = params.get('task')
   const focusedTask = useRef<string | null>(null)
   const availableColumns = columns
@@ -131,14 +114,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
         </div>
       </GlassPopover>
       {actions}
-      {menu && createPortal(
-        <div className="row-context-menu" role="menu" aria-label="Task actions" style={{ left: Math.max(8, Math.min(menu.x, innerWidth - 188)), top: Math.max(8, Math.min(menu.y, innerHeight - 52)) }}>
-          <button role="menuitem" className="danger-text" aria-label={`Delete task ${menu.title}`} onClick={() => { useWorkspace.getState().trashTask(menu.id); setMenu(null) }}>
-            <Trash2 size={15} aria-hidden="true" />Delete
-          </button>
-        </div>,
-        document.body,
-      )}
+      <RowActions item={menu} onClose={() => setMenu(null)} onDelete={menu ? () => useWorkspace.getState().trashTask(menu.id) : undefined}/>
       </div>
       <div
         className="table-scroll"
@@ -240,7 +216,7 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
                   onContextMenu={(e) => {
                     if ((e.target as HTMLElement).closest('textarea')) return
                     e.preventDefault()
-                    setMenu({ x: e.clientX, y: e.clientY, id: task.id, title: task.title })
+                    setMenu({ x: e.clientX, y: e.clientY, id: task.id, title: task.title, projectId: task.projectId, nbcActivityId: task.nbcActivityId })
                   }}
                 >
                   {visibleColumns

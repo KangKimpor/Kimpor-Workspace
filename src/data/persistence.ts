@@ -52,6 +52,7 @@ class WorkspaceDB extends Dexie {
   outbox!: Table<Pending, string>
   versions!: Table<{ key: string; value: string }, string>
   files!: Table<{ id: string; blob: Blob; name: string }, string>
+  reportTemplates!: Table<{ id: string; data: ArrayBuffer; name: string }, string>
   constructor() {
     super('kimpor-workspace')
     this.version(1).stores({
@@ -60,6 +61,7 @@ class WorkspaceDB extends Dexie {
       versions: 'key',
       files: 'id',
     })
+    this.version(2).stores({ reportTemplates: 'id' })
   }
 }
 export const db = new WorkspaceDB()

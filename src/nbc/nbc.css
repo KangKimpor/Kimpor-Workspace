@@ -71,6 +71,9 @@ html:has(.nbc-project) .canvas { padding-top: 0; }
 .nbc-project-header > div { min-width: 0; }
 .nbc-project-header .icon-tile { width: 40px; height: 40px; margin: 0; border-radius: 8px; background: var(--chip-blue); color: var(--accent-text); }
 .nbc-start-update { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.nbc-project-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; flex: none; }
+.nbc-project-actions .nbc-start-update { margin-left: 0; }
+.nbc-export-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .nbc-project-header p { margin: var(--space-2) 0 0; }
 .nbc-tabs { display: flex; gap: 24px; width: 100%; overflow-x: auto; position: sticky; top: calc(var(--h-topbar) + var(--safe-top)); z-index: 8; background: var(--bg-canvas); border-bottom: 0; padding: 0; margin: 0; }
 .nbc-tabs .view-tab { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 0 0 8px; font-size: 14px; color: var(--text-secondary); white-space: nowrap; }
@@ -92,6 +95,9 @@ html:has(.nbc-project) .canvas { padding-top: 0; }
   .nbc-project-header { align-items: start; }
   .nbc-project-header > div:not(.icon-tile) { flex: 1; }
   .nbc-start-update { display: none; }
+  .nbc-project-header > .nbc-project-actions { flex: none; }
+  .nbc-export-button span { display: none; }
+  .nbc-export-button { width: 40px; min-width: 40px; padding: 0; }
 }
 @media (pointer: coarse) {
   html:has(.nbc-project) { --h-button: 44px; --h-input: 44px; }

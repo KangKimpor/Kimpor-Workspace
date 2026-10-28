@@ -1,5 +1,7 @@
 import './ui.css'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { RowActions } from '@/components/RowActions'
+import type { RowActionTarget } from '@/components/RowActions'
 import type { ReactNode } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ChevronDown, ChevronRight } from 'lucide-react'
@@ -26,6 +28,7 @@ const ROW = 36
 
 export function WbsTable({ rows, caption, collapsed, onToggle, previous, current, remark, extra = [], rowAttrs, virtual = false, onRowClick, nameSuffix }: WbsTableProps) {
   const scroll = useRef<HTMLDivElement>(null)
+  const [menu, setMenu] = useState<RowActionTarget | null>(null)
   // oxlint-disable-next-line react/incompatible-library -- React Compiler is not enabled; this virtualizer is not memoized.
   const virtualizer = useVirtualizer({ count: virtual ? rows.length : 0, getScrollElement: () => scroll.current, estimateSize: () => ROW, overscan: 12, initialRect: { width: 1200, height: 800 } })
   const items = virtual ? virtualizer.getVirtualItems() : rows.map((_, index) => ({ index, start: 0, end: 0 }))
@@ -38,7 +41,11 @@ export function WbsTable({ rows, caption, collapsed, onToggle, previous, current
       {before > 0 && <tr aria-hidden="true"><td aria-hidden="true" colSpan={columns} style={{ height: before, padding: 0, border: 0 }}/></tr>}
       {items.map(({ index }) => {
         const row = rows[index]!, a = row.activity, open = !collapsed.has(a.id)
-        return <tr key={a.id} data-level={row.level} data-group={row.group} data-wbs={a.wbs} {...rowAttrs?.(row)}>
+        return <tr key={a.id} data-level={row.level} data-group={row.group} data-wbs={a.wbs} {...rowAttrs?.(row)} onContextMenu={event => {
+          if (!a.editable || (event.target as HTMLElement).closest('input,textarea,[contenteditable=true]')) return
+          event.preventDefault()
+          setMenu({ id: a.id, title: a.name, projectId: a.projectId, nbcActivityId: a.id, x: event.clientX, y: event.clientY })
+        }}>
           <td className="nbc-wbs-no">{a.wbs}</td>
           <td style={{ paddingInlineStart: `${row.depth * 16 + 8}px` }}><div className="nbc-desc">
             {row.group ? <button className="nbc-toggle" aria-expanded={open} aria-label={`${open ? 'Collapse' : 'Expand'} ${a.wbs}`} onClick={(e) => { e.stopPropagation(); onToggle(a.id) }}>{open ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button> : <span className="nbc-toggle-gap"/>}
@@ -51,5 +58,5 @@ export function WbsTable({ rows, caption, collapsed, onToggle, previous, current
         </tr>
       })}
       {after > 0 && <tr aria-hidden="true"><td aria-hidden="true" colSpan={columns} style={{ height: after, padding: 0, border: 0 }}/></tr>}
-    </tbody></table></div>
+    </tbody></table><RowActions item={menu} onClose={() => setMenu(null)}/></div>
 }
