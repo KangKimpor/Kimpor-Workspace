@@ -3,7 +3,19 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { expect, test } from '@playwright/test'
 
+declare global {
+  interface Window { workerRegistrationPaints: string[]; workerRegistrationHasWorkspace: boolean }
+}
+
 test('first install is offline-ready and later updates reload only on request', async ({ page }) => {
+  await page.addInitScript(() => {
+    const register = ServiceWorkerContainer.prototype.register
+    ServiceWorkerContainer.prototype.register = function (...args) {
+      window.workerRegistrationPaints = performance.getEntriesByType('paint').map((entry) => entry.name)
+      window.workerRegistrationHasWorkspace = !!document.querySelector('main h1')
+      return Reflect.apply(register, this, args)
+    }
+  })
   let revision = 1
   const root = path.resolve('dist')
   const types: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2', '.png': 'image/png' }
@@ -27,6 +39,9 @@ test('first install is offline-ready and later updates reload only on request', 
   try {
     await page.goto(`http://127.0.0.1:${address.port}`)
     await page.waitForFunction(() => !!navigator.serviceWorker.controller)
+    expect(await page.evaluate(() => window.workerRegistrationHasWorkspace)).toBe(true)
+    if (await page.evaluate(() => PerformanceObserver.supportedEntryTypes.includes('paint')))
+      expect(await page.evaluate(() => window.workerRegistrationPaints)).toContain('first-contentful-paint')
     let loads = 0
     page.on('request', (request) => {
       if (request.isNavigationRequest() && request.resourceType() === 'document') loads++

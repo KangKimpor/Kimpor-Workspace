@@ -9,7 +9,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  verify:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -36,14 +36,14 @@ jobs:
           path: dist/
           retention-days: 1
   browsers:
-    needs: verify
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, webkit]
-        shard: [1, 2]
+        shard: [1, 2, 3, 4]
     env:
       PLAYWRIGHT_SKIP_BUILD: '1'
     steps:
@@ -61,9 +61,15 @@ jobs:
           name: app-build
           path: dist/
       - run: pnpm exec playwright install --with-deps --only-shell ${{ matrix.browser }}
-      - run: pnpm test:e2e --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/2
+      - run: pnpm test:e2e --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/4
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: browser-test-results-${{ matrix.browser }}-${{ matrix.shard }}
           path: test-results/
+  verify:
+    if: always()
+    needs: [build, browsers]
+    runs-on: ubuntu-latest
+    steps:
+      - run: test '${{ needs.build.result }}' = success && test '${{ needs.browsers.result }}' = success

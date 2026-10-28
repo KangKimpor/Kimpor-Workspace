@@ -9,6 +9,8 @@ import {
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { UpdateNotice } from './UpdateNotice'
 import { watchSystemTheme } from '@/lib/theme'
+import { registerUpdates } from '@/lib/pwa'
+import { afterFirstPaint } from '@/lib/paint'
 const BottomSheet = lazy(() =>
   import('./Overlays').then((module) => ({ default: module.BottomSheet })),
 )
@@ -41,6 +43,7 @@ const QuickAdd = lazy(() =>
 
 /** Flat sidebar navigation with an overlay drawer and bottom tabs on smaller screens. */
 export function AppShell() {
+  useEffect(() => afterFirstPaint(registerUpdates), [])
   const hasOverlay = useWorkspaceUI(
     (state) =>
       !!(state.commandOpen || state.eventId || state.toast),
