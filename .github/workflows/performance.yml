@@ -39,19 +39,28 @@ jobs:
           exit 1
       - name: Measure deployed guest workspace
         run: |
-          corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path=lighthouse-mobile.json --quiet
+          for sample in 1 2 3; do
+            corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path="lighthouse-mobile-$sample.json" --quiet
+          done
           corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --preset=desktop --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path=lighthouse-desktop.json --quiet
       - name: Check release targets
         run: |
           node --input-type=module <<'JS'
           import { readFileSync } from 'node:fs';
           import assert from 'node:assert/strict';
+          const median = values => values.sort((a, b) => a - b)[Math.floor(values.length / 2)];
+          assert.equal(median([100, 3, 20]), 20);
           for (const device of ['mobile', 'desktop']) {
-            const report = JSON.parse(readFileSync(`lighthouse-${device}.json`, 'utf8'));
-            const scores = Object.fromEntries(Object.entries(report.categories).map(([key, value]) => [key, value.score]));
-            const lcp = report.audits['largest-contentful-paint'].numericValue;
+            const files = device === 'mobile' ? [1, 2, 3].map(sample => `lighthouse-mobile-${sample}.json`) : ['lighthouse-desktop.json'];
+            const reports = files.map(file => JSON.parse(readFileSync(file, 'utf8')));
+            for (const report of reports) {
+              assert(!report.runtimeError, 'Lighthouse runtime error');
+              assert(report.categories.accessibility.score === 1, `${device} accessibility below 100`);
+              console.log(JSON.stringify({device, performance: report.categories.performance.score, lcp: report.audits['largest-contentful-paint'].numericValue}));
+            }
+            const scores = Object.fromEntries(Object.keys(reports[0].categories).map(key => [key, median(reports.map(report => report.categories[key].score))]));
+            const lcp = median(reports.map(report => report.audits['largest-contentful-paint'].numericValue));
             console.log(JSON.stringify({device, scores, lcp}));
-            assert(!report.runtimeError, 'Lighthouse runtime error');
             assert(scores.performance >= .95, `${device} performance below 95`);
             assert(scores.accessibility === 1, `${device} accessibility below 100`);
             assert(lcp < 2000, `${device} LCP exceeds 2 seconds`);
