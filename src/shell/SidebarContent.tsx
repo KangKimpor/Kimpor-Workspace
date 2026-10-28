@@ -2,7 +2,6 @@
 import {
   FileText,
   FolderKanban,
-  ChartNoAxesCombined,
   Search,
   Settings,
   Trash2,
@@ -46,7 +45,7 @@ function Item({
 
 /** Sidebar contents, shared by the persistent sidebar and the overlay drawer. */
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
-  const projects = useProjects()
+  const projects = useProjects(), { pathname } = useLocation()
 
   return (
     <>
@@ -96,7 +95,18 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             </ul>
           </div>
         ))}
-        <div className="nav-section"><div className="t-caption">Projects Progress</div><ul className="nav-list"><Item to="/projects-progress" end icon={<ChartNoAxesCombined {...ic} />} label="Projects Progress" /><li><ul className="nav-list nav-projects nav-progress" aria-label="Progress projects">{projects.filter((p) => p.nbcBp03).map((p) => <li key={p.id}><NavLink to={`/projects-progress/${p.id}/overview`} className="nav-item"><span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span><span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span></NavLink><NavLink to={`/projects-progress/${p.id}/activities`} className="nav-item"><span className="nav-label">Activities Stream</span></NavLink><NavLink to={`/projects-progress/${p.id}/update`} className="nav-item" aria-label={`${p.name} Update Progress`}><span className="nav-label">Update Progress</span></NavLink></li>)}</ul></li></ul></div>
+        <div className="nav-section">
+          <div className="t-caption"><NavLink to="/projects-progress" end>Projects Progress</NavLink></div>
+          <ul className="nav-list nav-projects nav-progress" aria-label="Progress projects">
+            {projects.filter((p) => p.nbcBp03).map((p) => <li key={p.id} data-current={pathname.startsWith(`/projects-progress/${p.id}/`)}>
+              <NavLink to={`/projects-progress/${p.id}/overview`} className="nav-item"><span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span></NavLink>
+              <ul className="nav-list nav-project-views" aria-label={`${p.name} views`}>
+                <li><NavLink to={`/projects-progress/${p.id}/activities`} className="nav-item"><span className="nav-label">Activities Stream</span></NavLink></li>
+                <li><NavLink to={`/projects-progress/${p.id}/update`} className="nav-item" aria-label={`${p.name} Update Progress`}><span className="nav-label">Update Progress</span></NavLink></li>
+              </ul>
+            </li>)}
+          </ul>
+        </div>
       </nav>
 
       <div className="sidebar-foot">

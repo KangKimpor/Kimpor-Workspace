@@ -1,6 +1,6 @@
 import './nbc.css'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, NavLink, Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { Play, X } from 'lucide-react'
 import type { ProjectSummary } from '@/data'
 import { useWorkspace } from '@/data'
@@ -17,7 +17,7 @@ import type { NbcActivity, NbcSubmission, NbcWeekSummary } from './types'
 const EMPTY_ACTIVITIES: NbcActivity[] = [], EMPTY_SUBMISSIONS: NbcSubmission[] = [], EMPTY_SUMMARIES: NbcWeekSummary[] = []
 const views = [['overview', 'Overview'], ['activities', 'Activities'], ['update', 'Update Progress']] as const
 /** Earlier URLs keep working: Past Updates now lives inside Overview. */
-const aliases: Record<string, string> = { boq: 'activities', progress: 'activities', weekly: 'update', handlers: 'overview', past: 'overview' }
+const aliases: Record<string, string> = { boq: 'activities', progress: 'activities', weekly: 'update', handlers: 'overview', past: 'overview', board: 'issues' }
 
 export default function NbcProject({ project, view }: { project: ProjectSummary; view: string }) {
   const scope = useWorkspace((s) => s.scope), [now, setNow] = useState(Date.now), [dismissed, setDismissed] = useState(false)
@@ -42,18 +42,18 @@ export default function NbcProject({ project, view }: { project: ProjectSummary;
   }, [scope])
 
   if (aliases[view]) return <Navigate to={`/projects-progress/${project.id}/${aliases[view]}${location.search}`} replace/>
-  if (!views.some(([key]) => key === view) && !['issues', 'board'].includes(view)) return <Navigate to={`/projects-progress/${project.id}/overview`} replace/>
-  const activityView = view === 'issues' || view === 'board' ? view : 'activities'
+  if (!views.some(([key]) => key === view) && view !== 'issues') return <Navigate to={`/projects-progress/${project.id}/overview`} replace/>
+  const activityView = view === 'issues' ? view : 'activities'
   return <div className="workspace-surface project-page nbc-project" data-view={view}>
     <header className="nbc-project-header"><Tile name={project.icon || 'building'} color={project.color}/><div><h1>{project.name}</h1><p className="small muted">{weekLabel(current)} · This week · Sunday end-of-day deadline</p></div><Link className="btn-accent nbc-start-update" to={`/projects-progress/${project.id}/update`}><Play size={14} aria-hidden="true"/>Start update</Link></header>
-    <nav className="view-tabs nbc-tabs" aria-label="Project views">{views.map(([key, label]) => <NavLink className="view-tab" key={key} to={`/projects-progress/${project.id}/${key}`}>{label}</NavLink>)}</nav>
+    <nav className="view-tabs nbc-tabs" aria-label="Project views">{views.map(([key, label]) => <Link className="view-tab" key={key} aria-current={key === view || key === 'activities' && view === 'issues' ? 'page' : undefined} to={`/projects-progress/${project.id}/${key}`}>{label}</Link>)}</nav>
     {!activities.length
       ? <section><h2>BOQ data has not been initialized.</h2><p>Complete the private project setup.</p></section>
       : <>
         {!calculation && !dismissed && <div className="nbc-banner nbc-warning" role="status"><span>Calculation needs attention. Progress editing is paused.</span><button className="ibtn" aria-label="Dismiss calculation warning" onClick={() => setDismissed(true)}><X size={16}/></button></div>}
         {view === 'overview' && <Overview project={project} activities={activities} submissions={submissions} summaries={summaries} baseline={baseline}/>}
         {view === 'update' && calculation && <UpdateProgress projectId={project.id} activities={activities} submissions={submissions}/>}
-        {(view === 'activities' || view === 'issues' || view === 'board') && (calculation || activityView !== 'activities') && <Activities projectId={project.id} activities={activities} baseline={baseline} view={activityView}/>}
+        {(view === 'activities' || view === 'issues') && (calculation || activityView !== 'activities') && <Activities projectId={project.id} activities={activities} baseline={baseline} view={activityView}/>}
       </>}
   </div>
 }

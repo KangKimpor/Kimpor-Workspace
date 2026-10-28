@@ -95,10 +95,10 @@ function ActivityTable({ projectId, activities, baseline }: { projectId: string;
   </section>
 }
 
-export default function Activities({ projectId, activities, baseline, view }: { projectId: string; activities: NbcActivity[]; baseline: Map<string, number>; view: 'activities' | 'issues' | 'board' }) {
+export default function Activities({ projectId, activities, baseline, view }: { projectId: string; activities: NbcActivity[]; baseline: Map<string, number>; view: 'activities' | 'issues' }) {
   const base = `/projects-progress/${projectId}`
-  const switcher: ReactNode = <nav className="nbc-views" aria-label="Activity views"><NavLink className="nbc-view" end to={`${base}/activities`}>Table</NavLink><NavLink className="nbc-view" to={`${base}/board`}>Board</NavLink><NavLink className="nbc-view" to={`${base}/issues`}>Issues</NavLink></nav>
+  const switcher: ReactNode = <nav className="nbc-views" aria-label="Activity views"><NavLink className="nbc-view" end to={`${base}/activities`}>Table</NavLink><NavLink className="nbc-view" to={`${base}/issues`}>Issues</NavLink></nav>
   return <div className="nbc-activities-page">
-    {view === 'activities' ? <><div className="nbc-activity-band">{switcher}<p className="small muted nbc-hint"><Info size={14} aria-hidden="true"/>Progress is applied when a handler confirms an update. <Link className="text-link" to={`${base}/update`}>Update Progress →</Link></p></div><ActivityTable projectId={projectId} activities={activities} baseline={baseline}/></> : <Issues projectId={projectId} activities={activities} board={view === 'board'} switcher={switcher}/>}
+    {view === 'activities' ? <><div className="nbc-activity-band">{switcher}<p className="small muted nbc-hint"><Info size={14} aria-hidden="true"/>Progress is applied when a handler confirms an update. <Link className="text-link" to={`${base}/update`}>Update Progress →</Link></p></div><ActivityTable projectId={projectId} activities={activities} baseline={baseline}/></> : <Issues projectId={projectId} activities={activities} switcher={switcher}/>}
   </div>
 }

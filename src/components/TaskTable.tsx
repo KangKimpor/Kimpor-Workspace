@@ -55,11 +55,11 @@ export function TaskTable({ tasks, mobile, toolbar, actions, nbcActivities }: {
     [descending, setDescending] = useState(false)
   const [hidden, setHidden] = useState<Column[]>([]),
     [widths, setWidths] = useState<Record<Column, number>>({
-      title: mobile ? Math.min(360, innerWidth - 32) : 400,
-      status: mobile ? 180 : 170,
-      priority: mobile ? 150 : 140,
-      due: mobile ? 170 : 145,
-      notes: 220,
+      title: mobile ? Math.min(360, innerWidth - 32) : nbcActivities ? 240 : 400,
+      status: mobile ? 180 : nbcActivities ? 120 : 170,
+      priority: mobile ? 150 : nbcActivities ? 105 : 140,
+      due: mobile ? 170 : nbcActivities ? 135 : 145,
+      notes: nbcActivities && !mobile ? 170 : 220,
     })
   const visibleColumns = availableColumns.filter((column) => (mobile && column === 'title') || !hidden.includes(column))
   const resize = (column: Column, width: number) =>

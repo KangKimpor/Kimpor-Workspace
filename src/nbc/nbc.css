@@ -52,12 +52,12 @@ html:has(.nbc-project) :is(.bsheet,.rsheet,.drawer,[role=dialog]) { box-shadow: 
 @keyframes precision-check { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 @keyframes precision-nudge { 33% { transform: translateX(2px); } 66% { transform: translateX(-2px); } }
 @media(prefers-reduced-motion:reduce) {
-  html:has(.nbc-project) *,html:has(.nbc-project) *::before { transition: opacity 140ms linear !important; animation: precision-fade 140ms linear !important; animation-delay: 0ms !important; }
+  html:has(.nbc-project) *,html:has(.nbc-project) *::before { transition: none !important; animation: none !important; }
   html:has(.nbc-project) button:active { transform: none; }
 }
 html:has(.nbc-project) .nav-list > li { min-width: 0; }
 html:has(.nbc-project) .nav-projects { width: 100%; }
-html[data-motion=reduced]:has(.nbc-project) *,html[data-motion=reduced]:has(.nbc-project) *::before { transition: opacity 140ms linear !important; animation: precision-fade 140ms linear !important; animation-delay: 0ms !important; }
+html[data-motion=reduced]:has(.nbc-project) *,html[data-motion=reduced]:has(.nbc-project) *::before { transition: none !important; animation: none !important; }
 html[data-motion=reduced]:has(.nbc-project) button:active { transform: none; }
 
 /* Project frame: flat page, quiet header, underlined text tabs. */

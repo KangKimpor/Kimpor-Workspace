@@ -6,7 +6,14 @@
 .nav-section > .t-caption { font-size: 11px; font-weight: 500; letter-spacing: .025em; }
 .sidebar-body .nav-item { font-size: 13px; border-radius: 8px; }
 .sidebar-body .nav-icon { display: none; }
+.sidebar-body .nav-projects:not(.nav-progress) .nav-icon { display: grid; }
 .sidebar-body .nav-projects { margin-left: 0; }
+.sidebar-body .nav-projects:not(.nav-progress) { margin-left: 12px; width: calc(100% - 12px); }
+.nav-section > .t-caption a { display: block; color: inherit; text-decoration: none; }
+.nav-section > .t-caption a:hover { color: var(--text-primary); }
+.sidebar-body .nav-project-views { margin: 4px 0 8px 16px; padding-left: 8px; border-left: 1px solid var(--border-strong); }
+.nav-progress > li[data-current=true] > .nav-item { font-weight: 500; }
+.nav-project-views .nav-item { min-height: 28px; }
 .nav-progress .nav-meta { padding: 1px 4px; border-radius: 3px; background: var(--chip-green); color: var(--text-primary); font-family: var(--font-mono); font-size: 11px; }
 .sidebar-foot { border: 0; }
 .topbar { background: var(--bg-canvas); border: 0; }
@@ -14,3 +21,4 @@
 .topbar .pill { font-size: 11px; min-height: 20px; border: 0; }
 .topbar .pill[data-tone=success] { background: var(--chip-green); color: var(--text-primary); }
 @media (pointer: coarse) { .sidebar-search { min-height: 44px; } }
+@media (pointer: coarse) { .nav-project-views .nav-item { min-height: 44px; } }

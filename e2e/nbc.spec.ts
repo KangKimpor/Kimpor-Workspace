@@ -87,6 +87,10 @@ test('tabs are Overview, Activities, Update Progress and old Past Updates links 
   await setup(page); await page.goto('/projects-progress/nbc-bp03/past')
   await expect(page).toHaveURL(/\/overview/)
   await expect(page.locator('.nbc-tabs a')).toHaveText(['Overview', 'Activities', 'Update Progress'])
+  await page.goto('/projects-progress/nbc-bp03/board?wbs=1.6.1.2')
+  await expect(page).toHaveURL(/\/issues\?wbs=1\.6\.1\.2$/)
+  await expect(page.locator('.nbc-views a')).toHaveText(['Table', 'Issues'])
+  await expect(page.locator('.nbc-tabs a[aria-current=page]')).toHaveText('Activities')
 })
 test('Activities shows real WBS numbers with deeper levels indented and no editable progress', async ({ page }) => {
   await setup(page); await page.goto('/projects-progress/nbc-bp03/activities')

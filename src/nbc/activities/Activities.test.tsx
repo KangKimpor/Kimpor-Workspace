@@ -10,7 +10,7 @@ beforeEach(() => {
   Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, value: 800 })
   Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 1200 })
   localStorage.clear(); useWorkspace.setState({ ...structuredClone(emptyContent), scope: 'guest', projects: [fixtureProject], nbc_activities: fixtureActivities() }) })
-function setup(query = '', view: 'activities' | 'issues' | 'board' = 'activities') {
+function setup(query = '', view: 'activities' | 'issues' = 'activities') {
   const activities = fixtureActivities(), baseline = new Map(activities.map((a) => [a.id, a.progress]))
   render(<MemoryRouter initialEntries={[`/activities${query}`]}><Activities projectId={fixtureProject.id} activities={activities} baseline={baseline} view={view}/></MemoryRouter>)
 }
@@ -52,10 +52,34 @@ test('shared GR&P is listed once under Unassigned', () => {
   expect(wbsOrder()).toEqual(['GR&P'])
 })
 
-test('the view switcher links to Table, Board and Issues', () => {
+test('the view switcher links only to Table and Issues', () => {
   setup()
   const href = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
-  expect([href('Table'), href('Board'), href('Issues')]).toEqual([`/projects-progress/${fixtureProject.id}/activities`, `/projects-progress/${fixtureProject.id}/board`, `/projects-progress/${fixtureProject.id}/issues`])
+  expect([href('Table'), href('Issues')]).toEqual([`/projects-progress/${fixtureProject.id}/activities`, `/projects-progress/${fixtureProject.id}/issues`])
+  expect(screen.queryByRole('link', { name: 'Board' })).toBeNull()
+})
+
+test('issues search supports its shortcut, WBS search and a clearable empty state', () => {
+  useWorkspace.getState().addTask({ title: 'Check ceiling', projectId: fixtureProject.id, nbcActivityId: 'nbc:1.6.1.2' })
+  setup('', 'issues')
+  const search = screen.getByRole('textbox', { name: 'Search issues or WBS' })
+  fireEvent.keyDown(window, { key: '/' })
+  expect(document.activeElement).toBe(search)
+  fireEvent.change(search, { target: { value: '1.6.1.2' } })
+  expect(screen.getByRole('textbox', { name: 'Title for Check ceiling' })).toBeTruthy()
+  fireEvent.change(search, { target: { value: 'nothing matches' } })
+  expect(screen.getByText('No matching issues')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
+  expect(screen.getByRole('textbox', { name: 'Title for Check ceiling' })).toBeTruthy()
+})
+
+test('a new issue clears search and preserves the selected WBS link', () => {
+  setup('?wbs=1.6.1.2', 'issues')
+  fireEvent.change(screen.getByRole('textbox', { name: 'Search issues or WBS' }), { target: { value: 'no match' } })
+  fireEvent.click(screen.getByRole('button', { name: 'New action' }))
+  expect(screen.getByRole('textbox', { name: 'Title for New site action' })).toBeTruthy()
+  expect(useWorkspace.getState().tasks[0]?.nbcActivityId).toBe('nbc:1.6.1.2')
+  expect(screen.queryByText('No matching issues')).toBeNull()
 })
 
 test('clicking an activity name opens its details in a side panel', () => {

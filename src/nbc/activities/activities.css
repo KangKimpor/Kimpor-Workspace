@@ -37,3 +37,29 @@
 .nbc-distribution dl > div { display: flex; justify-content: space-between; }
 .nbc-distribution dd { margin: 0; font-family: var(--font-mono); }
 @media (min-width: 1024px) { .nbc-activities > .nbc-wbs-scroll { max-height: 680px; } }
+
+.nbc-issues { display: grid; gap: 12px; min-width: 0; }
+.nbc-issues > .project-table-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+.nbc-issue-filters { flex: 1 1 auto; min-width: 0; }
+.nbc-issue-filters .glass-select { max-width: 240px; }
+.nbc-issues > .table-scroll { width: 100%; min-width: 0; max-width: 100%; overflow: auto; border: 1px solid var(--border-subtle); border-radius: 8px; }
+.nbc-issues .task-table { min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.nbc-issues .task-table th { height: 44px; padding: 8px 12px; background: var(--bg-sidebar); font-size: 12px; vertical-align: middle; }
+.nbc-issues .task-table th > button { display: flex; align-items: center; gap: 6px; min-height: 28px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; white-space: nowrap; }
+.nbc-issues .task-table th > button svg { flex: none; }
+.nbc-issues .task-table td { padding: 8px 12px; vertical-align: middle; }
+.nbc-issues .task-table tbody tr:last-child td { border-bottom: 0; }
+.nbc-issues .task-table tbody tr:hover { background: var(--bg-hover); }
+.nbc-issues .table-task-name { display: grid; gap: 4px; }
+.nbc-task-link { display: flex; align-items: center; gap: 6px; }
+.nbc-issues .table-resizer { border-right-color: transparent; }
+.nbc-issues .table-resizer:hover, .nbc-issues .table-resizer:focus-visible { border-right-color: var(--accent); }
+.nbc-issue-empty { padding: 40px 16px; margin-top: -12px; border: 1px solid var(--border-subtle); border-top: 0; border-radius: 0 0 8px 8px; text-align: center; }
+.nbc-issues:has(.nbc-issue-empty) > .table-scroll { border-bottom: 0; border-radius: 8px 8px 0 0; }
+.nbc-issues .nbc-issue-privacy { margin: 0; }
+@media (max-width: 639px) {
+  .nbc-issue-filters { flex-basis: 100%; }
+  .nbc-issue-filters .search-field { flex-basis: 100%; max-width: none; }
+  .nbc-issue-filters .glass-select { flex: 1; min-width: 0; max-width: 100%; }
+  .nbc-issues > .project-table-toolbar > .btn-accent { margin-left: auto; }
+}
