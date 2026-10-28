@@ -1,0 +1,16 @@
+/* Shared chrome from the three SingBuild Stitch screens. */
+.sidebar { border-right: 0; box-shadow: 1px 0 8px rgb(0 0 0 / .025); }
+.workspace-btn { font-size: 13px; font-weight: 500; }
+.workspace-btn .brand-logo { width: 24px; height: 24px; }
+.sidebar-search { min-height: 30px; border: 0; box-shadow: 0 1px 2px rgb(0 0 0 / .04); }
+.nav-section > .t-caption { font-size: 11px; font-weight: 500; letter-spacing: .025em; }
+.sidebar-body .nav-item { font-size: 13px; border-radius: 8px; }
+.sidebar-body .nav-icon { display: none; }
+.sidebar-body .nav-projects { margin-left: 0; }
+.nav-progress .nav-meta { padding: 1px 4px; border-radius: 3px; background: var(--chip-green); color: var(--text-primary); font-family: var(--font-mono); font-size: 11px; }
+.sidebar-foot { border: 0; }
+.topbar { background: var(--bg-canvas); border: 0; }
+.topbar .crumbs { font-size: 13px; }
+.topbar .pill { font-size: 11px; min-height: 20px; border: 0; }
+.topbar .pill[data-tone=success] { background: var(--chip-green); color: var(--text-primary); }
+@media (pointer: coarse) { .sidebar-search { min-height: 44px; } }

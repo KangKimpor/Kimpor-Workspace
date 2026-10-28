@@ -14,3 +14,26 @@
 .nbc-activities > .nbc-wbs-scroll { max-height: calc(100dvh - 18rem); }
 .nbc-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-block: var(--space-8); }
 .nbc-pill[data-status=Issue] { background: var(--status-warning-bg); text-decoration: none; }
+.nbc-activity-band { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-radius: 8px; background: var(--bg-sidebar); }
+.nbc-activity-band .nbc-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; font-size: 11px; margin: 0; }
+.nbc-view.active { background: var(--bg-canvas); font-weight: 500; box-shadow: 0 1px 3px rgb(0 0 0 / .06); }
+.nbc-view { padding: 3px 10px; font-size: 13px; }
+.nbc-filters .search-field { flex: 1 1 200px; max-width: 280px; }
+.nbc-filters .glass-select { border-color: var(--border-subtle); }
+.nbc-chip { border-radius: 5px; padding: 5px 10px; }
+.nbc-chip[aria-pressed=true] { background: var(--status-neutral-bg); }
+.nbc-table-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 8px 12px; margin-top: -12px; background: var(--bg-sidebar); border-radius: 0 0 8px 8px; font-size: 11px; color: var(--text-secondary); }
+.nbc-table-footer strong { color: var(--accent-text); font-family: var(--font-mono); }
+.nbc-distribution { display: grid; gap: 12px; padding: 24px 12px; border-radius: 8px; box-shadow: 0 1px 3px rgb(0 0 0 / .04); }
+.nbc-distribution h2 { font-size: 13px; font-weight: 400; color: var(--text-secondary); }
+.nbc-distribution-value { font-size: 28px; line-height: 40px; font-weight: 600; letter-spacing: -.025em; }
+.nbc-distribution p { margin: 0; }
+.nbc-completion-ring { width: 120px; height: 120px; position: relative; margin: 0 auto; display: grid; place-items: center; }
+.nbc-completion-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-180deg); }
+.nbc-completion-ring circle { fill: none; stroke: var(--status-neutral-bg); stroke-width: 10; }
+.nbc-completion-ring .nbc-ring-value { stroke: var(--accent); stroke-linecap: round; }
+.nbc-completion-ring strong { font-size: 22px; font-weight: 600; }
+.nbc-distribution dl { margin: 0; font-size: 12px; }
+.nbc-distribution dl > div { display: flex; justify-content: space-between; }
+.nbc-distribution dd { margin: 0; font-family: var(--font-mono); }
+@media (min-width: 1024px) { .nbc-activities > .nbc-wbs-scroll { max-height: 680px; } }

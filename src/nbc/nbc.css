@@ -22,6 +22,8 @@ html[data-theme=dark]:has(.nbc-project) {
   --surface-hover: #252525; --surface-selected: #333333;
   --border-subtle: #333333; --border-strong: #454545;
   --text-primary: #e6e6e6; --text-secondary: #a3a3a3; --text-tertiary: #737373;
+  --status-neutral-bg: var(--surface-selected); --status-success-bg: var(--chip-green);
+  --status-warning-bg: var(--chip-yellow); --status-danger-bg: var(--chip-red);
 }
 html:has(.nbc-project) :is(.glass,.btn-accent,.btn-secondary,.glass-select,.search-field,.nbc-panel,.nbc-grid-scroll,.icon-tile) { box-shadow: none; background-image: none; backdrop-filter: none; }
 html:has(.nbc-project) :is(button,.pill,.status-badge,.view-tab,.glass-select,kbd) { white-space: nowrap; flex-shrink: 0; }
@@ -32,8 +34,8 @@ html:has(.nbc-project) :is(button,.btn-accent,.btn-secondary) { transition: tran
 html:has(.nbc-project) button:active { transform: scale(.98); transition-duration: var(--dur-instant); }
 html:has(.nbc-project) .glass { background-color: var(--surface-raised); }
 html:has(.nbc-project) .sidebar { background-color: var(--surface-sidebar); }
-html:has(.nbc-project) .topbar { height: 44px; min-height: 44px; background: var(--surface-canvas); border-bottom: 1px solid var(--border-subtle); }
-html:has(.nbc-project) .topbar [data-testid=sync-pill] { display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 140px; height: 24px; padding: 0 6px; font-size: 11px; border-radius: 4px; border: 0; background: var(--status-neutral-bg); color: var(--text-primary); }
+html:has(.nbc-project) .topbar { background: var(--surface-canvas); border-bottom: 0; }
+html:has(.nbc-project) .topbar [data-testid=sync-pill] { display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 20px; padding: 0 8px; font-size: 11px; border-radius: 6px; border: 0; background: var(--status-neutral-bg); color: var(--text-primary); }
 html:has(.nbc-project) .topbar [data-tone=success] { background: var(--status-success-bg); color: var(--text-primary); }
 html:has(.nbc-project) .topbar [data-tone=warn] { background: var(--status-warning-bg); color: var(--text-primary); }
 html:has(.nbc-project) .topbar [data-tone=error] { background: var(--status-danger-bg); color: var(--text-primary); }
@@ -41,8 +43,7 @@ html:has(.nbc-project) .topbar [data-testid=sync-pill] > span:not(.dot) { animat
 html:has(.nbc-project) .dot { animation: none; width: 6px; height: 6px; border-radius: 999px; background: var(--status-success); }
 html:has(.nbc-project) .sync-check path { stroke-dasharray: 24; animation: precision-check var(--dur-base) var(--ease-enter); }
 html:has(.nbc-project) .sidebar-search kbd { min-width: max-content; }
-html:has(.nbc-project) .nav-projects .nav-item[aria-current=page] { background: var(--accent-selection); color: var(--accent-blue); border-radius: 4px; }
-html:has(.nbc-project) .nav-projects .nav-item[aria-current=page] .nav-meta { border: 1px solid var(--border-strong); border-radius: 4px; padding: 0 4px; }
+html:has(.nbc-project) .nav-projects .nav-item[aria-current=page] { background: var(--accent-selection); color: var(--accent-blue); border-radius: 8px; }
 html:has(.nbc-project) .scrim { background: var(--scrim); backdrop-filter: none; }
 html:has(.nbc-project) :is(.bsheet,.rsheet,.drawer,[role=dialog]) { box-shadow: 0 0 0 1px var(--border-subtle),0 6px 16px rgb(15 15 15 / 12%); }
 @keyframes precision-row { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -55,24 +56,28 @@ html:has(.nbc-project) :is(.bsheet,.rsheet,.drawer,[role=dialog]) { box-shadow: 
   html:has(.nbc-project) button:active { transform: none; }
 }
 html:has(.nbc-project) .nav-list > li { min-width: 0; }
-html:has(.nbc-project) .nav-projects { width: calc(100% - 16px); }
-html:has(.nbc-project) .topbar [data-testid=sync-pill] { color: #37352f; }
+html:has(.nbc-project) .nav-projects { width: 100%; }
 html[data-motion=reduced]:has(.nbc-project) *,html[data-motion=reduced]:has(.nbc-project) *::before { transition: opacity 140ms linear !important; animation: precision-fade 140ms linear !important; animation-delay: 0ms !important; }
 html[data-motion=reduced]:has(.nbc-project) button:active { transform: none; }
 
 /* Project frame: flat page, quiet header, underlined text tabs. */
-.nbc-project.workspace-surface { margin: 0; padding: var(--space-24); border: 0; border-radius: 0; min-width: 0; max-width: 100%; display: flex; flex-direction: column; gap: var(--space-16); }
-.nbc-project h1 { font-size: var(--fs-h2); line-height: var(--lh-h2); font-weight: 600; letter-spacing: -.02em; margin: 0; }
-.nbc-project h2 { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 600; margin: 0; }
+html:has(.nbc-project) .canvas { padding-top: 0; }
+.nbc-project.workspace-surface { margin: 0; padding: 36px 24px 24px; border: 0; border-radius: 0; min-width: 0; max-width: 100%; display: flex; flex-direction: column; gap: 28px; }
+.nbc-project h1 { font-size: 26px; line-height: 34px; font-weight: 600; letter-spacing: -.025em; margin: 0; }
+.nbc-project h2 { font-size: 16px; line-height: 24px; font-weight: 600; margin: 0; }
 .nbc-project h3 { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: 600; margin: 0; }
 .nbc-project p { margin: var(--space-8) 0; }
 .nbc-project-header { display: flex; align-items: center; gap: var(--space-12); margin: 0; }
-.nbc-project-header .icon-tile { width: var(--space-32); height: var(--space-32); margin: 0; }
+.nbc-project-header > div { min-width: 0; }
+.nbc-project-header .icon-tile { width: 40px; height: 40px; margin: 0; border-radius: 8px; background: var(--chip-blue); color: var(--accent-text); }
+.nbc-start-update { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
 .nbc-project-header p { margin: var(--space-2) 0 0; }
-.nbc-tabs { display: flex; gap: var(--space-4); width: 100%; overflow-x: auto; position: sticky; top: var(--h-topbar); z-index: 8; background: var(--bg-canvas); border-bottom: 1px solid var(--border-subtle); padding: 0; margin: 0; }
-.nbc-tabs .view-tab { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: var(--space-8) var(--space-12); font-size: var(--fs-small); color: var(--text-secondary); white-space: nowrap; }
+.nbc-tabs { display: flex; gap: 24px; width: 100%; overflow-x: auto; position: sticky; top: calc(var(--h-topbar) + var(--safe-top)); z-index: 8; background: var(--bg-canvas); border-bottom: 0; padding: 0; margin: 0; }
+.nbc-tabs .view-tab { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 0 0 8px; font-size: 14px; color: var(--text-secondary); white-space: nowrap; }
 .nbc-tabs .view-tab:hover { background: var(--bg-hover); }
-.nbc-tabs .view-tab[aria-current=page] { color: var(--text-primary); border-bottom-color: var(--text-primary); font-weight: 600; }
+.nbc-tabs .view-tab[aria-current=page] { color: var(--text-primary); border-bottom-color: var(--accent); font-weight: 500; }
+.nbc-eyebrow { display: inline-flex; align-items: center; gap: 5px; color: var(--text-secondary); font-size: 11px; line-height: 18px; letter-spacing: .04em; text-transform: uppercase; }
+.nbc-eyebrow::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
 .nbc-banner { display: flex; align-items: center; gap: var(--space-8); padding: var(--space-8) var(--space-12); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); font-size: var(--fs-small); color: var(--text-secondary); }
 .nbc-banner .text-link { margin-inline-start: auto; white-space: nowrap; }
 .nbc-banner.nbc-warning { background: var(--status-warning-bg); color: var(--text-primary); }
@@ -82,5 +87,13 @@ html[data-motion=reduced]:has(.nbc-project) button:active { transform: none; }
 .nbc-project :focus-visible, .nbc-sheet-fields :focus-visible { outline: 2px solid var(--accent-text); outline-offset: var(--space-2); }
 .nbc-project .nbc-num { font-variant-numeric: tabular-nums; }
 @media (max-width: 767px) {
-  .nbc-project.workspace-surface { padding: var(--space-16); }
+  .nbc-project.workspace-surface { padding: 16px; gap: 16px; }
+  .nbc-project h1 { font-size: 20px; line-height: 26px; }
+  .nbc-project-header { align-items: start; }
+  .nbc-project-header > div:not(.icon-tile) { flex: 1; }
+  .nbc-start-update { display: none; }
+}
+@media (pointer: coarse) {
+  html:has(.nbc-project) { --h-button: 44px; --h-input: 44px; }
+  html:has(.nbc-project) :is(.btn-accent,.btn-secondary,.glass-select) { min-height: 44px; }
 }

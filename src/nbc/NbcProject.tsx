@@ -1,7 +1,7 @@
 import './nbc.css'
 import { useEffect, useMemo, useState } from 'react'
-import { NavLink, Navigate } from 'react-router-dom'
-import { X } from 'lucide-react'
+import { Link, NavLink, Navigate } from 'react-router-dom'
+import { Play, X } from 'lucide-react'
 import type { ProjectSummary } from '@/data'
 import { useWorkspace } from '@/data'
 import { Tile } from '@/components/WorkspaceUI'
@@ -45,7 +45,7 @@ export default function NbcProject({ project, view }: { project: ProjectSummary;
   if (!views.some(([key]) => key === view) && !['issues', 'board'].includes(view)) return <Navigate to={`/projects-progress/${project.id}/overview`} replace/>
   const activityView = view === 'issues' || view === 'board' ? view : 'activities'
   return <div className="workspace-surface project-page nbc-project" data-view={view}>
-    <header className="nbc-project-header"><Tile name={project.icon || project.id} color={project.color}/><div><h1>{project.name}</h1><p className="small muted">{weekLabel(current)} · This week · Sunday end-of-day deadline</p></div></header>
+    <header className="nbc-project-header"><Tile name={project.icon || 'building'} color={project.color}/><div><h1>{project.name}</h1><p className="small muted">{weekLabel(current)} · This week · Sunday end-of-day deadline</p></div><Link className="btn-accent nbc-start-update" to={`/projects-progress/${project.id}/update`}><Play size={14} aria-hidden="true"/>Start update</Link></header>
     <nav className="view-tabs nbc-tabs" aria-label="Project views">{views.map(([key, label]) => <NavLink className="view-tab" key={key} to={`/projects-progress/${project.id}/${key}`}>{label}</NavLink>)}</nav>
     {!activities.length
       ? <section><h2>BOQ data has not been initialized.</h2><p>Complete the private project setup.</p></section>

@@ -2,7 +2,7 @@ import './activities.css'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, NavLink, useSearchParams } from 'react-router-dom'
-import { ChevronsDown, ChevronsUp, Columns3, Search, X } from 'lucide-react'
+import { ChevronsDown, ChevronsUp, Columns3, Info, Search, X } from 'lucide-react'
 import { GlassPopover } from '@/components/glass/GlassPopover'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { useWorkspace } from '@/data'
@@ -11,7 +11,7 @@ import { MoreMenu } from '../ui/MoreMenu'
 import { SidePeek } from '../ui/SidePeek'
 import { WbsTable } from '../ui/WbsTable'
 import { buildWbsRows } from '../wbs-table'
-import { calculate } from '../progress'
+import { calculate, summarize } from '../progress'
 import { updateActivity } from '../actions'
 import { money, percent } from '../format'
 import { handlers } from '../types'
@@ -54,6 +54,7 @@ function ActivityTable({ projectId, activities, baseline }: { projectId: string;
       && (!wbs || a.wbs === wbs || a.wbs.startsWith(`${wbs}.`)) && (!changed || Math.abs(p - b) > 1e-12) && (range === 'all' || (range === 'zero' ? p === 0 : range === 'done' ? p === 1 : p > 0 && p < 1))
   }
   const rows = buildWbsRows(activities, { leaf, collapsed })
+  const distribution = summarize(activities.filter((a) => a.editable && leaf(a)))
   const active = !!(q || handler || area || location || trade || wbs || range !== 'all' || changed)
   function filter(key: string, value: string) { setCollapsed(new Set()); const next = new URLSearchParams(params); if (value) next.set(key, value); else next.delete(key); setParams(next) }
   function clear() { setParams({}); setQuery(''); setRange('all'); setChanged(false) }
@@ -62,7 +63,6 @@ function ActivityTable({ projectId, activities, baseline }: { projectId: string;
   const chips = (['location', 'trade', 'wbs'] as const).flatMap((key) => params.get(key) ? [{ key, label: params.get(key)! }] : [])
 
   return <section className="nbc-activities">
-    <p className="small muted nbc-hint">Progress is applied when a handler confirms an update. <Link className="text-link" to={`/projects-progress/${projectId}/update`}>Update Progress</Link></p>
     <div className="nbc-filters">
       <label className="search-field"><Search size={16}/><input ref={search} aria-label="Search activities" placeholder="Search WBS or activity" value={query} onChange={(e) => { setQuery(e.target.value); setCollapsed(new Set()) }}/><kbd>/</kbd></label>
       <GlassSelect aria-label="Assigned handler" value={handler} onChange={(e) => filter('handler', e.target.value)}><option value="">All handlers</option>{[...new Set([...handlers, ...activities.filter((a) => a.editable).map((a) => a.handler || 'Unassigned')])].map((h) => <option key={h}>{h}</option>)}</GlassSelect>
@@ -88,6 +88,8 @@ function ActivityTable({ projectId, activities, baseline }: { projectId: string;
           rowAttrs={({ activity: a }) => ({ 'data-changed': a.editable && Math.abs((live.progress.get(a.id) ?? 0) - (before.progress.get(a.id) ?? 0)) > 1e-12 ? 'true' : undefined })}
           nameSuffix={({ activity: a }) => { const open = tasks.filter((t) => t.nbcActivityId === a.id && !t.deletedAt && t.status !== 'Done'); return open.length ? <Link className="nbc-pill" data-status="Issue" to={`/projects-progress/${projectId}/issues?wbs=${encodeURIComponent(a.wbs)}`} aria-label={`${open.length} open issues for ${a.wbs}`}>{open.length} issue{open.length > 1 ? 's' : ''}</Link> : null }}
           extra={[{ header: 'Handler', cell: ({ activity: a }) => <><HandlerPicker a={a}/>{pending.has(a.id) && <span className="small muted"> · pending</span>}</> }, ...optional.map((c) => ({ header: c, cell: ({ activity: a }: { activity: NbcActivity }) => <span className="muted">{optionalValue(a, c)}</span> }))]}/>}
+    <div className="nbc-table-footer"><span>{distribution.count} matching activities · WBS hierarchical rollup</span><span>Weighted completion: <strong>{percent(distribution.progress)}</strong></span></div>
+    <section className="nbc-distribution" aria-label="Completion distribution"><div><h2>Completion Distribution</h2><strong className="nbc-distribution-value">{percent(distribution.progress)}</strong><p className="small muted">Weighted progress of activities matching your filters</p></div><div className="nbc-completion-ring" role="img" aria-label={`${percent(distribution.progress)} complete`}><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48"/><circle className="nbc-ring-value" cx="60" cy="60" r="48" pathLength="100" strokeDasharray={`${distribution.progress * 100} 100`}/></svg><strong>{percent(distribution.progress)}</strong></div><dl><div><dt>Completed (100%)</dt><dd>{distribution.completed} task{distribution.completed === 1 ? '' : 's'}</dd></div><div><dt>In progress</dt><dd>{distribution.inProgress} task{distribution.inProgress === 1 ? '' : 's'}</dd></div><div><dt>Not started</dt><dd>{distribution.notStarted} task{distribution.notStarted === 1 ? '' : 's'}</dd></div></dl></section>
     <SidePeek open={!!selected} onOpenChange={(open) => { if (!open) setDetail(null) }} title="Activity details">{selected && <ActivityDetail activity={selected}/>}</SidePeek>
     <ReassignSheet activities={activities} open={reassign} onOpenChange={setReassign}/>
   </section>
@@ -97,6 +99,6 @@ export default function Activities({ projectId, activities, baseline, view }: { 
   const base = `/projects-progress/${projectId}`
   const switcher: ReactNode = <nav className="nbc-views" aria-label="Activity views"><NavLink className="nbc-view" end to={`${base}/activities`}>Table</NavLink><NavLink className="nbc-view" to={`${base}/board`}>Board</NavLink><NavLink className="nbc-view" to={`${base}/issues`}>Issues</NavLink></nav>
   return <div className="nbc-activities-page">
-    {view === 'activities' ? <>{switcher}<ActivityTable projectId={projectId} activities={activities} baseline={baseline}/></> : <Issues projectId={projectId} activities={activities} board={view === 'board'} switcher={switcher}/>}
+    {view === 'activities' ? <><div className="nbc-activity-band">{switcher}<p className="small muted nbc-hint"><Info size={14} aria-hidden="true"/>Progress is applied when a handler confirms an update. <Link className="text-link" to={`${base}/update`}>Update Progress →</Link></p></div><ActivityTable projectId={projectId} activities={activities} baseline={baseline}/></> : <Issues projectId={projectId} activities={activities} board={view === 'board'} switcher={switcher}/>}
   </div>
 }

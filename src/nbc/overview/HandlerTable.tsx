@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, Users } from 'lucide-react'
 import { MoreMenu } from '../ui/MoreMenu'
 import { StatusPill } from '../ui/StatusPill'
 import { reopenUpdate } from '../actions'
@@ -39,26 +39,30 @@ export function HandlerTable({ projectId, activities, submissions, now }: { proj
       </MoreMenu>}
     </li>
   }
-  return <section aria-label="Handler updates">
+  return <section className="nbc-handler-panel" aria-label="Handler updates">
+    <header className="nbc-section-heading"><h2><Users size={17} aria-hidden="true"/>Handlers Overview</h2><span className="small muted">{handlers.length} Assignees</span></header>
+    <div className="table-scroll">
     <table className="nbc-handlers"><caption className="sr-only">Handler updates · due Sunday, end of day · Phnom Penh</caption>
       <thead><tr><th scope="col">Handler</th><th scope="col">This week</th><th scope="col">Last week</th><th scope="col" className="nbc-num">Changed</th><th scope="col" className="nbc-num">Contribution</th></tr></thead>
       <tbody>{handlers.flatMap((handler) => {
         const now_ = find(handler, current), prev = find(handler, last), expanded = open.has(handler)
+        const contribution = summarize(activities.filter((a) => a.handler === handler)).contribution
         const cell = (s: NbcSubmission | undefined, week: string, missing: string) => s || week === current
           ? <StatusPill status={submissionStatus(s, week, activities, now)} time={s?.confirmedAt}/> : <span className="small muted">{missing}</span>
         const rows = [<tr key={handler}>
-          <td><button className="nbc-toggle" aria-expanded={expanded} aria-label={`${expanded ? 'Collapse' : 'Expand'} ${handler}`} onClick={() => setOpen(flip(open, handler))}>{expanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button><span>{handler}</span></td>
-          <td><Link to={`/projects-progress/${projectId}/update?handler=${handler}`} aria-label={`${handler} this week update`}>{cell(now_, current, 'Missing')}</Link></td>
-          <td>{prev ? <button className="nbc-linkish" onClick={() => setPeek(prev)} aria-label={`${handler} last week update`}>{cell(prev, last, 'Missing')}</button> : <span className="small muted">Missing</span>}</td>
+          <td><div className="nbc-handler-name"><button className="nbc-toggle" aria-expanded={expanded} aria-label={`${expanded ? 'Collapse' : 'Expand'} ${handler}`} onClick={() => setOpen(flip(open, handler))}>{expanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button><span className="nbc-handler-avatar" data-handler={handler} aria-hidden="true">{handler[0]}</span><span>{handler}</span></div></td>
+          <td><Link to={`/projects-progress/${projectId}/update?handler=${handler}`}><span className="sr-only">{handler} this week update · </span>{cell(now_, current, 'Missing')}</Link></td>
+          <td>{prev ? <button className="nbc-linkish" onClick={() => setPeek(prev)}><span className="sr-only">{handler} last week update · </span>{cell(prev, last, 'Missing')}</button> : <span className="small muted">Missing</span>}</td>
           <td className="nbc-num">{now_ ? changedEntries(now_.entries).length : '—'}</td>
-          <td className="nbc-num">{percent(summarize(activities.filter((a) => a.handler === handler)).contribution)}</td></tr>]
+          <td className="nbc-num"><div className="nbc-contribution"><span>{percent(contribution)}</span><progress max={1} value={contribution} aria-label={`${handler} contribution`}/></div></td></tr>]
         if (expanded) rows.push(<tr key={`${handler}-weeks`} className="nbc-weeks"><td colSpan={5}><ul>
           {weekRow(handler, current, 'This week')}{weekRow(handler, last, 'Last week')}
           <li><button className="nbc-linkish" aria-expanded={older.has(handler)} onClick={() => setOlder(flip(older, handler))}>Older weeks</button>
             {older.has(handler) && <ul>{submissions.filter((s) => s.handler === handler && s.weekStart < last).sort((a, b) => b.weekStart.localeCompare(a.weekStart)).map((s) => weekRow(handler, s.weekStart, weekLabel(s.weekStart)))}</ul>}</li>
         </ul></td></tr>)
         return rows
-      })}</tbody></table>
+      })}</tbody></table></div>
+    <footer className="nbc-handler-footer"><span>Weighted contribution from assigned activities</span><span>Sum total: <strong>{percent(summarize(activities).contribution)}</strong></span></footer>
     {error && <p className="form-error" role="alert">{error}</p>}
     <SubmissionPeek submission={peek} activities={activities} now={now} onClose={() => setPeek(null)}/>
   </section>

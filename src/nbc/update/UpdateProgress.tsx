@@ -1,12 +1,13 @@
 import './update.css'
 import { useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { CheckCircle2, ClipboardCheck, NotebookPen } from 'lucide-react'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { useWorkspace } from '@/data'
 import { MoreMenu } from '../ui/MoreMenu'
 import { WbsTable } from '../ui/WbsTable'
 import { buildWbsRows } from '../wbs-table'
-import { calculate } from '../progress'
+import { calculate, summarize } from '../progress'
 import { rememberedHandler, rememberHandler } from '../drafts'
 import { addDays, canUpdate, submissionId, weekLabel, weekStart } from '../submissions'
 import { confirmationTime, delta, percent } from '../format'
@@ -65,8 +66,8 @@ function Editor({ projectId, week, handler, activities, submission }: { projectI
           <span className="nbc-spacer"/><button className="btn-accent" disabled={busy} onClick={() => void draft.edit()}>Edit</button><MoreMenu label="Update actions"><DeleteUpdate busy={busy} onDelete={() => void draft.remove()}/></MoreMenu></>
       : <><strong>{draft.changed.length} changed · {delta(draft.contribution)}%</strong><span className="small muted" role="status">{STATUS_TEXT[draft.status]}</span>
           <button className="text-link nbc-hide" onClick={() => setHide(!hide)}>{hide ? 'Show completed' : 'Hide completed'}</button>
-          <span className="nbc-spacer"/><button className="btn-secondary" aria-expanded={noteOpen} onClick={() => setNoteOpen(!noteOpen)}>{draft.note ? 'Edit note' : 'Add note'}</button>
-          <button className="btn-accent" disabled={busy} onClick={() => void draft.confirm()}>{busy ? 'Confirming…' : draft.changed.length ? 'Confirm update' : 'Confirm, no changes'}</button></>}</div>
+          <span className="nbc-spacer"/><button className="btn-secondary" aria-expanded={noteOpen} onClick={() => setNoteOpen(!noteOpen)}><NotebookPen size={14} aria-hidden="true"/>{draft.note ? 'Edit note' : 'Add note'}</button>
+          <button className="btn-accent" disabled={busy} onClick={() => void draft.confirm()}><CheckCircle2 size={15} aria-hidden="true"/>{busy ? 'Confirming…' : draft.changed.length ? 'Confirm update' : 'Confirm, no changes'}</button></>}</div>
   </>
 }
 
@@ -77,10 +78,11 @@ export default function UpdateProgress({ projectId, activities, submissions }: {
   const lastUpdate = submissions.find((s) => s.id === submissionId(projectId, last, handler))
   const week = chosen === last && lastUpdate ? last : current
   const selected = submissions.find((s) => s.id === submissionId(projectId, week, handler))
+  const assigned = summarize(activities.filter((a) => canUpdate(a, handler)))
   function choose(value: Handler) { rememberHandler(projectId, value); setHandler(value); const next = new URLSearchParams(params); next.set('handler', value); setParams(next, { replace: true }) }
   return <section className="nbc-update" aria-label="Weekly progress update">
     <header className="nbc-update-head">
-      <div><h2>Update Progress</h2><p className="small muted">{weekLabel(week)} · Due Sunday, end of day · Phnom Penh</p></div>
+      <div><span className="nbc-eyebrow">Site audit &amp; progress ledger · Phnom Penh, KH</span><h2>Update Progress</h2><p className="small muted">{weekLabel(week)} · Due Sunday, end of day · Phnom Penh</p></div>
       <div className="nbc-update-controls">
         <GlassSelect aria-label="Your handler" value={handler} onChange={(e) => choose(e.target.value as Handler)}>{handlers.map((h) => <option key={h}>{h}</option>)}</GlassSelect>
         <div className="nbc-seg" role="group" aria-label="Week">
@@ -89,6 +91,7 @@ export default function UpdateProgress({ projectId, activities, submissions }: {
         </div>
       </div>
     </header>
+    <div className="nbc-stage-metric"><ClipboardCheck size={28} aria-hidden="true"/><div><span className="nbc-eyebrow">Active stage metric</span><h3>Assigned work · {handler}</h3><p className="small muted">Your activities and shared GR&amp;P</p></div><dl><div><dt>WBS items total</dt><dd>{assigned.count}</dd></div><div><dt>Live completion</dt><dd>{percent(assigned.progress)}</dd></div></dl></div>
     <Editor key={`${scope}:${week}:${handler}:${selected?.status ?? 'new'}`} projectId={projectId} week={week} handler={handler} activities={activities} submission={selected}/>
   </section>
 }

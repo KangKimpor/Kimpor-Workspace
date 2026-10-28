@@ -1,19 +1,24 @@
 /* Shared flat, Notion-like primitives. Tokens come from the workspace and the NBC palette block. */
-.nbc-wbs-scroll { overflow: auto; min-width: 0; min-height: 0; border-block: 1px solid var(--border-subtle); }
+.nbc-wbs-scroll { overflow: auto; min-width: 0; min-height: 0; border-radius: 8px; box-shadow: 0 1px 4px rgb(0 0 0 / .06); }
 .nbc-wbs { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-small); font-variant-numeric: tabular-nums; }
-.nbc-wbs thead th { position: sticky; top: 0; z-index: 2; background: var(--bg-canvas); color: var(--text-secondary); font-weight: 500; text-align: start; padding: var(--space-8); border-bottom: 1px solid var(--border-subtle); white-space: nowrap; }
-.nbc-wbs td { padding: var(--space-4) var(--space-8); border-bottom: 1px solid var(--border-subtle); height: 36px; vertical-align: middle; }
+.nbc-wbs thead th { position: sticky; top: 0; z-index: 2; background: var(--bg-sidebar); color: var(--text-secondary); font-weight: 500; text-align: start; padding: 12px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.nbc-wbs td { padding: 4px 12px; height: 36px; vertical-align: middle; }
+.nbc-wbs td.nbc-num, .nbc-wbs-no { font-family: var(--font-mono); font-size: 11px; }
+.nbc-wbs tbody td:nth-child(4) { color: var(--accent-text); }
 .nbc-wbs .nbc-num { text-align: end; white-space: nowrap; }
 .nbc-wbs tbody tr:hover { background: var(--bg-hover); }
 .nbc-wbs-no { color: var(--text-secondary); white-space: nowrap; font-size: var(--fs-caption); }
 .nbc-desc { display: flex; align-items: center; gap: var(--space-4); min-width: 16rem; }
 .nbc-name { overflow-wrap: anywhere; }
-.nbc-count { color: var(--text-tertiary); font-size: var(--fs-caption); margin-inline-start: var(--space-4); }
+.nbc-wbs .nbc-name { font-size: 13px; line-height: 20px; }
+.nbc-count { color: var(--text-secondary); font-size: var(--fs-caption); margin-inline-start: var(--space-4); }
 .nbc-toggle { display: inline-grid; place-items: center; width: 20px; height: 20px; border: 0; background: transparent; color: var(--text-secondary); border-radius: var(--radius-control); }
 .nbc-toggle:hover { background: var(--bg-pressed); }
 .nbc-toggle-gap { display: inline-block; width: 20px; flex: none; }
-.nbc-wbs tr[data-group=true] td { font-weight: 600; background: var(--bg-hover); }
-.nbc-wbs tr[data-group=true][data-level="1"] td { background: color-mix(in srgb, var(--status-warning) 12%, var(--bg-canvas)); }
+.nbc-wbs tr[data-group=true] td { font-weight: 500; background: var(--bg-sidebar); }
+.nbc-wbs tr[data-group=true][data-level="1"] td { background: var(--surface-selected); }
+.nbc-wbs tr[data-group=true] .nbc-wbs-no { color: var(--text-primary); font-weight: 600; }
+.nbc-wbs tr[data-group=true] td:nth-child(4) { color: var(--text-primary); }
 .nbc-wbs tr[data-changed=true] td { background: color-mix(in srgb, var(--accent) 7%, var(--bg-canvas)); }
 .nbc-pill { display: inline-flex; align-items: center; gap: var(--space-6); padding: var(--space-2) var(--space-6); border-radius: var(--radius-control); font-size: var(--fs-caption); white-space: nowrap; background: var(--status-neutral-bg); color: var(--text-primary); }
 .nbc-pill[data-status=Updated] { background: var(--status-success-bg); }
