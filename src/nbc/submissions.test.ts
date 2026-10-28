@@ -10,15 +10,22 @@ function draft(handler: Handler, date = week, progress = .5): NbcSubmission {
   return { id: submissionId('nbc-bp03', date, handler), projectId: 'nbc-bp03', weekStart: date, handler, status: 'draft', confirmedAt: null, confirmedBy: null, late: false, note: '', updatedAt: now.toISOString(), entries: [{ activityId: a.id, previous: a.progress, progress, remark: 'Site update' }] }
 }
 const initial = (): SubmissionState => ({ activities: fixtureActivities(), submissions: [draft('Tola')], summaries: [] })
-test('Monday weeks, year boundaries, Phnom Penh midnight and end-of-Sunday deadline', () => {
+test('Monday weeks, year boundaries, Phnom Penh midnight and Saturday noon deadline', () => {
   expect(weekStart('2027-01-01')).toBe('2026-12-28')
   expect(weekStart('2026-11-01')).toBe(week)
   expect(weekStart('2026-11-02')).toBe('2026-11-02')
-  expect(weekDeadline(week)).toBe(Date.parse('2026-11-01T17:00:00Z'))
+  expect(weekDeadline(week)).toBe(Date.parse('2026-10-31T05:00:00Z'))
   expect(() => weekStart('2026-02-30')).toThrow()
   expect(() => assertEditableWeek(addDays(week, -14), now)).toThrow('Only this week')
   expect(() => assertEditableWeek(addDays(week, 7), now)).toThrow()
   assertEditableWeek(addDays(week, -7), now)
+})
+test('confirming before Saturday noon is on time, at noon or after is late, and Sunday is still this week', () => {
+  const at = (iso: string) => transitionSubmission(initial(), initial().submissions[0]!.id, 'confirm', 'actor', new Date(iso)).submissions[0]!.late
+  expect(at('2026-10-31T04:59:59Z')).toBe(false)
+  expect(at('2026-10-31T05:00:00Z')).toBe(true)
+  expect(at('2026-11-01T10:00:00Z')).toBe(true)
+  expect(weekStart('2026-11-01')).toBe(week)
 })
 test('drafts stay separate; confirm, reopen, reconfirm, delete and audit are consistent', () => {
   const start = initial(), id = start.submissions[0]!.id
@@ -82,14 +89,14 @@ test('all handlers may edit shared GR&P; stale shared changes and foreign activi
   expect(() => transitionSubmission(s, id, 'confirm', 'actor', now)).toThrow('only your activities')
 })
 
-test('unconfirmed current drafts are re-chained and the late flag flips at Monday midnight', () => {
+test('unconfirmed current drafts are re-chained and the late flag flips at Saturday noon', () => {
   let s = initial(), last = draft('Tola', addDays(week, -7), .4)
   s.submissions.push(last)
   s = transitionSubmission(s, last.id, 'confirm', 'actor', now)
   expect(s.submissions[0]!.entries[0]!.previous).toBe(.4)
   let onTime = initial()
-  onTime = transitionSubmission(onTime, onTime.submissions[0]!.id, 'confirm', 'actor', new Date('2026-11-01T16:59:59.999Z'))
+  onTime = transitionSubmission(onTime, onTime.submissions[0]!.id, 'confirm', 'actor', new Date('2026-10-31T04:59:59.999Z'))
   expect(onTime.submissions[0]!.late).toBe(false)
-  const late = transitionSubmission(initial(), initial().submissions[0]!.id, 'confirm', 'actor', new Date('2026-11-01T17:00:00Z'))
+  const late = transitionSubmission(initial(), initial().submissions[0]!.id, 'confirm', 'actor', new Date('2026-10-31T05:00:00Z'))
   expect(late.submissions[0]!.late).toBe(true)
 })

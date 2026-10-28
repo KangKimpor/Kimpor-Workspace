@@ -14,7 +14,11 @@ async function setup(page: Page, data: SubmissionState = { activities: fixtureAc
 }
 async function open(page: Page) { await page.goto('/projects-progress/nbc-bp03/update?handler=Tola'); await expect(page.getByLabel('This week % for 1.6.1.2')).toBeVisible() }
 async function edit(page: Page, value: string) { await page.getByLabel('This week % for 1.6.1.2').fill(value); await expect(page.getByText('Draft saved', { exact: true })).toBeVisible() }
-async function confirm(page: Page) { await page.getByRole('button', { name: 'Confirm update', exact: true }).click(); await expect(page.getByText(/^Confirmed Tue/)).toBeVisible() }
+async function confirm(page: Page, note?: string, label = 'Confirm update') {
+  await page.getByRole('button', { name: label, exact: true }).click()
+  const sheet = page.getByRole('dialog', { name: 'Confirm update' }); if (note) await sheet.getByLabel(/Weekly note/).fill(note)
+  await sheet.getByRole('button', { name: 'Confirm', exact: true }).click(); await expect(page.getByText(/^Confirmed Tue/)).toBeVisible()
+}
 function historical(): SubmissionState {
   let state: SubmissionState = { activities: fixtureActivities(), submissions: [], summaries: [] }
   for (const [week, progress] of [[last, .4], [current, .8]] as const) {
@@ -34,8 +38,7 @@ test('autosaved draft survives reload without changing live progress, then confi
   await edit(page, '62.5%')
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('kw-workspace-v1')!).nbc_activities.find((a: { id: string }) => a.id === 'nbc:1.6.1.2').progress)).toBe(.25)
   await page.reload(); await expect(page.getByLabel('This week % for 1.6.1.2')).toHaveValue('62.5%')
-  await page.getByRole('button', { name: 'Add note', exact: true }).click(); await page.getByLabel('Weekly note').fill('Crane coordination complete')
-  await confirm(page); await expect(page.getByRole('dialog')).toHaveCount(0)
+  await confirm(page, 'Crane coordination complete'); await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByLabel('This week % for 1.6.1.2')).toHaveCount(0)
   await page.getByRole('link', { name: 'Overview', exact: true }).click()
   await expect(page.getByText('1 of 6 handlers updated this week')).toBeVisible()
@@ -43,8 +46,7 @@ test('autosaved draft survives reload without changing live progress, then confi
 })
 test('no-change confirmation and short-window Undo keep a saved editable draft', async ({ page }) => {
   await setup(page); await open(page)
-  await page.getByRole('button', { name: 'Confirm, no changes', exact: true }).click()
-  await expect(page.getByText(/^Confirmed Tue/)).toBeVisible()
+  await confirm(page, undefined, 'Confirm, no changes')
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(page.getByLabel('This week % for 1.6.1.2')).toBeVisible()
   await expect(page.getByText('Draft saved', { exact: true })).toBeVisible()
@@ -115,8 +117,8 @@ test('Last week is disabled when the handler has no last-week update, and a full
   await setup(page, { activities: fixtureActivities().map((a) => a.wbs === 'GR&P' ? { ...a, progress: 1, baseline: 1 } : a), submissions: [], summaries: [] })
   await page.goto('/projects-progress/nbc-bp03/update?handler=Sitha')
   await expect(page.getByRole('button', { name: 'Last week', exact: true })).toBeDisabled()
-  await expect(page.getByText(/No activities to update/)).toBeVisible()
-  await page.getByRole('button', { name: 'Show completed activities', exact: true }).click()
+  await expect(page.getByText(/Nothing needs an update/)).toBeVisible()
+  await page.getByRole('button', { name: 'Show all activities', exact: true }).click()
   await expect(page.getByLabel('This week % for 1.6.1.1')).toBeVisible()
 })
 for (const viewport of [{ width: 1920, height: 1080 }, { width: 820, height: 1180 }, { width: 393, height: 852 }]) for (const theme of ['light','dark']) test(`responsive current-week editor ${viewport.width} ${theme}`, async ({ page }) => {
@@ -137,9 +139,10 @@ test('real BOQ keeps all six handler groups usable and supplies shared GR&P', as
   const { activities } = JSON.parse(readFileSync(file, 'utf8'))
   await setup(page, { activities, submissions: [], summaries: [] }); await page.goto('/projects-progress/nbc-bp03/update')
   for (const handler of ['Sitha','Lychhinh','Chhorvaon','Srun','Kheng','Tola']) {
-    await page.getByRole('combobox', { name: 'Your handler', exact: true }).click(); await page.getByRole('option', { name: handler, exact: true }).click()
+    await page.getByRole('button', { name: new RegExp(`^${handler}`) }).click(); await page.getByRole('button', { name: `Continue as ${handler}`, exact: true }).click()
     await expect(page.getByLabel('This week % for GR&P')).toBeVisible()
     const group = page.locator('.nbc-update tr[data-group=true] button').last(); await group.click(); await expect(group).toHaveAttribute('aria-expanded', 'false'); await group.click(); await expect(group).toHaveAttribute('aria-expanded', 'true')
+    await page.getByRole('button', { name: /^Change handler/ }).click()
   }
   await page.getByRole('link', { name: 'Activities', exact: true }).click(); await expect(page.getByRole('table', { name: 'Activities by WBS', exact: true })).toBeVisible()
 })

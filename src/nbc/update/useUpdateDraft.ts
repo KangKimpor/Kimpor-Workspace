@@ -24,15 +24,17 @@ export function useUpdateDraft({ projectId, week, handler, activities, submissio
   const confirmed = submission?.status === 'confirmed'
   const rows = draftEntries(week, handler)
 
-  function parse(formValue = form): SubmissionEntry[] {
-    return rows.map((entry) => {
-      const value = formValue.values[entry.activityId], parsed = parseProgress(value?.text ?? formatPercent(entry.progress))
-      if (parsed.message) throw new Error(parsed.message)
-      return { ...entry, progress: parsed.progress, remark: value?.remark ?? entry.remark, baseRevision: value?.baseRevision ?? entry.baseRevision }
-    })
+  function parseEntry(entry: SubmissionEntry, formValue: HandlerDraft): SubmissionEntry {
+    const value = formValue.values[entry.activityId], parsed = parseProgress(value?.text ?? formatPercent(entry.progress))
+    if (parsed.message) throw new Error(parsed.message)
+    return { ...entry, progress: parsed.progress, remark: value?.remark ?? entry.remark, baseRevision: value?.baseRevision ?? entry.baseRevision }
   }
-  const parsed = (() => { try { return parse() } catch { return rows } })()
+  const parse = (formValue = form) => rows.map((entry) => parseEntry(entry, formValue))
+  // Display copy: an unparseable row keeps its saved value, so one typo never hides the other edits.
+  const parsed = rows.map((entry) => { try { return parseEntry(entry, form) } catch { return entry } })
   const shown = confirmed ? submission.entries : parsed, changed = changedEntries(shown)
+  const lowered = changed.filter((e) => e.progress < e.previous)
+  const needsRemark = new Set(lowered.filter((e) => !e.remark.trim()).map((e) => e.activityId))
   const byId = new Map(activities.map((a) => [a.id, a]))
   const contribution = shown.reduce((sum, e) => sum + (e.progress - e.previous) * (byId.get(e.activityId)?.globalWeight ?? 0), 0)
   const invalid = new Set<string>()
@@ -58,6 +60,7 @@ export function useUpdateDraft({ projectId, week, handler, activities, submissio
 
   async function run(action: () => Promise<void>) { setBusy(true); try { await action(); setError('') } catch (e) { setError((e as Error).message) } finally { setBusy(false) } }
   const confirm = () => run(async () => {
+    if (needsRemark.size) throw new Error('Add a remark to every activity you lowered.')
     persist()
     const result = await confirmUpdate(week, handler)
     clearHandlerDraft(scope, projectId, week, handler)
@@ -75,7 +78,7 @@ export function useUpdateDraft({ projectId, week, handler, activities, submissio
   }
   const status: DraftStatus = dirty ? 'saving' : sync.kind === 'error' ? 'error' : scope !== 'guest' && sync.kind !== 'saved' ? 'local' : 'saved'
   return {
-    confirmed, rows, shown, changed, contribution, invalid, touched, status, error, busy,
+    confirmed, rows, shown, changed, lowered, needsRemark, contribution, invalid, touched, status, error, busy,
     text: (id: string) => form.values[id]?.text ?? formatPercent(rows.find((e) => e.activityId === id)?.progress ?? 0),
     remark: (id: string) => form.values[id]?.remark ?? rows.find((e) => e.activityId === id)?.remark ?? '',
     setText: (id: string, text: string) => field(id, { text }),

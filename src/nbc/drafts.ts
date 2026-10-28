@@ -1,5 +1,4 @@
 import type { Handler } from './types'
-import { handlers } from './types'
 export interface HandlerDraft { values: Record<string, { text: string; remark: string; baseRevision?: string }>; note: string }
 const draftKey = (scope: string, project: string, week: string, handler: Handler) => `kw-nbc-handler-draft:${scope}:${project}:${week}:${handler}`
 export function readHandlerDraft(scope: string, project: string, week: string, handler: Handler): HandlerDraft | null {
@@ -10,7 +9,3 @@ export function readHandlerDraft(scope: string, project: string, week: string, h
 }
 export function writeHandlerDraft(scope: string, project: string, week: string, handler: Handler, value: HandlerDraft) { localStorage.setItem(draftKey(scope, project, week, handler), JSON.stringify(value)) }
 export function clearHandlerDraft(scope: string, project: string, week: string, handler: Handler) { localStorage.removeItem(draftKey(scope, project, week, handler)) }
-export function rememberedHandler(project: string): Handler {
-  try { const saved = localStorage.getItem(`kw-nbc-handler:${project}`); return handlers.find((h) => h === saved) ?? handlers[0] } catch { return handlers[0] }
-}
-export function rememberHandler(project: string, handler: Handler) { localStorage.setItem(`kw-nbc-handler:${project}`, handler) }

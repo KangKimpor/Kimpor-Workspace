@@ -57,7 +57,8 @@ for (const width of [1280, 820, 393]) for (const theme of ['light', 'dark'] as c
         }
       }
       if (view === 'update') {
-        await expect(page.getByRole('combobox', { name: 'Your handler' })).toBeVisible()
+        await expect(page.getByRole('heading', { name: 'Who is updating?' })).toBeVisible()
+        await page.locator('.nbc-gate-list button').first().click(); await page.getByRole('button', { name: /^Continue as/ }).click()
         await expect(page.getByRole('button', { name: 'Confirm, no changes', exact: true })).toBeInViewport()
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)

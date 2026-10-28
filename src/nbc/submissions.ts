@@ -3,8 +3,10 @@ import { handlers } from './types'
 import type { Handler, NbcActivity, NbcSubmission, NbcWeekSummary, SubmissionEntry } from './types'
 
 export const REPORTING_TIMEZONE = 'Asia/Phnom_Penh'
-// Exclusive boundary: all of Sunday is on time; Monday 00:00 is late.
-export const WEEK_DEADLINE = 'T00:00:00+07:00'
+// Updates are due Saturday 12:00 in Phnom Penh while the week itself still runs Monday to Sunday.
+// Exclusive boundary: exactly noon is already late.
+export const WEEK_DEADLINE = 'T12:00:00+07:00'
+export const DEADLINE_DAY = 5
 export const UNDO_SECONDS = 10
 export function weekStart(date = new Date().toLocaleDateString('en-CA', { timeZone: REPORTING_TIMEZONE })) {
   const day = new Date(`${date}T00:00:00Z`)
@@ -13,7 +15,7 @@ export function weekStart(date = new Date().toLocaleDateString('en-CA', { timeZo
   return day.toISOString().slice(0, 10)
 }
 export function addDays(date: string, days: number) { return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86400000).toISOString().slice(0, 10) }
-export const weekDeadline = (week: string) => Date.parse(`${addDays(week, 7)}${WEEK_DEADLINE}`)
+export const weekDeadline = (week: string) => Date.parse(`${addDays(week, DEADLINE_DAY)}${WEEK_DEADLINE}`)
 export function assertEditableWeek(week: string, now = new Date()) {
   const current = weekStart(now.toLocaleDateString('en-CA', { timeZone: REPORTING_TIMEZONE }))
   if (weekStart(week) !== week || ![current, addDays(current, -7)].includes(week)) throw new Error('Only this week and last week can be changed.')

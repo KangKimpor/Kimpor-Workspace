@@ -47,6 +47,27 @@ test('confirm is blocked while any value is invalid and keeps the draft', async 
   expect(result.current.text('nbc:1.6.1.2')).toBe('abc')
 })
 
+test('one invalid row does not hide the other edits', () => {
+  const { result } = setup()
+  act(() => result.current.setText('nbc:1.6.1.2', 'abc'))
+  const other = result.current.rows.find((e) => e.activityId !== 'nbc:1.6.1.2')!
+  act(() => result.current.setText(other.activityId, '99'))
+  expect(result.current.invalid.size).toBe(1)
+  expect(result.current.changed.map((e) => e.activityId)).toEqual([other.activityId])
+})
+
+test('lowering progress without a remark is flagged and blocks confirm until a remark is added', async () => {
+  const { result } = setup()
+  act(() => result.current.setText('nbc:1.6.1.2', '10'))
+  expect(result.current.lowered).toHaveLength(1)
+  expect([...result.current.needsRemark]).toEqual(['nbc:1.6.1.2'])
+  await act(async () => { await result.current.confirm() })
+  expect(result.current.error).toMatch(/remark/)
+  expect(useWorkspace.getState().nbc_submissions ?? []).toHaveLength(0)
+  act(() => result.current.setRemark('nbc:1.6.1.2', 'Rework'))
+  expect(result.current.needsRemark.size).toBe(0)
+})
+
 test('edited rows are remembered as touched so they can stay visible', () => {
   const { result } = setup()
   act(() => result.current.setText('nbc:1.6.1.2', '100'))

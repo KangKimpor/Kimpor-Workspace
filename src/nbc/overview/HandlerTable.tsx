@@ -42,7 +42,7 @@ export function HandlerTable({ projectId, activities, submissions, now }: { proj
   return <section className="nbc-handler-panel" aria-label="Handler updates">
     <header className="nbc-section-heading"><h2><Users size={17} aria-hidden="true"/>Handlers Overview</h2><span className="small muted">{handlers.length} Assignees</span></header>
     <div className="table-scroll">
-    <table className="nbc-handlers"><caption className="sr-only">Handler updates · due Sunday, end of day · Phnom Penh</caption>
+    <table className="nbc-handlers"><caption className="sr-only">Handler updates · due Saturday 12:00 PM · Phnom Penh</caption>
       <thead><tr><th scope="col">Handler</th><th scope="col">This week</th><th scope="col">Last week</th><th scope="col" className="nbc-num">Changed</th><th scope="col" className="nbc-num">Contribution</th></tr></thead>
       <tbody>{handlers.flatMap((handler) => {
         const now_ = find(handler, current), prev = find(handler, last), expanded = open.has(handler)

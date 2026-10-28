@@ -6,7 +6,7 @@ The full design rationale is in `docs/superpowers/specs/2026-10-27-nbc-progress-
 
 Three tabs, in this order: **Overview · Activities · Update Progress**. Routes are `/projects-progress/:id/overview|activities|update`. `issues` and `board` open from the Activities view switcher (**Table · Board · Issues**). Earlier URLs redirect: `past` and `handlers` to Overview, `progress` and `boq` to Activities, `weekly` to Update Progress. Standard project pages are unchanged.
 
-Weeks are Monday–Sunday in Asia/Phnom_Penh and are shown as a range such as `26 Oct – 1 Nov`. The deadline is the end of Sunday; lateness starts at Monday 00:00. This week and last week are the only editable weeks.
+Weeks are Monday–Sunday in Asia/Phnom_Penh and are shown as a range such as `26 Oct – 1 Nov`. The deadline is Saturday 12:00 PM; lateness starts at noon. This week and last week are the only editable weeks.
 
 The look is flat and Notion-like: hairline dividers instead of cards, 14px text, tabular numerals, soft tinted status pills (Updated, Updated late, Not yet, Overdue, Needs review) that always carry a text label, and `···` menus for secondary actions.
 
@@ -28,7 +28,7 @@ The full tree with search (`/` focuses it), handler / area / progress-range / ch
 
 ## Update Progress
 
-The header holds the title, the week range with the Sunday deadline, an inline handler selector (remembered per device, honor system) and a **This week | Last week** switch. Last week is enabled only when that handler already has a last-week update; missing updates are never created.
+The header holds the title, the week range, the Saturday 12:00 PM deadline note, an inline handler chip (chosen on a first screen each visit, honor system) and a **This week | Last week** switch. Last week is enabled only when that handler already has a last-week update; missing updates are never created.
 
 The table lists the selected handler's activities under their ancestor groups, then shared GR&P (marked **Shared**). **Hide completed** is on by default and never hides a row that was edited or changed. Enter moves to the next row, Tab moves to Remark, and the focused row shows quick-set chips (25, 50, 75, 100). Invalid text stays visible, keeps its group expanded and blocks confirmation.
 

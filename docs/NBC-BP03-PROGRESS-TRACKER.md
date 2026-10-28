@@ -4,7 +4,7 @@
 
 NBC uses one submission per handler per Monday–Sunday week. The three project tabs are **Overview · Activities · Update Progress**; Past Updates is now part of Overview (handler rows expand to weekly history, and `/past` redirects to Overview). Activities and Update Progress share a WBS table that mirrors the source workbook (`WBS · Description · Previous week % · This week % · Remark`, indented by level from `1.6.1`). The layout and rationale are in `docs/NBC-BP03-UX-PLAN.md` and `docs/superpowers/specs/2026-10-27-nbc-progress-redesign-design.md`; the earlier Stitch exports remain only as historical references.
 
-The deadline is **the end of Sunday in Asia/Phnom_Penh**. Monday 00:00 is the exclusive late boundary, rather than Sunday noon. `src/nbc/submissions.ts` owns the client deadline constant; `kw_private.nbc_deadline()` is its server equivalent. The database stamps the authenticated actor and receipt time and calculates the authoritative late flag.
+The deadline is **Saturday 12:00 PM in Asia/Phnom_Penh**. Noon is the exclusive late boundary, so exactly 12:00 counts as late. The reporting week itself still runs Monday to Sunday. `src/nbc/submissions.ts` owns the client deadline constant; `kw_private.nbc_deadline()` is its server equivalent. The database stamps the authenticated actor and receipt time and calculates the authoritative late flag.
 
 **Update Progress shows only the current week, with no week tabs.** A visible handler selector remembers the device's last choice. It is an honor-system selector, not identity enforcement. There are no new accounts, user-to-handler mappings or per-handler access policies. All authenticated accounts continue to share the one company dataset.
 

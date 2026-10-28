@@ -46,15 +46,15 @@ export function WbsTable({ rows, caption, collapsed, onToggle, previous, current
           event.preventDefault()
           setMenu({ id: a.id, title: a.name, projectId: a.projectId, nbcActivityId: a.id, x: event.clientX, y: event.clientY })
         }}>
-          <td className="nbc-wbs-no">{a.wbs}</td>
-          <td style={{ paddingInlineStart: `${row.depth * 16 + 8}px` }}><div className="nbc-desc">
+          <td className="nbc-wbs-no" data-label="WBS">{a.wbs}</td>
+          <td style={{ paddingInlineStart: `${row.depth * 16 + 8}px` }} data-label="Description"><div className="nbc-desc">
             {row.group ? <button className="nbc-toggle" aria-expanded={open} aria-label={`${open ? 'Collapse' : 'Expand'} ${a.wbs}`} onClick={(e) => { e.stopPropagation(); onToggle(a.id) }}>{open ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button> : <span className="nbc-toggle-gap"/>}
             {onRowClick ? <button className="nbc-name nbc-name-button" onClick={() => onRowClick(row)}>{a.name}</button> : <span className="nbc-name">{a.name}</span>}{row.group && <span className="nbc-count">{row.leafCount}</span>}{a.wbs === 'GR&P' && <span className="nbc-pill" data-status="Shared">Shared</span>}{nameSuffix?.(row)}</div>
           </td>
-          <td className="nbc-num">{percent(previous(a))}</td>
-          <td className="nbc-num">{row.group ? percent(row.progress) : current(row)}</td>
-          {remark && <td>{row.group ? null : remark(row)}</td>}
-          {extra.map((c) => <td key={c.header}>{c.cell(row)}</td>)}
+          <td className="nbc-num" data-label="Previous week %">{percent(previous(a))}</td>
+          <td className="nbc-num" data-label="This week %">{row.group ? percent(row.progress) : current(row)}</td>
+          {remark && <td data-label="Remark">{row.group ? null : remark(row)}</td>}
+          {extra.map((c) => <td key={c.header} data-label={c.header}>{c.cell(row)}</td>)}
         </tr>
       })}
       {after > 0 && <tr aria-hidden="true"><td aria-hidden="true" colSpan={columns} style={{ height: after, padding: 0, border: 0 }}/></tr>}
