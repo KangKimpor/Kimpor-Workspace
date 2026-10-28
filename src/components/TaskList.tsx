@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { defaultRangeExtractor, useVirtualizer } from '@tanstack/react-virtual'
 import type { Task } from '@/data'
 import { TaskRow } from './TaskRow'
 export function TaskList({
@@ -12,6 +12,7 @@ export function TaskList({
   const parent = useRef<HTMLDivElement>(null),
     large = tasks.length > 100
   const [focusIndex, setFocusIndex] = useState<number | null>(null)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
   // oxlint-disable-next-line react/incompatible-library -- React Compiler is not enabled; this virtualizer is not memoized.
   const virtual = useVirtualizer({
     count: tasks.length,
@@ -19,6 +20,11 @@ export function TaskList({
     getItemKey: (index) => tasks[index]!.id,
     estimateSize: () => (compact ? 120 : 56),
     overscan: 8,
+    // Keep an edited row mounted while newly measured rows adjust the scroll range.
+    rangeExtractor: (range) => {
+      const indexes = defaultRangeExtractor(range)
+      return activeIndex === null || activeIndex >= range.count || indexes.includes(activeIndex) ? indexes : [...indexes, activeIndex].sort((a, b) => a - b)
+    },
     enabled: large,
     useFlushSync: false,
   })
@@ -52,6 +58,11 @@ export function TaskList({
       aria-label={`${tasks.length} tasks. Use arrow keys, Home and End to navigate.`}
       tabIndex={0}
       style={{ height: 560, overflow: 'auto' }}
+      onFocusCapture={(e) => {
+        const index = (e.target as HTMLElement).closest<HTMLElement>('[data-index]')?.dataset.index
+        setActiveIndex(index === undefined ? null : Number(index))
+      }}
+      onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setActiveIndex(null) }}
       onKeyDown={(e) => {
         const current = Number(
           (e.target as HTMLElement).closest<HTMLElement>('[data-index]')

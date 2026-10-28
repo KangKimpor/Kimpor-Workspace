@@ -45,6 +45,7 @@ test('500-task lists render a bounded window, support End navigation and inline 
   await list.focus()
   await page.keyboard.press('End')
   await expect(list.getByLabel('Title for QA Task 0499', { exact: true })).toBeVisible()
+  await expect(list.getByLabel('Title for QA Task 0499', { exact: true })).toBeFocused()
   await list.getByLabel('Title for QA Task 0499', { exact: true }).fill('Renamed in list')
   await expect(list.getByLabel('Title for Renamed in list', { exact: true })).toHaveValue('Renamed in list')
 })

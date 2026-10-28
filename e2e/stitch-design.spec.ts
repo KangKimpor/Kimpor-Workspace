@@ -33,10 +33,11 @@ for (const width of [1280, 820, 393]) for (const theme of ['light', 'dark'] as c
       await expect(page.locator('.nbc-tabs a[aria-current=page]')).toHaveText(view === 'issues' ? 'Progress' : label)
       await expect(page.getByRole('heading', { name: fixtureProject.name, exact: true })).toBeVisible()
       if (view === 'overview') {
-        await expect(page.getByLabel('Overall project progress')).toHaveAttribute('value', '0.35')
-        await page.getByRole('button', { name: 'Work Area', exact: true }).click()
+        await expect(page.locator('.nbc-kpi').filter({ hasText: 'Overall progress' }).locator('strong')).toHaveText('35.0%')
+        await expect(page.getByRole('region', { name: 'Project snapshot' })).toContainText('Versus plan')
+        await page.getByRole('button', { name: 'Work area', exact: true }).click()
         await expect(page.getByRole('region', { name: 'Work area', exact: true })).toBeVisible()
-        await page.getByRole('button', { name: 'Floor Breakdown', exact: true }).click()
+        await page.getByRole('button', { name: 'Floor', exact: true }).click()
         await expect(page.getByRole('region', { name: 'Floor / location' })).toBeVisible()
       }
       if (view === 'activities') await expect(page.getByRole('region', { name: 'Completion distribution' })).toContainText('35.00%')

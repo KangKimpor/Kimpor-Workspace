@@ -28,6 +28,11 @@ for (const file of files)
 console.log(`Initial app CSS: ${(cssBytes / 1024).toFixed(1)} KiB gzip (limit 15 KiB).`)
 assert(cssBytes < 15 * 1024, 'Load view-specific styles with their routes instead of the app shell')
 const html = await readFile('dist/index.html', 'utf8')
+assert(html.includes(`href="/${manifest['src/pages/Projects.tsx'].file}"`), 'Preload the landing view before the app starts')
+for (const preload of html.matchAll(/rel="modulepreload"[^>]*href="\/([^"]+)"/g)) {
+  assert(preload[1].endsWith('.js'), 'Module preloads must reference built JavaScript')
+  await readFile(`dist/${preload[1]}`)
+}
 const bootstrap = html.match(/<script id="theme-bootstrap">([\s\S]*?)<\/script>/)?.[1]
 assert(bootstrap, 'Missing pre-paint theme bootstrap')
 const hash = createHash('sha256').update(bootstrap).digest('base64')

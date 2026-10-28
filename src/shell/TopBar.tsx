@@ -12,7 +12,6 @@ import { modKey, useShell } from './store'
 import type { Breakpoint } from './store'
 import { useWorkspaceUI } from './workspace'
 import { Link } from 'react-router-dom'
-import { syncWorkspace } from '@/data/sync'
 
 const ic = { size: 18, strokeWidth: 1.75 } as const
 
@@ -184,7 +183,7 @@ export function TopBar({ crumb, bp }: { crumb: Crumb; bp: Breakpoint }) {
             : sync.kind === 'saving'
               ? 'Saving'
               : 'Error'}</span>
-          {sync.kind === 'error' && online && <button className="text-link small" onClick={()=>void syncWorkspace(false)}>Retry</button>}
+          {sync.kind === 'error' && online && <button className="text-link small" onClick={()=>void import('@/data/sync').then(({ syncWorkspace }) => syncWorkspace(false))}>Retry</button>}
         </span>
         <button
           type="button"

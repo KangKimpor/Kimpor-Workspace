@@ -29,6 +29,28 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   plugins: [
+    {
+      name: 'preload-landing-view',
+      transformIndexHtml: {
+        order: 'post',
+        handler: (_html, { bundle }) => {
+          const scripts = new Set<string>(), styles = new Set<string>()
+          function collect(file: string) {
+            const chunk = bundle?.[file]
+            if (chunk?.type !== 'chunk' || chunk.isEntry || scripts.has(file)) return
+            scripts.add(file)
+            chunk.viteMetadata?.importedCss.forEach((css) => styles.add(css))
+            chunk.imports.forEach(collect)
+          }
+          for (const chunk of Object.values(bundle ?? {}))
+            if (chunk.type === 'chunk' && chunk.facadeModuleId?.replaceAll('\\', '/').endsWith('/src/pages/Projects.tsx')) collect(chunk.fileName)
+          return [
+            ...[...scripts].map((file) => ({ tag: 'link', attrs: { rel: 'modulepreload', crossorigin: '', href: `/${file}` }, injectTo: 'head-prepend' as const })),
+            ...[...styles].map((file) => ({ tag: 'link', attrs: { rel: 'preload', as: 'style', href: `/${file}` }, injectTo: 'head-prepend' as const })),
+          ]
+        },
+      },
+    },
     react(),
     tailwindcss(),
     VitePWA({

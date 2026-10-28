@@ -1,19 +1,8 @@
 import { animate, useDragControls, useMotionValue, useReducedMotion } from 'motion/react'
 import type { PanInfo } from 'motion/react'
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useMediaQuery } from '@/lib/media'
 import { REDUCED, SPRING, STAGGER, DURATION, EASE } from './tokens'
-
-export function useMediaQuery(query: string): boolean {
-  return useSyncExternalStore(
-    (cb) => {
-      const mq = matchMedia(query)
-      mq.addEventListener('change', cb)
-      return () => mq.removeEventListener('change', cb)
-    },
-    () => matchMedia(query).matches,
-    () => false,
-  )
-}
 
 /** Reduced motion from the OS or from the in-app setting (html[data-motion='reduced']). */
 export function useMotionReduced(): boolean {

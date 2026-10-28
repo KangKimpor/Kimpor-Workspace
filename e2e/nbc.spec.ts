@@ -83,6 +83,9 @@ test('Overview edits last week, re-chains this week, and keeps older history rea
   await expect(page.locator('.nbc-trend tbody tr')).toHaveCount(3)
   await page.getByRole('link', { name: 'Update Progress', exact: true }).click()
   await expect(page.getByText(/26 Oct – 1 Nov/).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Who is updating?' })).toBeVisible()
+  await page.locator('.nbc-gate-list').getByRole('button', { name: /^Sitha/ }).click()
+  await page.getByRole('button', { name: 'Continue as Sitha', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Last week', exact: true })).toBeDisabled()
 })
 test('tabs are Overview, Activities, Update Progress and old Past Updates links land on Overview', async ({ page }) => {

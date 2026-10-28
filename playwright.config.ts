@@ -13,7 +13,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'corepack pnpm build && corepack pnpm preview',
+    command: process.env.PLAYWRIGHT_SKIP_BUILD ? 'corepack pnpm preview' : 'corepack pnpm build && corepack pnpm preview',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

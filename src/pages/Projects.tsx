@@ -1,9 +1,4 @@
 import './workspace-views.css'
-import { GlassSelect } from '@/components/glass/GlassSelect'
-import { GlassPopover } from '@/components/glass/GlassPopover'
-import { TaskTable } from '@/components/TaskTable'
-import { ProjectBoard } from '@/components/ProjectBoard'
-import { ProjectEditor } from '@/components/ProjectEditor'
 import { ArrowLeft, ChevronDown, Kanban, Pencil, Plus, Search, SlidersHorizontal, Star, Table2 } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, Navigate, useParams, useSearchParams } from 'react-router-dom'
@@ -11,8 +6,13 @@ import { ProjectCards, Tile } from '@/components/WorkspaceUI'
 import { useProjects, useWorkspace } from '@/data'
 import type { TaskStatus } from '@/data'
 import { rememberWorkspace } from '@/shell/landing'
-import { useMediaQuery } from '@/motion/hooks'
+import { useMediaQuery } from '@/lib/media'
 const NbcProject = lazy(() => import('@/nbc/NbcProject'))
+const TaskTable = lazy(() => import('@/components/TaskTable').then((m) => ({ default: m.TaskTable })))
+const GlassSelect = lazy(() => import('@/components/glass/GlassSelect').then((m) => ({ default: m.GlassSelect })))
+const GlassPopover = lazy(() => import('@/components/glass/GlassPopover').then((m) => ({ default: m.GlassPopover })))
+const ProjectBoard = lazy(() => import('@/components/ProjectBoard').then((m) => ({ default: m.ProjectBoard })))
+const ProjectEditor = lazy(() => import('@/components/ProjectEditor').then((m) => ({ default: m.ProjectEditor })))
 
 export default function Projects({ progressSection = false }: { progressSection?: boolean }) {
   const mobile = useMediaQuery('(max-width: 639px)')
@@ -41,7 +41,7 @@ export default function Projects({ progressSection = false }: { progressSection?
           </div>
           <button className="btn-accent" onClick={() => setEditing(true)}><Plus size={16} />New project</button>
         </header>
-        {editing && <ProjectEditor workspace={workspace} onClose={() => setEditing(false)} />}
+        {editing && <Suspense fallback={null}><ProjectEditor workspace={workspace} onClose={() => setEditing(false)} /></Suspense>}
         <ProjectCards workspace={workspace} />
         {projects.some((p) => p.status === 'Archived') && (
           <details className="flat-card settings-section">
@@ -120,14 +120,16 @@ export default function Projects({ progressSection = false }: { progressSection?
           <button className="btn-secondary" onClick={() => setEditing(true)}><Pencil size={14} />Edit project</button>
         </div>}
       </header>
-      {editing && <ProjectEditor key={project.id} project={project} onClose={() => setEditing(false)} />}
+      {editing && <Suspense fallback={null}><ProjectEditor key={project.id} project={project} onClose={() => setEditing(false)} /></Suspense>}
       {view === 'board' ? (
         <>
-          <div className="project-table-toolbar">{toolbar}{actions}</div>
-          <ProjectBoard tasks={filtered} projectId={id} />
+          <Suspense fallback={<p role="status">Loading board…</p>}>
+            <div className="project-table-toolbar">{toolbar}{actions}</div>
+            <ProjectBoard tasks={filtered} projectId={id} />
+          </Suspense>
         </>
       ) : (
-        <TaskTable tasks={filtered} mobile={mobile} toolbar={toolbar} actions={actions} />
+        <Suspense fallback={<p role="status">Loading tasks…</p>}><TaskTable tasks={filtered} mobile={mobile} toolbar={toolbar} actions={actions} /></Suspense>
       )}
       {filtered.length === 0 && (
         <p className="quiet-empty">No tasks match these filters.</p>

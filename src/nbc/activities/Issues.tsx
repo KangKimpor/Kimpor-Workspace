@@ -5,7 +5,7 @@ import { TaskTable } from '@/components/TaskTable'
 import { Search } from 'lucide-react'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { useWorkspace } from '@/data'
-import { useMediaQuery } from '@/motion/hooks'
+import { useMediaQuery } from '@/lib/media'
 import { handlers } from '../types'
 import type { NbcActivity } from '../types'
 

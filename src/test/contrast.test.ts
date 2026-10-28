@@ -85,6 +85,10 @@ describe.each([
     for (const c of palette) expect(pair(t, '--text-primary', `--chip-${c}`), c).toBeGreaterThanOrEqual(4.5)
   })
 
+  it('success text on green chips passes 4.5:1', () => {
+    expect(pair(t, '--success-text', '--chip-green')).toBeGreaterThanOrEqual(4.5)
+  })
+
   it('white label on the accent fill passes 4.5:1', () => {
     expect(ratio([255, 255, 255, 1], parse(t['--accent-fill']!, t))).toBeGreaterThanOrEqual(4.5)
   })
