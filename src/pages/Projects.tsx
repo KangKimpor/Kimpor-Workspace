@@ -25,6 +25,11 @@ export default function Projects({ progressSection = false }: { progressSection?
   const workspace = params.get('workspace') === 'team' ? 'team' : 'personal'
   const [query, setQuery] = useState('')
   const [priority, setPriority] = useState('All priorities')
+  const [contentReady, setContentReady] = useState(false)
+  useEffect(() => {
+    let frame = requestAnimationFrame(() => { frame = requestAnimationFrame(() => setContentReady(true)) })
+    return () => cancelAnimationFrame(frame)
+  }, [])
   const scope = useWorkspace((s) => s.scope)
   const projectId = project?.id, projectWorkspace = project?.workspace
   useEffect(() => {
@@ -121,7 +126,7 @@ export default function Projects({ progressSection = false }: { progressSection?
         </div>}
       </header>
       {editing && <Suspense fallback={null}><ProjectEditor key={project.id} project={project} onClose={() => setEditing(false)} /></Suspense>}
-      {view === 'board' ? (
+      {!contentReady ? <p role="status">Loading tasks…</p> : view === 'board' ? (
         <>
           <Suspense fallback={<p role="status">Loading board…</p>}>
             <div className="project-table-toolbar">{toolbar}{actions}</div>
