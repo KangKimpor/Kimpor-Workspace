@@ -40,7 +40,7 @@ for (const width of [1280, 820, 393]) for (const theme of ['light', 'dark'] as c
         await page.getByRole('button', { name: 'Floor', exact: true }).click()
         await expect(page.getByRole('region', { name: 'Floor / location' })).toBeVisible()
       }
-      if (view === 'activities') await expect(page.getByRole('region', { name: 'Completion distribution' })).toContainText('35.00%')
+      if (view === 'activities') await expect(page.locator('.nbc-table-footer')).toContainText('Weighted completion: 35.00%')
       if (view === 'issues') {
         await expect(page.getByRole('link', { name: 'Board', exact: true })).toHaveCount(0)
         await expect(page.getByText('No issues yet', { exact: true })).toBeVisible()
