@@ -32,7 +32,8 @@ async function exportFile(page: Page) {
   const download = page.waitForEvent('download')
   await page.getByRole('dialog').getByRole('button', { name: 'Export XLSX', exact: true }).click()
   const file = await download
-  return { name: file.suggestedFilename(), bytes: readFileSync((await file.path())!) }
+  // Linux WebKit replaces spaces with underscores in suggested download names.
+  return { name: file.suggestedFilename().replaceAll('_', ' '), bytes: readFileSync((await file.path())!) }
 }
 function value(xml: string, address: string) {
   const cell = xml.match(new RegExp(`<c\\b[^>]*r="${address}"[^>]*>([\\s\\S]*?)</c>`))?.[1]
