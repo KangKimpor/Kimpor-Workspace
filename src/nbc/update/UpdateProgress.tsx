@@ -1,5 +1,6 @@
 import './update.css'
 import { useState } from 'react'
+import { Maximize2, Minimize2 } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { useWorkspace } from '@/data'
 import { summarize } from '../progress'
@@ -15,11 +16,12 @@ interface Props { projectId: string; activities: NbcActivity[]; submissions: Nbc
 
 function UpdateScreen({ projectId, activities, submissions, handler, onChange }: Props & { handler: Handler; onChange: () => void }) {
   const scope = useWorkspace((s) => s.scope), now = useNow()
+  const [expanded, setExpanded] = useState(false)
   const week = weekStart()
   const selected = submissions.find((s) => s.id === submissionId(projectId, week, handler))
   const assigned = summarize(activities.filter((a) => canUpdate(a, handler)))
   const deadline = deadlineNote(week, now)
-  return <section className="nbc-update" aria-label="Weekly progress update">
+  return <section className="nbc-update" data-expanded={expanded} aria-label="Weekly progress update">
     <header className="nbc-update-head">
       <div><h2>Update Progress</h2>
         <p className="small muted">{handler} · {weekLabel(week)} · {assigned.count} items · {percent(assigned.progress, 1)} complete</p></div>
@@ -28,6 +30,10 @@ function UpdateScreen({ projectId, activities, submissions, handler, onChange }:
           ? <span className="nbc-deadline" data-tone={selected.late ? 'late' : 'ok'}>{selected.late ? 'Late' : 'On time'}</span>
           : <span className="nbc-deadline" data-tone={deadline.tone}>{deadline.text}</span>}
         <button className="nbc-chip nbc-change-handler" aria-label={`Change handler, currently ${handler}`} onClick={onChange}>Change Handler</button>
+        <button className="nbc-chip nbc-expand-editor" aria-pressed={expanded} onClick={() => setExpanded(!expanded)}>
+          {expanded ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}
+          {expanded ? 'Collapse editor' : 'Expand editor'}
+        </button>
       </div>
     </header>
     <UpdateEditor key={`${scope}:${week}:${handler}:${selected?.status ?? 'new'}:${activities[0]?.baselineResetAt ?? ''}`} projectId={projectId} week={week} handler={handler} activities={activities} submission={selected} pastDeadline={deadline.late}/>

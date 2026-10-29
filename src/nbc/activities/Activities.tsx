@@ -2,7 +2,7 @@ import './activities.css'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, NavLink, useSearchParams } from 'react-router-dom'
-import { ChevronsDown, ChevronsUp, Columns3, Search, X } from 'lucide-react'
+import { ChevronsDown, ChevronsUp, Columns3, Maximize2, Minimize2, Search, X } from 'lucide-react'
 import { GlassPopover } from '@/components/glass/GlassPopover'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { useWorkspace } from '@/data'
@@ -97,9 +97,10 @@ function ActivityTable({ projectId, activities, baseline }: { projectId: string;
 }
 
 export default function Activities({ projectId, activities, baseline, view }: { projectId: string; activities: NbcActivity[]; baseline: Map<string, number>; view: 'activities' | 'issues' }) {
+  const [expanded, setExpanded] = useState(false)
   const base = `/projects-progress/${projectId}`
   const switcher: ReactNode = <nav className="nbc-views" aria-label="Activity views"><NavLink className="nbc-view" end to={`${base}/activities`}>Table</NavLink><NavLink className="nbc-view" to={`${base}/issues`}>Issues</NavLink></nav>
-  return <div className="nbc-activities-page">
-    {view === 'activities' ? <><div className="nbc-activity-band">{switcher}</div><ActivityTable projectId={projectId} activities={activities} baseline={baseline}/></> : <Issues projectId={projectId} activities={activities} switcher={switcher}/>}
+  return <div className="nbc-activities-page" data-expanded={expanded && view === 'activities'}>
+    {view === 'activities' ? <><div className="nbc-activity-band">{switcher}<button className="nbc-chip nbc-expand-editor" aria-pressed={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}{expanded ? 'Collapse editor' : 'Expand editor'}</button></div><ActivityTable projectId={projectId} activities={activities} baseline={baseline}/></> : <Issues projectId={projectId} activities={activities} switcher={switcher}/>}
   </div>
 }

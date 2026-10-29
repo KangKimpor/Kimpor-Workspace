@@ -146,17 +146,17 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
     >
       <div className="row-between">
         <Tile name={project.icon || project.id} color={project.color} />
-        <span className="project-percent">
+        {project.nbcBp03 && <span className="project-percent">
           {Math.round(project.progress * 100)}%
-        </span>
+        </span>}
       </div>
       <div>
         <h3>{project.name}</h3>
         <p>{project.description}</p>
       </div>
-      <div className="progress-track">
+      {project.nbcBp03 && <div className="progress-track">
         <span style={{ width: `${project.progress * 100}%` }} />
-      </div>
+      </div>}
       <div className="row-between muted small">
         <span className="inline">
           <Flag size={13} /> Due {formatDate(project.target)}

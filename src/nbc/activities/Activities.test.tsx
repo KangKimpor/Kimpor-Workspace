@@ -16,6 +16,17 @@ function setup(query = '', view: 'activities' | 'issues' = 'activities') {
 }
 const wbsOrder = () => [...document.querySelectorAll('tbody tr[data-wbs]')].map((r) => r.getAttribute('data-wbs'))
 
+test('expanding Project Progress preserves the search and filtered rows', () => {
+  setup()
+  fireEvent.change(screen.getByLabelText('Search activities'), { target: { value: 'Install' } })
+  const rows = wbsOrder()
+  fireEvent.click(screen.getByRole('button', { name: 'Expand editor' }))
+  expect(document.querySelector('.nbc-activities-page')).toHaveAttribute('data-expanded', 'true')
+  expect(wbsOrder()).toEqual(rows)
+  fireEvent.click(screen.getByRole('button', { name: 'Collapse editor' }))
+  expect(screen.getByLabelText('Search activities')).toHaveValue('Install')
+})
+
 test('a handler filter keeps only that handler leaves with their ancestor groups', () => {
   setup('?handler=Tola')
   expect(wbsOrder()).toEqual(['1.6.1', '1.6.1.2'])

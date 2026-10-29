@@ -151,7 +151,8 @@ export const useWorkspace = create<Workspace>((set, get) => {
     },
     emptyTrash: () => {
       const taskIds = new Set(get().tasks.filter((task) => task.deletedAt).map((task) => task.id))
-      const pageIds = new Set(get().pages.filter((page) => page.deletedAt || get().tasks.some((task) => taskIds.has(task.id) && task.pageId === page.id)).map((page) => page.id))
+      const taskPageIds = new Set(get().tasks.filter((task) => taskIds.has(task.id)).map((task) => task.pageId))
+      const pageIds = new Set(get().pages.filter((page) => page.deletedAt || taskPageIds.has(page.id)).map((page) => page.id))
       const now = new Date().toISOString()
       commit({
         pages: get().pages.filter((page) => !pageIds.has(page.id)).map((page) => page.parentId && pageIds.has(page.parentId) ? { ...page, parentId: null, updatedAt: now } : page),

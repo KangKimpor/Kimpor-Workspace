@@ -995,16 +995,6 @@ summary {
   color: var(--text-primary);
   text-decoration: none;
 }
-.trash-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-16);
-  padding: var(--space-16);
-  margin-bottom: var(--space-8);
-}
-.trash-row strong {
-  flex: 1;
-}
 .settings-section {
   margin-top: var(--space-32);
   padding-block: var(--space-24);

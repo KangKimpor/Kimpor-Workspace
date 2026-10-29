@@ -10,9 +10,9 @@ const THEME_COLOR: Record<ResolvedTheme, string> = { light: '#ffffff', dark: '#1
 function readPref(): ThemePref {
   try {
     const v = localStorage.getItem(KEY)
-    return v === 'light' || v === 'dark' ? v : 'system'
+    return v === 'system' || v === 'dark' ? v : 'light'
   } catch {
-    return 'system'
+    return 'light'
   }
 }
 

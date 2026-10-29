@@ -18,6 +18,20 @@ function Screen({ handler = 'Tola' }: { handler?: string | null }) {
 const wbsOrder = () => [...document.querySelectorAll('tbody tr[data-wbs]')].map((r) => r.getAttribute('data-wbs'))
 const value = (wbs: string) => screen.getByLabelText(`This week % for ${wbs}`) as HTMLInputElement
 
+test('expanding and collapsing the editor preserves typed progress and remarks', () => {
+  render(<Screen/>)
+  fireEvent.change(value('1.6.1.2'), { target: { value: '45' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Add remark for 1.6.1.2' }))
+  fireEvent.change(screen.getByLabelText('Remark for 1.6.1.2'), { target: { value: 'Inspection rework' } })
+  const editor = screen.getByRole('region', { name: 'Weekly progress update' })
+  fireEvent.click(screen.getByRole('button', { name: 'Expand editor' }))
+  expect(editor).toHaveAttribute('data-expanded', 'true')
+  expect(value('1.6.1.2')).toHaveValue('45')
+  fireEvent.click(screen.getByRole('button', { name: 'Collapse editor' }))
+  expect(editor).toHaveAttribute('data-expanded', 'false')
+  expect(screen.getByLabelText('Remark for 1.6.1.2')).toHaveValue('Inspection rework')
+})
+
 test('shows the handler leaves under their ancestor groups, then shared GR&P once', () => {
   render(<Screen/>)
   expect(wbsOrder()).toEqual(['1.6.1', '1.6.1.2', 'GR&P'])

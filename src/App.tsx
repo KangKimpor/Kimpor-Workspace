@@ -11,9 +11,7 @@ const Projects = lazy(() => import('@/pages/Projects'))
 const Tasks = lazy(() => import('@/pages/Tasks'))
 const Calendar = lazy(() => import('@/pages/Calendar'))
 const PageEditor = lazy(() => import('@/pages/PageEditor'))
-const Trash = lazy(() =>
-  import('@/pages/PageEditor').then((m) => ({ default: m.Trash })),
-)
+const Trash = lazy(() => import('@/pages/Trash'))
 const Settings = lazy(() => import('@/pages/Settings'))
 
 function WorkspaceStart() {

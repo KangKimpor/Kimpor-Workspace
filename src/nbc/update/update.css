@@ -1,5 +1,10 @@
 /* Update Progress: Apple-style polish on the workspace tokens (light and dark follow the theme). */
-.nbc-update { display: flex; flex-direction: column; gap: var(--space-12); height: calc(100dvh - 170px - var(--safe-top)); min-height: 24rem; }
+.nbc-project:has(.nbc-update:not(.nbc-update-gate)) { height: calc(100dvh - var(--h-topbar) - var(--safe-top)); padding: 20px 24px; gap: 16px; }
+.canvas:has(.nbc-update:not(.nbc-update-gate)) { padding-bottom: 0; }
+.nbc-update { display: flex; flex: 1; flex-direction: column; gap: var(--space-12); min-height: 0; }
+.nbc-update > :not(.nbc-wbs-scroll) { flex-shrink: 0; }
+.nbc-update[data-expanded=true] .nbc-update-bar { bottom: 0; }
+.nbc-update[data-expanded=true] .nbc-sheet { bottom: calc(88px + var(--safe-bottom)); }
 .nbc-update > .nbc-wbs-scroll { flex: 1 1 auto; min-height: 8rem; }
 .nbc-update-gate { height: auto; min-height: 0; }
 .nbc-update-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-16); flex-wrap: wrap; margin-bottom: var(--space-4); }
@@ -44,7 +49,7 @@
 .nbc-update .nbc-wbs tr[data-changed=true] td { background: color-mix(in srgb, var(--accent) 7%, var(--bg-raised)); }
 .nbc-update .nbc-wbs tr[data-problem=true] td { background: color-mix(in srgb, var(--danger-text) 10%, var(--bg-raised)); }
 .nbc-cell { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-8); }
-.nbc-cell input { width: 7ch; text-align: end; border: 0; background: var(--status-neutral-bg); color: var(--text-primary); border-radius: 9px; padding: 6px 8px; min-height: 32px; font: inherit; font-weight: 500; font-variant-numeric: tabular-nums; transition: box-shadow .15s, background .15s; }
+.nbc-cell input { width: calc(8ch + 16px); text-align: end; border: 0; background: var(--status-neutral-bg); color: var(--text-primary); border-radius: 9px; padding: 6px 8px; min-height: 32px; font: inherit; font-weight: 500; font-variant-numeric: tabular-nums; transition: box-shadow .15s, background .15s; }
 .nbc-cell input:focus { outline: 0; background: var(--bg-canvas); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 28%, transparent), 0 0 0 1.5px var(--accent); }
 .nbc-cell input[aria-invalid=true] { background: var(--bg-canvas); box-shadow: 0 0 0 1.5px var(--danger-text); }
 .nbc-unit { color: var(--text-secondary); font-size: var(--fs-small); }
@@ -66,13 +71,17 @@
 .nbc-delete p { margin: 0; }
 
 /* Action bar */
-.nbc-update-bar { display: flex; align-items: center; gap: var(--space-12); flex-wrap: wrap; position: sticky; bottom: 12px; margin-top: auto; padding: 10px 12px 10px 20px; font-size: 14px; background: color-mix(in srgb, var(--bg-sidebar) 78%, transparent); backdrop-filter: blur(24px) saturate(180%); border-radius: 22px; box-shadow: 0 12px 40px rgb(0 0 0 / .14), 0 0 0 .5px var(--border-strong); z-index: 5; }
+.nbc-update-bar { display: flex; align-items: center; gap: var(--space-12); flex-wrap: wrap; position: sticky; bottom: 12px; margin-top: auto; padding: 12px 14px 12px 18px; font-size: 13px; background: color-mix(in srgb, var(--bg-raised) 92%, transparent); backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--border-subtle); border-radius: 18px; box-shadow: 0 6px 24px rgb(0 0 0 / .06); z-index: 5; }
 .nbc-spacer { flex: 1; }
 .nbc-status { display: inline-flex; align-items: center; gap: var(--space-6); font-size: 13px; color: var(--text-secondary); }
-.nbc-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--success-text); }
-.nbc-status[data-status=saving] i, .nbc-status[data-status=local] i { background: var(--status-warning); }
-.nbc-status[data-status=error] i { background: var(--danger-text); }
-.nbc-update-bar > strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+.nbc-status > svg { flex: none; color: var(--success-text); }
+.nbc-status[data-status=saving] > svg, .nbc-status[data-status=local] > svg { color: var(--text-secondary); }
+.nbc-status[data-status=error] > svg { color: var(--danger-text); }
+.nbc-update-metrics { display: flex; align-items: center; gap: 10px; padding-left: 14px; border-left: 1px solid var(--border-subtle); font-size: 13px; font-variant-numeric: tabular-nums; }
+.nbc-update-metrics > span:first-child { font-weight: 500; }
+.nbc-contribution { padding: 5px 9px; border-radius: 8px; background: var(--status-success-bg); color: var(--success-text); font-weight: 600; }
+.nbc-contribution[data-dir=down] { background: var(--status-danger-bg); color: var(--danger-text); }
+.nbc-contribution > span { font-weight: 400; }
 .nbc-problems { color: var(--danger-text); font-size: 13px; }
 .nbc-update-bar .btn-accent, .nbc-update-bar .btn-secondary, .nbc-sheet .btn-accent, .nbc-sheet .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: var(--radius-pill); padding: 9px 20px; font-weight: 600; transition: transform .12s, filter .2s; }
 .nbc-update-bar .btn-accent:active:not(:disabled), .nbc-sheet .btn-accent:active:not(:disabled) { transform: scale(.97); }
@@ -108,15 +117,25 @@
 @media (prefers-reduced-motion: reduce) { .nbc-sheet, .nbc-gate-list button, .nbc-seg button, .nbc-cell input { animation: none; transition: none; } }
 
 @media (max-width: 767px) {
-  .nbc-update { height: calc(100dvh - 220px - var(--safe-top) - var(--safe-bottom)); min-height: 0; }
+  .nbc-project:has(.nbc-update:not(.nbc-update-gate)) { padding: 12px 16px; gap: 12px; }
+  .shell[data-bp=compact] .nbc-project:has(.nbc-update:not(.nbc-update-gate)) { height: calc(100dvh - 48px - var(--safe-top) - var(--h-tabbar) - var(--safe-bottom)); }
+  .shell[data-bp=compact] .nbc-project:has(.nbc-update[data-expanded=true]) { height: calc(100dvh - 48px - var(--safe-top)); padding-bottom: max(12px, var(--safe-bottom)); }
+  .nbc-expand-editor { min-height: 44px; }
+  .nbc-update-controls .nbc-deadline { width: 100%; padding-inline: 0; background: transparent; }
   .nbc-update-gate { height: auto; }
-  .nbc-update-head h2 { font-size: 28px; line-height: 34px; }
+  .nbc-project:has(.nbc-update:not(.nbc-update-gate)) > .nbc-project-header { display: none; }
+  .nbc-update-head { gap: 8px; margin-bottom: 0; }
+  .nbc-update-head h2 { font-size: 24px; line-height: 30px; }
+  .nbc-update-head p { margin: 4px 0 0; }
   .nbc-update-controls { width: 100%; justify-content: space-between; }
   .nbc-gate h2 { font-size: 32px; line-height: 38px; }
   .nbc-gate-list { grid-template-columns: 1fr; }
   .nbc-update-bar { gap: 8px; padding: 8px 8px 8px 14px; bottom: calc(var(--h-tabbar) + var(--safe-bottom) + 8px); }
   .nbc-update-bar .nbc-spacer { display: none; }
   .nbc-update-bar > .btn-accent { margin-left: auto; }
+  .nbc-update-bar .nbc-status { flex-basis: 100%; }
+  .nbc-update-metrics { border: 0; padding-left: 0; gap: 6px; font-size: 12px; }
+  .nbc-contribution { padding: 4px 6px; }
   .nbc-sheet { right: 16px; bottom: calc(var(--h-tabbar) + var(--safe-bottom) + 76px); }
   /* One rounded card per activity instead of a table. */
   .nbc-update .nbc-wbs-scroll { background: transparent; box-shadow: none; }

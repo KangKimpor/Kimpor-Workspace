@@ -78,30 +78,28 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
         </ul>
 
-        {(['team', 'personal'] as const).map((workspace) => (
-          <div className="nav-section" key={workspace}>
-            <div className="t-caption">{workspace === 'team' ? 'Team Workspace' : 'Personal Workspace'}</div>
-            <ul className="nav-list">
-              <Item to={`/projects?workspace=${workspace}`} end icon={<FolderKanban {...ic} />} label={workspace === 'team' ? 'Team projects' : 'Personal projects'} meta={<ChevronDown size={13} />}>
-                <ul className="nav-list nav-projects" aria-label={workspace === 'team' ? 'Team projects' : 'Personal projects'}>
-                  {projects.filter((p) => !p.nbcBp03 && (p.workspace ?? 'personal') === workspace).map((p) => (
-                    <li key={p.id}><NavLink to={`/projects/${p.id}/table`} className="nav-item">
-                      <span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span>
-                      <span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span>
-                    </NavLink></li>
-                  ))}
-                </ul>
-              </Item>
-            </ul>
-          </div>
-        ))}
+        <div className="nav-section">
+          <div className="t-caption">Personal Workspace</div>
+          <ul className="nav-list">
+            <Item to="/projects?workspace=personal" end icon={<FolderKanban {...ic} />} label="Personal projects" meta={<ChevronDown size={13} />}>
+              <ul className="nav-list nav-projects" aria-label="Personal projects">
+                {projects.filter((p) => !p.nbcBp03 && (p.workspace ?? 'personal') === 'personal').map((p) => (
+                  <li key={p.id}><NavLink to={`/projects/${p.id}/table`} className="nav-item">
+                    <span className="nav-icon"><Tile name={p.icon || p.id} color={p.color} /></span>
+                    <span className="nav-label">{p.name}</span>
+                  </NavLink></li>
+                ))}
+              </ul>
+            </Item>
+          </ul>
+        </div>
         <div className="nav-section">
           <div className="t-caption"><NavLink to="/projects-progress" end>Projects Progress</NavLink></div>
           <ul className="nav-list nav-projects nav-progress" aria-label="Progress projects">
             {projects.filter((p) => p.nbcBp03).map((p) => <li key={p.id} data-current={pathname.startsWith(`/projects-progress/${p.id}/`)}>
               <NavLink to={`/projects-progress/${p.id}/overview`} className="nav-item"><span className="nav-label">{p.name}</span><span className="nav-meta">{Math.round(p.progress * 100)}%</span></NavLink>
               <ul className="nav-list nav-project-views" aria-label={`${p.name} views`}>
-                <li><NavLink to={`/projects-progress/${p.id}/activities`} className="nav-item"><span className="nav-label">Progress</span></NavLink></li>
+                <li><NavLink to={`/projects-progress/${p.id}/activities`} className="nav-item"><span className="nav-label">Project Progress</span></NavLink></li>
                 <li><NavLink to={`/projects-progress/${p.id}/update`} className="nav-item" aria-label={`${p.name} Update Progress`}><span className="nav-label">Update Progress</span></NavLink></li>
               </ul>
             </li>)}

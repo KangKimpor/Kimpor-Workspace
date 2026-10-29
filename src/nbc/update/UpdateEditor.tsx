@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, CircleAlert, CloudUpload, LoaderCircle } from 'lucide-react'
 import { MoreMenu } from '../ui/MoreMenu'
 import { WbsTable } from '../ui/WbsTable'
 import { buildWbsRows } from '../wbs-table'
 import { calculate } from '../progress'
 import { canUpdate, weekLabel } from '../submissions'
-import { confirmationTime, delta, percent } from '../format'
+import { confirmationTime, percent } from '../format'
 import type { Handler, NbcActivity, NbcSubmission } from '../types'
 import { ConfirmSheet } from './ConfirmSheet'
 import { useUpdateDraft } from './useUpdateDraft'
@@ -27,6 +27,7 @@ interface Props { projectId: string; week: string; handler: Handler; activities:
 export function UpdateEditor({ projectId, week, handler, activities, submission, pastDeadline }: Props) {
   const draft = useUpdateDraft({ projectId, week, handler, activities, submission })
   const { confirmed, busy } = draft
+  const StatusIcon = draft.status === 'saving' ? LoaderCircle : draft.status === 'error' ? CircleAlert : draft.status === 'local' ? CloudUpload : CheckCircle2
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set()), [filter, setFilter] = useState<Filter>(confirmed ? 'chg' : 'need')
   const [focusId, setFocusId] = useState(''), [sheet, setSheet] = useState(false), [tried, setTried] = useState(false)
   const [remarkOpen, setRemarkOpen] = useState<ReadonlySet<string>>(new Set()), [jump, setJump] = useState<{ id: string; kind: 'value' | 'remark' } | null>(null)
@@ -104,10 +105,10 @@ export function UpdateEditor({ projectId, week, handler, activities, submission,
           }}/>}
     {confirmed && submission?.note && <p className="nbc-note small">{submission.note}</p>}
     <div className="nbc-update-bar" role="group" aria-label="Update actions">{confirmed
-      ? <><span role="status" className="nbc-status" data-status="saved"><i aria-hidden="true"/>Confirmed {confirmationTime(submission!.confirmedAt!)} · {draft.changed.length} changed</span>
+      ? <><span role="status" className="nbc-status" data-status="saved"><CheckCircle2 size={18} aria-hidden="true" />Confirmed {confirmationTime(submission!.confirmedAt!)} · {draft.changed.length} changed</span>
           <span className="nbc-spacer"/><button className="btn-accent" disabled={busy} onClick={() => void draft.edit()}>Edit</button><MoreMenu label="Update actions"><DeleteUpdate busy={busy} onDelete={() => void draft.remove()}/></MoreMenu></>
-      : <><span role="status" className="nbc-status" data-status={draft.status}><i aria-hidden="true"/>{STATUS_TEXT[draft.status]}</span>
-          <strong>{draft.changed.length} changed · {delta(draft.contribution)}%</strong>
+      : <><span role="status" className="nbc-status" data-status={draft.status}><StatusIcon size={18} aria-hidden="true" />{STATUS_TEXT[draft.status]}</span>
+          <div className="nbc-update-metrics"><span>{draft.changed.length} changed</span><span className="nbc-contribution" data-dir={draft.contribution < 0 ? 'down' : 'up'}>{draft.contribution > 0 ? '+' : ''}{(draft.contribution * 100).toFixed(2)}% <span>overall</span></span></div>
           {tried && problems.size > 0 && <span className="nbc-problems">{problems.size} to fix · <button className="text-link" onClick={focusFirstProblem}>Jump to first</button></span>}
           <span className="nbc-spacer"/>
           <button className="btn-accent" disabled={busy} aria-haspopup="dialog" onClick={start}><CheckCircle2 size={15} aria-hidden="true"/>{draft.changed.length ? 'Confirm update' : 'Confirm, no changes'}</button></>}</div>
