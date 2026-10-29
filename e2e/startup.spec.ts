@@ -5,11 +5,16 @@ test.use({ serviceWorkers: 'block', viewport: { width: 393, height: 852 } })
 
 for (const route of ['/', '/projects-progress/nbc-bp03/activities', '/p/private-page']) {
   test(`sign-in is required at ${route} and local work is preserved`, async ({ page }) => {
+    const workspaceRequests: string[] = []
+    page.on('request', (request) => {
+      if (/\/assets\/(AppShell|Projects)-.*\.js/.test(request.url())) workspaceRequests.push(request.url())
+    })
     const local = JSON.stringify({ pages: [{ id: 'private-page', title: 'Private local note' }] })
     await page.addInitScript((local) => localStorage.setItem('kw-workspace-v1', local), local)
     await page.goto(route)
     await expect(page.getByRole('heading', { name: 'Welcome', exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeEnabled()
+    expect(workspaceRequests).toEqual([])
     await expect(page.getByText('Private local note', { exact: true })).toHaveCount(0)
     await expect(page.getByRole('navigation', { name: 'Main navigation' })).toHaveCount(0)
     expect(await page.evaluate(() => localStorage.getItem('kw-workspace-v1'))).toBe(local)
