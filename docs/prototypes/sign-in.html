@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Sign in · SingBuild Workspace</title>
+  <link rel="icon" href="../../public/brand/favicon.svg">
+  <style>
+    @font-face { font-family: Inter; src: url('../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    :root { color-scheme: light; --canvas: #fff; --aside: #f7f7f5; --text: #37352f; --muted: #73716a; --border: #e8e7e3; --hover: #f0efec; --input: #fff; --blue: #2563eb; }
+    html[data-theme=dark] { color-scheme: dark; --canvas: #191919; --aside: #202020; --text: #e6e6e6; --muted: #aaa8a2; --border: #363634; --hover: #2b2b29; --input: #202020; --blue: #8ab4f8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; color: var(--text); background: var(--canvas); font-size: 14px; -webkit-font-smoothing: antialiased; }
+    button, input { font: inherit; }
+    button { cursor: pointer; color: inherit; touch-action: manipulation; }
+    button:disabled { cursor: default; }
+    button, input, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+    [hidden] { display: none !important; }
+    svg { display: block; flex-shrink: 0; }
+    .page { min-height: 100svh; display: block; }
+    .auth-side { min-height: 100svh; display: grid; grid-template-rows: 1fr auto 1fr; min-width: 0; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; font-size: 17px; font-weight: 650; letter-spacing: -.5px; }
+    .brand img { width: 30px; height: 30px; }
+    .brand small { display: block; margin-top: 3px; font-size: 10px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .top { align-self: start; padding: 34px 42px; display: flex; align-items: center; justify-content: space-between; }
+    .theme { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 8px; background: transparent; display: grid; place-items: center; }
+    .theme:hover { background: var(--hover); }
+    .form-wrap { width: min(372px, calc(100% - 48px)); margin: 0 auto; padding: 36px 0 50px; }
+    h1 { margin: 0 0 10px; font-size: 31px; line-height: 1.22; letter-spacing: -1.15px; font-weight: 650; }
+    #form-view:has(#intro[hidden]) h1 { margin-bottom: 28px; }
+    .intro { color: var(--muted); margin: 0 0 29px; line-height: 1.65; font-size: 13px; }
+    .google { width: 100%; min-height: 44px; display: flex; justify-content: center; align-items: center; gap: 11px; border: 1px solid var(--border); border-radius: 7px; background: var(--canvas); font-weight: 550; font-size: 13px; }
+    .google:hover { background: var(--aside); }
+    .divider { display: flex; align-items: center; gap: 13px; color: var(--muted); font-size: 11px; margin: 23px 0; }
+    .divider::before, .divider::after { content: ''; height: 1px; background: var(--border); flex: 1; }
+    form { display: grid; gap: 18px; }
+    .field { display: grid; gap: 8px; }
+    label, .label-row { font-size: 12px; font-weight: 550; }
+    .label-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    input { width: 100%; height: 44px; border: 1px solid var(--border); border-radius: 7px; padding: 0 13px; background: var(--input); color: var(--text); font-size: 13px; min-width: 0; }
+    input::placeholder { color: var(--muted); opacity: .8; }
+    input:focus { border-color: var(--blue); outline: 3px solid color-mix(in srgb, var(--blue) 14%, transparent); outline-offset: 0; }
+    .text-button { padding: 0; border: 0; background: transparent; color: var(--blue); font-size: 12px; font-weight: 550; }
+    .text-button:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .password { position: relative; }
+    .password input { padding-right: 43px; }
+    .reveal { position: absolute; inset: 4px 4px 4px auto; width: 36px; border: 0; border-radius: 4px; display: grid; place-items: center; background: transparent; color: var(--muted); }
+    .reveal:hover { background: var(--hover); }
+    .hint { margin: 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+    .primary { width: 100%; min-height: 44px; border-radius: 7px; border: 1px solid transparent; background: #2563eb; color: white; font-size: 13px; font-weight: 550; display: flex; justify-content: center; align-items: center; gap: 9px; margin-top: 4px; }
+    .primary:hover { background: #1d4ed8; }
+    .switch { text-align: center; margin: 24px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .switch .text-button { margin-left: 4px; }
+    .back { margin-top: 24px; display: flex; gap: 7px; align-items: center; justify-content: center; width: 100%; }
+    .bottom { align-self: end; padding: 0 28px 25px; display: flex; justify-content: center; align-items: center; gap: 7px; font-size: 10px; line-height: 1.5; color: var(--muted); text-align: center; }
+    .bottom svg { width: 12px; height: 12px; }
+    .message-icon { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid var(--border); border-radius: 12px; background: var(--aside); color: var(--blue); margin-bottom: 24px; }
+    .email-target { color: var(--text); font-weight: 550; overflow-wrap: anywhere; }
+    .notice { margin: 20px 0 0; border: 1px solid var(--border); background: var(--aside); border-radius: 7px; padding: 12px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+    @media (max-width: 760px) { .top { padding: 25px; } .brand { font-size: 16px; } .brand small { font-size: 9px; } .brand img { width: 28px; height: 28px; } .form-wrap { width: min(360px, calc(100% - 48px)); } }
+    @media (max-width: 360px) { .form-wrap { width: calc(100% - 40px); } .top { padding-inline: 20px; } h1 { font-size: 28px; } }
+    @media (prefers-reduced-motion: no-preference) { .form-wrap { animation: enter .25s ease-out; } @keyframes enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } } }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+    <symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+    <symbol id="mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/></symbol>
+    <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  </defs></svg>
+  <div class="page">
+    <div class="auth-side">
+      <header class="top">
+        <div class="brand"><img src="../../public/brand/favicon.svg" alt=""><span>SingBuild<small>Workspace</small></span></div>
+        <button class="theme" type="button" aria-label="Switch to dark mode" title="Change theme"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5"><use href="#sun"/></svg></button>
+      </header>
+      <main class="form-wrap" id="main">
+        <div id="form-view">
+          <h1 id="heading" tabindex="-1">Welcome</h1>
+          <p class="intro" id="intro" hidden></p>
+          <div id="social">
+            <button class="google" type="button" id="google">
+              <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285f4" d="M43.6 20.5H42V20H24v8h11.3A12 12 0 0 1 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8.1 3.1l5.7-5.7A20 20 0 0 0 4 24a20 20 0 0 0 40 0c0-1.2-.1-2.4-.4-3.5Z"/><path fill="#34a853" d="m6.3 33.8 6.6-5.1A12 12 0 0 0 24 36c3.1 0 5.9-1.2 8-3l6.2 5.2A20 20 0 0 1 6.3 33.8Z"/><path fill="#fbbc05" d="m4 24 2.3 9.8 6.6-5.1A12 12 0 0 1 12 24c0-1.8.4-3.5 1.1-5L6.5 14A20 20 0 0 0 4 24Z"/><path fill="#ea4335" d="M24 4A20 20 0 0 0 6.5 14l6.6 5A12 12 0 0 1 24 12c3.1 0 5.9 1.2 8.1 3.1l5.7-5.7A20 20 0 0 0 24 4Z"/></svg>
+              Continue with Google
+            </button>
+            <div class="divider">or continue with email</div>
+          </div>
+          <form id="auth-form">
+            <div class="field" id="name-field" hidden><label for="name">Full name</label><input id="name" name="name" autocomplete="name" placeholder="Your full name" maxlength="100" disabled></div>
+            <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required></div>
+            <div class="field" id="password-field">
+              <div class="label-row"><label for="password">Password</label><button class="text-button" type="button" id="forgot">Forgot password?</button></div>
+              <div class="password"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required><button class="reveal" type="button" aria-label="Show password" aria-pressed="false"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5"><use href="#eye"/></svg></button></div>
+              <p class="hint" id="password-hint" hidden>Use at least 12 characters.</p>
+            </div>
+            <button class="primary" id="submit"><span>Sign in</span><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><use href="#arrow"/></svg></button>
+          </form>
+          <p class="switch" id="switch"><span>New to SingBuild?</span><button class="text-button" type="button" id="switch-mode">Create an account</button></p>
+          <button class="text-button back" type="button" id="back" hidden>← Back to sign in</button>
+        </div>
+        <div id="message-view" hidden aria-live="polite">
+          <div class="message-icon"><svg width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><use id="message-symbol" href="#mail"/></svg></div>
+          <h1 id="message-heading" tabindex="-1">Check your inbox.</h1>
+          <p class="intro" id="message-copy"></p>
+          <p class="notice" id="message-note"></p>
+          <button class="primary" type="button" id="message-back" style="margin-top:25px">Back to sign in</button>
+        </div>
+      </main>
+      <footer class="bottom"><svg fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><use href="#lock"/></svg> Sign in to access your workspace.</footer>
+    </div>
+
+  </div>
+  <script>
+    const $ = (id) => document.getElementById(id)
+    let mode = 'signin'
+    const fields = { name: $('name'), email: $('email'), password: $('password') }
+    document.documentElement.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    const themeButton = document.querySelector('.theme')
+    function updateThemeLabel() { themeButton.setAttribute('aria-label', `Switch to ${document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'} mode`) }
+    updateThemeLabel()
+    themeButton.addEventListener('click', () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; updateThemeLabel() })
+    function changeMode(next, focus = true) {
+      mode = next
+      $('form-view').hidden = false
+      $('message-view').hidden = true
+      const signup = mode === 'signup', reset = mode === 'reset'
+      $('heading').textContent = reset ? 'Forgot your password?' : signup ? 'Make room for good work.' : 'Welcome'
+      $('intro').textContent = reset ? 'We’ll send you a link to reset your password.' : signup ? 'Create an account to get your workspace started.' : ''
+      $('intro').hidden = !signup && !reset
+      $('name-field').hidden = !signup
+      fields.name.disabled = !signup
+      fields.name.required = signup
+      $('password-field').hidden = reset
+      fields.password.disabled = reset
+      fields.password.required = !reset
+      fields.password.value = ''
+      fields.password.type = 'password'
+      fields.password.autocomplete = signup ? 'new-password' : 'current-password'
+      if (signup) fields.password.minLength = 12; else fields.password.removeAttribute('minlength')
+      fields.password.setAttribute('aria-describedby', signup ? 'password-hint' : '')
+      fields.password.placeholder = signup ? 'Create a password' : 'Enter your password'
+      document.querySelector('.reveal').setAttribute('aria-label', 'Show password')
+      document.querySelector('.reveal').setAttribute('aria-pressed', 'false')
+      $('password-hint').hidden = !signup
+      $('forgot').hidden = signup || reset
+      $('social').hidden = reset
+      $('switch').hidden = reset
+      $('back').hidden = !reset
+      $('submit').querySelector('span').textContent = reset ? 'Send reset link' : signup ? 'Create account' : 'Sign in'
+      $('switch').querySelector('span').textContent = signup ? 'Already have an account?' : 'New to SingBuild?'
+      $('switch-mode').textContent = signup ? 'Sign in' : 'Create an account'
+      document.title = `${reset ? 'Reset password' : signup ? 'Create account' : 'Sign in'} · SingBuild Workspace`
+      if (focus) $('heading').focus()
+    }
+    function message(title, copy, note, icon = 'mail') {
+      $('form-view').hidden = true
+      $('message-view').hidden = false
+      $('message-heading').textContent = title
+      $('message-copy').replaceChildren(...copy)
+      $('message-note').textContent = note
+      $('message-symbol').setAttribute('href', `#${icon}`)
+      fields.password.value = ''
+      $('message-heading').focus()
+    }
+    $('switch-mode').addEventListener('click', () => changeMode(mode === 'signup' ? 'signin' : 'signup'))
+    $('forgot').addEventListener('click', () => changeMode('reset'))
+    $('back').addEventListener('click', () => changeMode('signin'))
+    $('message-back').addEventListener('click', () => changeMode('signin'))
+    document.querySelector('.reveal').addEventListener('click', (event) => {
+      const visible = fields.password.type === 'password'
+      fields.password.type = visible ? 'text' : 'password'
+      event.currentTarget.setAttribute('aria-label', visible ? 'Hide password' : 'Show password')
+      event.currentTarget.setAttribute('aria-pressed', String(visible))
+    })
+    $('google').addEventListener('click', () => message('Continue with Google.', ['Choose your Google account to continue to SingBuild.'], 'In this preview, Google sign-in is simulated. No connection is made.', 'lock'))
+    $('auth-form').addEventListener('submit', (event) => {
+      event.preventDefault()
+      const email = document.createElement('span')
+      email.className = 'email-target'
+      email.textContent = fields.email.value
+      if (mode === 'signup') message('Check your inbox.', ['A confirmation link is on its way to ', email, '.'], 'Confirm your email to finish setting up your account. This preview does not send an email.')
+      else if (mode === 'reset') message('Check your inbox.', ['A password reset link is on its way to ', email, '.'], 'Follow the link to choose a new password. This preview does not send an email.')
+      else message('You’re ready to go.', ['Your workspace is ready.'], 'In the finished version, successful sign-in opens your workspace. This is a visual preview.', 'check')
+    })
+    changeMode('signin', false)
+  </script>
+</body>
+</html>
