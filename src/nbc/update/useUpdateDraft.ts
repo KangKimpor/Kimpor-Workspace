@@ -18,8 +18,9 @@ interface Args { projectId: string; week: string; handler: Handler; activities: 
 export function useUpdateDraft({ projectId, week, handler, activities, submission }: Args) {
   const scope = useWorkspace((s) => s.scope), sync = useWorkspace((s) => s.sync)
   const [initial] = useState(() => draftEntries(week, handler))
-  const [form, setForm] = useState<HandlerDraft>(() => (submission?.status !== 'confirmed' && readHandlerDraft(scope, projectId, week, handler)) || { values: Object.fromEntries(initial.map((e) => [e.activityId, { text: formatPercent(e.progress), remark: e.remark, baseRevision: e.baseRevision }])), note: submission?.note ?? '' })
-  const [dirty, setDirty] = useState(() => !!readHandlerDraft(scope, projectId, week, handler)), [error, setError] = useState(''), [busy, setBusy] = useState(false)
+  const resetAt = activities[0]?.baselineResetAt
+  const [form, setForm] = useState<HandlerDraft>(() => (submission?.status !== 'confirmed' && readHandlerDraft(scope, projectId, week, handler, resetAt)) || { values: Object.fromEntries(initial.map((e) => [e.activityId, { text: formatPercent(e.progress), remark: e.remark, baseRevision: e.baseRevision }])), note: submission?.note ?? '' })
+  const [dirty, setDirty] = useState(() => !!readHandlerDraft(scope, projectId, week, handler, resetAt)), [error, setError] = useState(''), [busy, setBusy] = useState(false)
   const [touched, setTouched] = useState<ReadonlySet<string>>(new Set())
   const confirmed = submission?.status === 'confirmed'
   const rows = draftEntries(week, handler)

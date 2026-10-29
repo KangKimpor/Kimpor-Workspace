@@ -1,5 +1,15 @@
 # NBC BP03 progress tracker
 
+## 29 October 2026 baseline and export update
+
+The user authorized a new reset from `NBC-BP03-Progress Tracking by BOQ.xlsx` (SHA-256 `ba26e882a57164851ff40a0b8d29ed80579b728ffba8123b681afa04a268713d`). The extraction reconciled 790 activities, 562 leaves, 228 parents and 42.023278891003885% overall. The pre-reset dataset, including four submissions and two summaries, is backed up privately in `.private/nbc-reset-20261029/database-before-reset.json`. A guarded transaction replaced the activity baseline/current values, assignments, remarks and history from the workbook and cleared its submissions/summaries/reports. Personal issue tasks were retained. This explicitly supersedes the older instruction below not to reset this dataset.
+
+The source XLSX is stored privately in `kw_nbc_templates`, readable through RLS by the same signed-in company users who can read BP03, with no anonymous access or client writes. Signed-in exports load it automatically; the local demo retains its device template picker. The XLSX stays out of Git and public build assets. When assignments match the source, exports preserve the handler rows and their individual formatting; reassigned handlers use the existing row rebuilding path.
+
+Client export dates cover Sunday–Saturday, using the Sunday immediately before the internal Monday submission key. For example, key `2026-10-19` exports `NBC-BP03-Progress Tracking by BOQ-(18 October to 24 October).xlsx`. Submission keys/deadlines remain unchanged. Partial confirmation is recorded inside the workbook rather than changing the requested filename.
+
+Every reset activity has `baselineResetAt`; the submission validator rejects entry revisions predating that reset. The editor ignores old local raw drafts and remounts on a baseline change, preventing old device edits from silently restoring pre-reset values. Fresh drafts continue through the existing autosave/confirmation flow.
+
 ## Current implementation
 
 NBC uses one submission per handler per Monday–Sunday week. The three project tabs are **Overview · Activities · Update Progress**; Past Updates is now part of Overview (handler rows expand to weekly history, and `/past` redirects to Overview). Activities and Update Progress share a WBS table that mirrors the source workbook (`WBS · Description · Previous week % · This week % · Remark`, indented by level from `1.6.1`). The layout and rationale are in `docs/NBC-BP03-UX-PLAN.md` and `docs/superpowers/specs/2026-10-27-nbc-progress-redesign-design.md`; the earlier Stitch exports remain only as historical references.

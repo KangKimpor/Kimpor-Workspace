@@ -30,7 +30,7 @@ function UpdateScreen({ projectId, activities, submissions, handler, onChange }:
         <button className="nbc-chip nbc-change-handler" aria-label={`Change handler, currently ${handler}`} onClick={onChange}>Change Handler</button>
       </div>
     </header>
-    <UpdateEditor key={`${scope}:${week}:${handler}:${selected?.status ?? 'new'}`} projectId={projectId} week={week} handler={handler} activities={activities} submission={selected} pastDeadline={deadline.late}/>
+    <UpdateEditor key={`${scope}:${week}:${handler}:${selected?.status ?? 'new'}:${activities[0]?.baselineResetAt ?? ''}`} projectId={projectId} week={week} handler={handler} activities={activities} submission={selected} pastDeadline={deadline.late}/>
   </section>
 }
 

@@ -1,6 +1,6 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { calculate } from '../progress'
-import { appliedEntries, submissionStatus, weekLabel, weekStart } from '../submissions'
+import { addDays, appliedEntries, submissionStatus, weekStart } from '../submissions'
 import { handlers } from '../types'
 import type { NbcActivity, NbcSubmission } from '../types'
 
@@ -8,6 +8,14 @@ const NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'
 const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
 export const XLSX_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 export const MAX_TEMPLATE_BYTES = 10 * 1024 * 1024
+
+// Client reports cover Sunday–Saturday; submission keys remain Monday-based.
+export function reportingBlock(week: string) {
+  if (weekStart(week) !== week) throw new Error('Choose a valid reporting week.')
+  const format = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`))
+  return `${format(addDays(week, -1))} to ${format(addDays(week, 5))}`
+}
+export const reportFilename = (week: string) => `NBC-BP03-Progress Tracking by BOQ-(${reportingBlock(week)}).xlsx`
 
 function xml(data: Uint8Array | undefined) {
   if (!data) throw new Error('The Excel template is missing a required workbook part.')
@@ -119,6 +127,16 @@ export function weeklyWorkbook(template: Uint8Array, activities: NbcActivity[], 
       while (node && !included.has(node.id)) { included.add(node.id); node = node.parentId ? current.byId.get(node.parentId) : undefined }
     }
     const body = ordered.filter(a => included.has(a.id))
+    const existing = wbsRows(doc)
+    if (existing.size === body.length && body.every(a => existing.has(a.wbs))) {
+      for (const a of body.filter(a => a.editable)) {
+        const row = existing.get(a.wbs)!, number = Number(row.getAttribute('r'))
+        set(row, 'K', previous.progress.get(a.id)!); set(row, 'M', current.progress.get(a.id)!)
+        set(row, 'L', Math.round((current.progress.get(a.id)! - previous.progress.get(a.id)!) * 1e6) / 1e6, `ROUND(M${number}-K${number},6)`)
+        handlerRows.set(a.id, { handler, row: number })
+      }
+      continue
+    }
     for (const row of rows(doc)) if (Number(row.getAttribute('r')) >= 5) row.remove()
     body.forEach((a, index) => {
       const depth = a.wbs.split('.').length
@@ -160,7 +178,7 @@ export function weeklyWorkbook(template: Uint8Array, activities: NbcActivity[], 
   for (const [i, doc] of docs.entries()) {
     let period = rows(doc).find(row => row.getAttribute('r') === '3')
     if (!period) { period = doc.createElementNS(NS, 'row'); period.setAttribute('r', '3'); const data = elements(doc, 'sheetData')[0]!; data.insertBefore(period, rows(doc).find(row => Number(row.getAttribute('r')) > 3) ?? null) }
-    set(period, 'A', `Reporting week: ${weekLabel(week)} ${week.slice(0, 4)}. ${confirmed}/6 handlers confirmed.`)
+    set(period, 'A', `Reporting week: ${reportingBlock(week)} ${week.slice(0, 4)}. ${confirmed}/6 handlers confirmed.`)
     files[paths[i]!] = bytes(doc)
   }
   let calc = elements(book, 'calcPr')[0]

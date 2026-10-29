@@ -1,9 +1,10 @@
 import type { Handler } from './types'
 export interface HandlerDraft { values: Record<string, { text: string; remark: string; baseRevision?: string }>; note: string }
 const draftKey = (scope: string, project: string, week: string, handler: Handler) => `kw-nbc-handler-draft:${scope}:${project}:${week}:${handler}`
-export function readHandlerDraft(scope: string, project: string, week: string, handler: Handler): HandlerDraft | null {
+export function readHandlerDraft(scope: string, project: string, week: string, handler: Handler, resetAt?: string): HandlerDraft | null {
   try {
     const value = JSON.parse(localStorage.getItem(draftKey(scope, project, week, handler)) || 'null')
+    if (resetAt && Object.values(value?.values ?? {}).some(v => !(Date.parse((v as { baseRevision?: string })?.baseRevision ?? '') >= Date.parse(resetAt)))) return null
     return value && value.values && typeof value.note === 'string' && Object.values(value.values).every((v) => v && typeof (v as { text?: unknown }).text === 'string' && typeof (v as { remark?: unknown }).remark === 'string') ? value : null
   } catch { return null }
 }

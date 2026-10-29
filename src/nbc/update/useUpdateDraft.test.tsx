@@ -12,6 +12,21 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers())
 const setup = () => renderHook(() => useUpdateDraft({ projectId: fixtureProject.id, week: weekStart(), handler: 'Tola', activities: useWorkspace((s) => s.nbc_activities!), submission: undefined }))
 
+test('reset baseline ignores raw drafts from before the reset', () => {
+  const first = setup()
+  act(() => first.result.current.setText('nbc:1.6.1.2', '99'))
+  first.unmount()
+  const resetAt = '2026-10-27T07:04:00Z'
+  useWorkspace.setState({ nbc_activities: fixtureActivities().map(a => ({ ...a, baselineResetAt: resetAt, updatedAt: resetAt })) })
+  const fresh = setup()
+  expect(fresh.result.current.text('nbc:1.6.1.2')).toBe('25')
+  act(() => vi.advanceTimersByTime(450))
+  expect(useWorkspace.getState().nbc_submissions).toHaveLength(0)
+  act(() => fresh.result.current.setText('nbc:1.6.1.2', '30'))
+  fresh.unmount()
+  expect(setup().result.current.text('nbc:1.6.1.2')).toBe('30')
+})
+
 test('typing a valid value marks the activity changed and moves the weighted contribution', () => {
   const { result } = setup()
   act(() => result.current.setText('nbc:1.6.1.2', '65'))

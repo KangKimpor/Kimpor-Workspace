@@ -5,10 +5,11 @@ import { GlassSelect } from '@/components/glass/GlassSelect'
 import { useWorkspace } from '@/data'
 import { db } from '@/data/persistence'
 import { useWorkspaceUI } from '@/shell/workspace'
-import { addDays, weekLabel, weekStart } from '../submissions'
+import { addDays, weekStart } from '../submissions'
 import { handlers } from '../types'
 import type { NbcActivity, NbcSubmission } from '../types'
-import { confirmedCount, MAX_TEMPLATE_BYTES, weeklyWorkbook, XLSX_TYPE } from './workbook'
+import { confirmedCount, MAX_TEMPLATE_BYTES, reportFilename, reportingBlock, weeklyWorkbook, XLSX_TYPE } from './workbook'
+import { loadReportTemplate } from './template'
 
 export default function ExportWorkbook({ projectId, activities, submissions, onClose }: { projectId: string; activities: NbcActivity[]; submissions: NbcSubmission[]; onClose: () => void }) {
   const scope = useWorkspace(s => s.scope), current = weekStart()
@@ -19,9 +20,11 @@ export default function ExportWorkbook({ projectId, activities, submissions, onC
   const confirmed = confirmedCount(activities, submissions, week)
   useEffect(() => {
     let active = true
-    void db.reportTemplates.get(key).then(file => { if (active && file) setTemplate(file) }).catch(() => { if (active) setError('Could not read the saved template. Choose the workbook again.') }).finally(() => { if (active) setLoading(false) })
+    setLoading(true); setTemplate(null); setError('')
+    const source = scope === 'guest' ? db.reportTemplates.get(key) : loadReportTemplate(projectId)
+    void source.then(file => { if (active && file) setTemplate(file) }).catch(() => { if (active) setError('Could not load the BP03 report format. Close and reopen export to try again.') }).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
-  }, [key])
+  }, [key, projectId, scope])
   async function choose(file: File) {
     setBusy(true); setError('')
     try {
@@ -39,7 +42,7 @@ export default function ExportWorkbook({ projectId, activities, submissions, onC
     try {
       const result = weeklyWorkbook(new Uint8Array(template.data), activities, submissions, week)
       const url = URL.createObjectURL(new Blob([Uint8Array.from(result.bytes).buffer], { type: XLSX_TYPE }))
-      const link = document.createElement('a'); link.href = url; link.download = `NBC-BP03-${week}${result.confirmed < handlers.length ? '-partial' : ''}.xlsx`; link.click()
+      const link = document.createElement('a'); link.href = url; link.download = reportFilename(week); link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
       useWorkspaceUI.getState().notify('Weekly Excel report exported')
       onClose()
@@ -51,11 +54,11 @@ export default function ExportWorkbook({ projectId, activities, submissions, onC
       <div className="row-between"><Dialog.Title className="t-h3">Weekly client report</Dialog.Title><Dialog.Close disabled={busy} className="ibtn" aria-label="Close export"><X size={18}/></Dialog.Close></div>
       <Dialog.Description className="small muted">Export the Progress sheet and all six handler sheets in your workbook’s existing format.</Dialog.Description>
       <form onSubmit={event => { event.preventDefault(); void download() }}>
-        <label htmlFor="export-week">Reporting week<GlassSelect id="export-week" aria-label="Reporting week" disabled={busy} value={week} onChange={event => setWeek(event.target.value)}>{weeks.map(value => <option key={value} value={value}>{weekLabel(value)} {value.slice(0, 4)}{value === current ? ' · This week' : ''}</option>)}</GlassSelect></label>
-        <p className="small" role="status">{confirmed} of {handlers.length} handlers confirmed. {confirmed < handlers.length ? 'The export will be marked partial.' : 'All handlers have confirmed this week.'} Unconfirmed draft edits are excluded.</p>
-        <label>Excel template<input type="file" accept=".xlsx" aria-label="Weekly report template" disabled={busy || loading} onChange={event => { const file = event.target.files?.[0]; if (file) void choose(file); event.target.value = '' }}/></label>
+        <label htmlFor="export-week">Reporting week<GlassSelect id="export-week" aria-label="Reporting week" disabled={busy} value={week} onChange={event => setWeek(event.target.value)}>{weeks.map(value => <option key={value} value={value}>{reportingBlock(value)} {value.slice(0, 4)}{value === current ? ' · This week' : ''}</option>)}</GlassSelect></label>
+        <p className="small" role="status">{confirmed} of {handlers.length} handlers confirmed. {confirmed < handlers.length ? 'The workbook will show the confirmation count.' : 'All handlers have confirmed this week.'} Unconfirmed draft edits are excluded.</p>
+        {scope === 'guest' && <label>Excel template<input type="file" accept=".xlsx" aria-label="Weekly report template" disabled={busy || loading} onChange={event => { const file = event.target.files?.[0]; if (file) void choose(file); event.target.value = '' }}/></label>}
         {template && <p className="small muted">Saved template: {template.name}</p>}
-        <p className="small muted">Choose your NBC BOQ workbook once. The template stays on this device for future exports and is not uploaded.</p>
+        <p className="small muted">{loading ? 'Loading report format…' : scope === 'guest' ? 'Choose your NBC BOQ workbook once for this demo device.' : 'The BP03 baseline workbook format is ready to export.'}</p>
         {error && <p className="form-error" role="alert">{error}</p>}
         <footer><Dialog.Close type="button" disabled={busy} className="btn-secondary">Cancel</Dialog.Close><button className="btn-accent" type="submit" disabled={!template || busy || loading}><Download size={15} aria-hidden="true"/>{busy ? 'Preparing…' : 'Export XLSX'}</button></footer>
       </form>
