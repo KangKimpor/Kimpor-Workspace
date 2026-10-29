@@ -40,9 +40,9 @@ jobs:
       - name: Measure deployed guest workspace
         run: |
           for sample in 1 2 3; do
-            corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path="lighthouse-mobile-$sample.json" --quiet
+            corepack pnpm dlx lighthouse@13.5.0 https://singbuildworkspace.vercel.app --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path="lighthouse-mobile-$sample.json" --quiet
           done
-          corepack pnpm dlx lighthouse@13.5.0 https://kimpor-workspace.vercel.app --preset=desktop --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path=lighthouse-desktop.json --quiet
+          corepack pnpm dlx lighthouse@13.5.0 https://singbuildworkspace.vercel.app --preset=desktop --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility,best-practices --output=json --output-path=lighthouse-desktop.json --quiet
       - name: Check release targets
         run: |
           node --input-type=module <<'JS'
