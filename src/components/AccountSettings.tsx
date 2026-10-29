@@ -10,7 +10,6 @@ import {
   Mail,
   RefreshCw,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { importLocalWorkspace, syncWorkspace, useAccount } from '@/data/sync'
 import { contentOf, useWorkspace } from '@/data'
@@ -218,17 +217,6 @@ export function AccountSettings({ standalone = false, loading = false }: { stand
               Import local workspace
               <ArrowRight size={16} />
             </button>
-          </div>
-          <div className="flat-card account-action-card">
-            <h3>Your calendars, together</h3>
-            <p className="muted">
-              Connect Google calendars after signing in. Choose which accounts
-              and calendars appear in your workspace.
-            </p>
-            <Link className="btn-secondary" to="/settings/accounts">
-              Manage Google calendars
-              <ArrowRight size={16} />
-            </Link>
           </div>
         </section>
         <button className="btn-text account-backup" onClick={backupWorkspace}>

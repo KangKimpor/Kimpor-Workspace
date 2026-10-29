@@ -734,9 +734,6 @@ export default function Calendar() {
               ))}
             </GlassSelect>
           </label>
-          <Link className="text-link small" to="/settings/accounts">
-            Calendar accounts
-          </Link>
             </div>
           </div>
         </GlassPopover>
