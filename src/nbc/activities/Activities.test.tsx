@@ -21,14 +21,10 @@ test('a handler filter keeps only that handler leaves with their ancestor groups
   expect(wbsOrder()).toEqual(['1.6.1', '1.6.1.2'])
 })
 
-test('completion distribution uses the weighted matching activities and follows search', () => {
+test('keeps the weighted table footer without Completion Distribution', () => {
   setup('?handler=Tola')
-  const distribution = within(screen.getByRole('region', { name: 'Completion distribution' }))
-  expect(distribution.getByRole('img').getAttribute('aria-label')).toBe('25.00% complete')
-  expect(distribution.getByText('1 task')).toBeTruthy()
-  fireEvent.change(screen.getByLabelText('Search activities'), { target: { value: 'no match' } })
-  expect(distribution.getByRole('img').getAttribute('aria-label')).toBe('0.00% complete')
-  expect(distribution.getAllByText('0 tasks')).toHaveLength(3)
+  expect(screen.queryByRole('region', {name:'Completion distribution'})).toBeNull()
+  expect(within(document.querySelector('.nbc-table-footer') as HTMLElement).getByText('25.00%')).toBeTruthy()
 })
 
 test('shows the workbook columns plus Handler, and no progress input', () => {

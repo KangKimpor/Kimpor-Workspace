@@ -28,7 +28,6 @@ function UpdateScreen({ projectId, activities, submissions, handler, onChange }:
           ? <span className="nbc-deadline" data-tone={selected.late ? 'late' : 'ok'}>{selected.late ? 'Late' : 'On time'}</span>
           : <span className="nbc-deadline" data-tone={deadline.tone}>{deadline.text}</span>}
         <button className="nbc-chip nbc-change-handler" aria-label={`Change handler, currently ${handler}`} onClick={onChange}>Change Handler</button>
-        <span className="small muted">This week</span>
       </div>
     </header>
     <UpdateEditor key={`${scope}:${week}:${handler}:${selected?.status ?? 'new'}`} projectId={projectId} week={week} handler={handler} activities={activities} submission={selected} pastDeadline={deadline.late}/>

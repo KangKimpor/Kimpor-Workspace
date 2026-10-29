@@ -28,7 +28,7 @@ test('only the current week is available', () => {
   render(<Screen/>)
   expect(screen.queryByRole('button', { name: 'Last week' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'This week' })).toBeNull()
-  expect(screen.getByText('This week')).toBeTruthy()
+  expect(screen.queryByText('This week', {exact:true})).toBeNull()
 })
 
 test('invalid text keeps its group expanded and visible when the group is collapsed', () => {
