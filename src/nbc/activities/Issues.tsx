@@ -28,11 +28,11 @@ export function Issues({ projectId, activities, switcher }: { projectId: string;
   const filters = <div className="nbc-filters nbc-issue-filters">
       <label className="search-field"><Search size={16} aria-hidden="true"/><input ref={search} aria-label="Search issues or WBS" placeholder="Search issues or WBS" value={query} onChange={(e) => setQuery(e.target.value)}/><kbd>/</kbd></label>
       <GlassSelect aria-label="Issue handler" value={handler} onChange={(e) => setHandler(e.target.value)}><option value="">All handlers</option>{handlers.map((h) => <option key={h}>{h}</option>)}</GlassSelect>
-      <GlassSelect aria-label="Issue WBS" value={wbs} onChange={(e) => { const next = new URLSearchParams(params); if (e.target.value) next.set('wbs', e.target.value); else next.delete('wbs'); setParams(next) }}><option value="">All WBS activities</option>{activities.filter((a) => a.editable).map((a) => <option key={a.id} value={a.wbs}>{a.wbs} · {a.name}</option>)}</GlassSelect>
+      <GlassSelect aria-label="Issue WBS" value={wbs} onChange={(e) => { const next = new URLSearchParams(params); if (e.target.value) next.set('wbs', e.target.value); else next.delete('wbs'); setParams(next) }}><option value="">All WBS activities</option>{activities.map((a) => <option key={a.id} value={a.wbs}>{a.wbs} · {a.name}</option>)}</GlassSelect>
     </div>
   return <section className="nbc-issues" aria-label="Project issues">
     <div className="nbc-activity-band">{switcher}<span className="small muted">{list.length} {list.length === 1 ? 'issue' : 'issues'}</span></div>
-    <TaskTable tasks={list} nbcActivities={activities.filter((a) => a.editable)} mobile={mobile} toolbar={filters} actions={actions}/>
+    <TaskTable tasks={list} nbcActivities={activities} mobile={mobile} toolbar={filters} actions={actions}/>
     {!list.length && <div className="nbc-issue-empty" role="status"><h3>{filtered ? 'No matching issues' : 'No issues yet'}</h3><p className="small muted">{filtered ? 'Try another search or clear your filters.' : 'Add a site action to track coordination work and link it to a WBS activity.'}</p>{filtered && <button className="text-link small" onClick={() => { setQuery(''); setHandler(''); const next = new URLSearchParams(params); next.delete('wbs'); setParams(next) }}>Clear filters</button>}</div>}
     <p className="nbc-issue-privacy small muted">Your coordination tasks stay private. NBC progress and reports are shared with all signed-in users.</p>
   </section>

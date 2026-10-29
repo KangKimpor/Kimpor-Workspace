@@ -35,7 +35,7 @@ export default function Overview({ project, activities, submissions, summaries, 
     ? `At the current pace of ${(pace! * 100).toFixed(1)}% a week, progress reaches 100% around ${planDate(finish)}, ${Math.abs(Math.round(daysBetween(NBC_PLAN.completion, finish) / 7))} weeks ${finish > NBC_PLAN.completion ? 'after' : 'before'} the deadline.`
     : pace === null ? 'The forecast appears after the first confirmed week.' : 'There was no forward progress in the recent weeks, so there is no forecast yet.'
   const digestLines = [
-    `Overall progress ${percent(overall, 1)}, ${pts(gap)} ${gap < 0 ? 'behind' : 'ahead of'} the plan (${percent(planned, 1)} planned by now).`,
+    `Overall progress ${percent(overall, 1)}, ${percent(Math.abs(gap), 1)} ${gap < 0 ? 'behind' : 'ahead of'} the plan (${percent(planned, 1)} planned by now).`,
     `Completion deadline ${planDate(NBC_PLAN.completion)}: ${days < 0 ? `${-days} days overdue` : `${days} days left`}.`,
     forecast,
     `${updated.length} of ${owners.length} handlers updated this week${updated.length < owners.length ? `. Outstanding: ${owners.filter((h) => !updated.includes(h)).join(', ')}` : ''}.`,
@@ -46,7 +46,7 @@ export default function Overview({ project, activities, submissions, summaries, 
     <header className="nbc-ov-head"><div><h2>Overview</h2><p className="small muted">{weekLabel(current)}</p></div><button className="btn-secondary" onClick={() => setDigest(true)}>Weekly digest</button></header>
     <section className="nbc-kpis" aria-label="Project snapshot">
       <div className="nbc-kpi"><span className="nbc-kpi-label">Overall progress</span><strong className="nbc-kpi-value">{percent(overall, 1)}</strong><span className="small muted">{thisWeek ? `${thisWeek.overall >= thisWeek.previous ? '+' : '−'}${pts(thisWeek.overall - thisWeek.previous)} this week` : lastWeek ? `Last week ${percent(lastWeek.overall, 1)}` : 'No confirmed week yet'}</span></div>
-      <div className="nbc-kpi"><span className="nbc-kpi-label">Versus plan</span><strong className="nbc-kpi-value" data-tone={gap < -0.04 ? 'bad' : gap < -0.01 ? 'warn' : 'ok'}>{pts(gap)} {gap < 0 ? 'behind' : 'ahead'}</strong><span className="small muted">Plan: {percent(planned, 1)} by now</span></div>
+      <div className="nbc-kpi"><span className="nbc-kpi-label">Versus plan</span><strong className="nbc-kpi-value" data-tone={gap < -0.04 ? 'bad' : gap < -0.01 ? 'warn' : 'ok'}>{percent(Math.abs(gap), 1)} {gap < 0 ? 'behind' : 'ahead'}</strong><span className="small muted">Plan: {percent(planned, 1)} by now</span></div>
       <div className="nbc-kpi"><span className="nbc-kpi-label">Completion deadline</span><strong className="nbc-kpi-value">{planDate(NBC_PLAN.completion)}</strong><span className="small" data-tone={days < 0 ? 'bad' : undefined}>{days < 0 ? `${-days} days overdue` : days === 0 ? 'Due today' : `${days} days left`}</span></div>
       <div className="nbc-kpi"><span className="nbc-kpi-label">Weekly reporting</span><strong className="nbc-kpi-value" data-tone={deadline.late && updated.length < owners.length ? 'bad' : undefined}>{deadline.late ? 'Deadline passed' : deadline.text.split(' · ')[1]}</strong><span className="small muted">{updated.length} of {owners.length} handlers updated this week</span></div>
     </section>

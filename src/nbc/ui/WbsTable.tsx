@@ -42,7 +42,7 @@ export function WbsTable({ rows, caption, collapsed, onToggle, previous, current
       {items.map(({ index }) => {
         const row = rows[index]!, a = row.activity, open = !collapsed.has(a.id)
         return <tr key={a.id} data-level={row.level} data-group={row.group} data-wbs={a.wbs} {...rowAttrs?.(row)} onContextMenu={event => {
-          if (!a.editable || (event.target as HTMLElement).closest('input,textarea,[contenteditable=true]')) return
+          if ((event.target as HTMLElement).closest('input,textarea,[contenteditable=true]')) return
           event.preventDefault()
           setMenu({ id: a.id, title: a.name, projectId: a.projectId, nbcActivityId: a.id, x: event.clientX, y: event.clientY })
         }}>

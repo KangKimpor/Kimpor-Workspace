@@ -143,3 +143,15 @@ test('actual private client template exports all BOQ rows in the browser', async
   expect(Object.keys(files).filter(key => /^xl\/worksheets\/sheet\d+\.xml$/.test(key))).toHaveLength(7)
   if (process.env.NBC_EXPORT_OUTPUT) { const { writeFileSync } = await import('node:fs'); writeFileSync(process.env.NBC_EXPORT_OUTPUT, file.bytes) }
 })
+
+for (const view of ['activities', 'update?handler=Tola']) test(`issue reporting supports parent activities in ${view}`, async ({ page }) => {
+  await setup(page)
+  await page.goto(`/projects-progress/nbc-bp03/${view}`)
+  await page.locator('tr[data-wbs="1.6.1"]').click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Report issue for Test area', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Report issue', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  const task = await page.evaluate(() => JSON.parse(localStorage.getItem('kw-workspace-v1')!).tasks[0])
+  expect(task.nbcActivityId).toBe('nbc:1.6.1')
+})

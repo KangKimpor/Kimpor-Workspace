@@ -26,9 +26,9 @@ export function RowActions({ item, onClose, onDelete }: { item: RowActionTarget 
     }
   }, [item, onClose])
   return <>
-    {item && createPortal(<div className="row-context-menu" role="menu" aria-label="Task actions" style={{ left: Math.max(8, Math.min(item.x, innerWidth - 188)), top: Math.max(8, Math.min(item.y, innerHeight - (onDelete ? 104 : 60))) }}>
+    {item && (onDelete || item.nbcActivityId) && createPortal(<div className="row-context-menu" role="menu" aria-label="Task actions" style={{ left: Math.max(8, Math.min(item.x, innerWidth - 188)), top: Math.max(8, Math.min(item.y, innerHeight - (onDelete ? 104 : 60))) }}>
       {onDelete && <button role="menuitem" className="danger-text" aria-label={`Delete task ${item.title}`} onClick={() => { onDelete(); onClose() }}><Trash2 size={15} aria-hidden="true"/>Delete</button>}
-      <button role="menuitem" aria-label={`Report issue for ${item.title}`} onClick={() => { setReport(item); onClose() }}><Flag size={15} aria-hidden="true"/>Report issue</button>
+      {item.nbcActivityId && <button role="menuitem" aria-label={`Report issue for ${item.title}`} onClick={() => { setReport(item); onClose() }}><Flag size={15} aria-hidden="true"/>Report issue</button>}
     </div>, document.body)}
     {report && <Suspense fallback={<span className="sr-only" role="status">Opening issue report…</span>}><ReportIssue source={report} onClose={() => setReport(null)}/></Suspense>}
   </>

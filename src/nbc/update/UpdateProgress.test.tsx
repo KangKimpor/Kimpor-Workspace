@@ -24,12 +24,11 @@ test('shows the handler leaves under their ancestor groups, then shared GR&P onc
   expect(screen.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['WBS', 'Description', 'Previous week %', 'This week %', 'Remark'])
 })
 
-test('Last week is disabled with an explanation when the handler has no last-week update', () => {
+test('only the current week is available', () => {
   render(<Screen/>)
-  const last = screen.getByRole('button', { name: 'Last week' })
-  expect((last as HTMLButtonElement).disabled).toBe(true)
-  expect(last.getAttribute('title')).toBe('No update to edit')
-  expect(screen.getByRole('button', { name: 'This week' }).getAttribute('aria-pressed')).toBe('true')
+  expect(screen.queryByRole('button', { name: 'Last week' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'This week' })).toBeNull()
+  expect(screen.getByText('This week')).toBeTruthy()
 })
 
 test('invalid text keeps its group expanded and visible when the group is collapsed', () => {
@@ -139,4 +138,12 @@ test('the sheet can list every updated task with its old and new percentage, the
   expect(screen.queryByLabelText('This week % for 1.6.1.2')).toBeNull()
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(within(screen.getByRole('group', { name: 'Update actions' })).getByRole('button', { name: 'Edit' })).toBeTruthy()
+})
+
+test('past-week links always open the current week', () => {
+  const activities = useWorkspace.getState().nbc_activities!
+  render(<MemoryRouter initialEntries={['/update?handler=Tola&week=2026-10-19']}><UpdateProgress projectId={fixtureProject.id} activities={activities} submissions={[]}/></MemoryRouter>)
+  expect(screen.queryByText(/editing last week/)).toBeNull()
+  expect(screen.getAllByText(/26 Oct – 1 Nov/)).toBeTruthy()
+  expect(value('1.6.1.2')).toBeTruthy()
 })

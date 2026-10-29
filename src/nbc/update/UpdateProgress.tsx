@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useWorkspace } from '@/data'
 import { summarize } from '../progress'
-import { addDays, canUpdate, submissionId, weekLabel, weekStart } from '../submissions'
+import { canUpdate, submissionId, weekLabel, weekStart } from '../submissions'
 import { percent } from '../format'
 import { handlers } from '../types'
 import type { Handler, NbcActivity, NbcSubmission } from '../types'
@@ -15,10 +15,7 @@ interface Props { projectId: string; activities: NbcActivity[]; submissions: Nbc
 
 function UpdateScreen({ projectId, activities, submissions, handler, onChange }: Props & { handler: Handler; onChange: () => void }) {
   const scope = useWorkspace((s) => s.scope), now = useNow()
-  const [params] = useSearchParams()
-  const current = weekStart(), last = addDays(current, -7), [chosen, setChosen] = useState(() => params.get('week') === last ? last : current)
-  const lastUpdate = submissions.find((s) => s.id === submissionId(projectId, last, handler))
-  const week = chosen === last && lastUpdate ? last : current
+  const week = weekStart()
   const selected = submissions.find((s) => s.id === submissionId(projectId, week, handler))
   const assigned = summarize(activities.filter((a) => canUpdate(a, handler)))
   const deadline = deadlineNote(week, now)
@@ -30,14 +27,10 @@ function UpdateScreen({ projectId, activities, submissions, handler, onChange }:
         {selected?.status === 'confirmed'
           ? <span className="nbc-deadline" data-tone={selected.late ? 'late' : 'ok'}>{selected.late ? 'Late' : 'On time'}</span>
           : <span className="nbc-deadline" data-tone={deadline.tone}>{deadline.text}</span>}
-        <button className="nbc-chip" aria-label={`Change handler, currently ${handler}`} onClick={onChange}>Change Handler</button>
-        <div className="nbc-seg" role="group" aria-label="Week">
-          <button aria-pressed={week === current} onClick={() => setChosen(current)}>This week</button>
-          <button aria-pressed={week === last} disabled={!lastUpdate} title={lastUpdate ? undefined : 'No update to edit'} onClick={() => setChosen(last)}>Last week</button>
-        </div>
+        <button className="nbc-chip nbc-change-handler" aria-label={`Change handler, currently ${handler}`} onClick={onChange}>Change Handler</button>
+        <span className="small muted">This week</span>
       </div>
     </header>
-    {week === last && <p className="nbc-banner" role="note">You are editing last week’s update. It keeps its original on-time or late mark.</p>}
     <UpdateEditor key={`${scope}:${week}:${handler}:${selected?.status ?? 'new'}`} projectId={projectId} week={week} handler={handler} activities={activities} submission={selected} pastDeadline={deadline.late}/>
   </section>
 }
