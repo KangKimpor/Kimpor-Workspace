@@ -87,4 +87,13 @@ test('clicking an activity name opens its details in a side panel', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Install board' }))
   expect(screen.getByRole('dialog')).toBeTruthy()
   expect(screen.getByText('Progress history')).toBeTruthy()
+  expect(within(screen.getByRole('dialog')).getByText('Tola')).toBeTruthy()
+})
+
+test('groups show their handlers and support reassignment', () => {
+  setup()
+  expect(screen.getByTitle('Sitha, Tola')).toBeVisible()
+  fireEvent.click(screen.getByRole('button', { name: 'Assign handler for 1.6.1.2: Tola' }))
+  fireEvent.change(document.querySelector('select[aria-label="Handler for 1.6.1.2"]')!, { target: { value: 'Sitha' } })
+  expect(useWorkspace.getState().nbc_activities?.find((a) => a.wbs === '1.6.1.2')?.handler).toBe('Sitha')
 })

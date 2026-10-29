@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
-import type { Page } from '@playwright/test'
+import { expect, test } from './workspace-test'
+import type { Page } from './workspace-test'
 import { readFileSync } from 'node:fs'
 import AxeBuilder from '@axe-core/playwright'
 import { strFromU8, unzipSync } from 'fflate'

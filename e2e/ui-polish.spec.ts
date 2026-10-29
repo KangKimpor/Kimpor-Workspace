@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './workspace-test'
 import AxeBuilder from '@axe-core/playwright'
 
 test('polished views, glass menus, project drafts and calendar layers', async ({ page }) => {

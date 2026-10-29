@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
-import type { Page } from '@playwright/test'
+import { expect, test } from './workspace-test'
+import type { Page } from './workspace-test'
 import AxeBuilder from '@axe-core/playwright'
 import { existsSync, readFileSync } from 'node:fs'
 import { fixtureActivities, fixtureProject } from '../src/nbc/test-fixture'
@@ -104,6 +104,9 @@ test('Activities shows real WBS numbers with deeper levels indented and no edita
   expect(await pad('1.6.1.1')).toBeGreaterThan(await pad('1.6.1'))
   await expect(page.locator('tr[data-wbs="GR&P"]')).toHaveCount(1)
   await expect(page.locator('tbody input')).toHaveCount(0)
+  await expect(page.locator('tr[data-wbs="1.6.1"] .nbc-group-handlers')).toHaveText('Sitha, Tola')
+  await page.getByRole('button', { name: 'Install board', exact: true }).click()
+  await expect(page.getByRole('dialog').getByText('Tola', { exact: true })).toBeVisible()
 })
 test('invalid text keeps its group open and blocks confirmation; shared GR&P appears once', async ({ page }) => {
   await setup(page); await open(page)

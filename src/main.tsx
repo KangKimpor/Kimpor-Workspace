@@ -7,6 +7,7 @@ import './styles/index.css'
 import { hasStoredSession } from './lib/supabase'
 import { useWorkspace } from './data'
 import { afterFirstPaint } from './lib/paint'
+import { useAccount } from './data/sync'
 import { workspaceStart } from './shell/landing'
 
 syncGlassToDocument()
@@ -19,7 +20,7 @@ document.addEventListener('keydown', (event) => {
   if ((event.ctrlKey || event.metaKey) && ['+', '-', '=', '0'].includes(event.key)) event.preventDefault()
 })
 const render = () => {
-  if (location.pathname === '/') {
+  if (location.pathname === '/' && useAccount.getState().session) {
     const { scope, projects } = useWorkspace.getState()
     history.replaceState(history.state, '', workspaceStart(scope, projects))
   }

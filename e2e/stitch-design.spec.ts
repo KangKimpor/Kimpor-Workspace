@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './workspace-test'
 import AxeBuilder from '@axe-core/playwright'
 import { fixtureActivities, fixtureProject } from '../src/nbc/test-fixture'
 

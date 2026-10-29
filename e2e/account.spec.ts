@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { authStorageKey } from './workspace-test'
 // Auth responses are mocked; service workers must not fetch around those routes.
 test.use({ serviceWorkers: 'block' })
 const cors = {
@@ -8,6 +9,51 @@ const cors = {
   'access-control-allow-headers':
     'authorization, apikey, content-type, x-client-info, x-supabase-api-version',
 }
+
+test('successful sign-in opens the workspace, survives reload, and sign-out restores the gate', async ({ page }) => {
+  const user = { id: 'f0000000-0000-4000-8000-000000000001', aud: 'authenticated', email: 'account-test@example.invalid', user_metadata: {} }
+  await page.route('**/auth/v1/token?grant_type=password', (route) => route.fulfill({ status: route.request().method() === 'OPTIONS' ? 204 : 200, headers: cors, json: { access_token: 'test-session', refresh_token: 'test-refresh', expires_in: 3600, token_type: 'bearer', user } }))
+  await page.route('**/rest/v1/**', (route) => route.fulfill({ headers: cors, json: [] }))
+  await page.route('**/auth/v1/logout*', (route) => route.fulfill({ status: 204, headers: cors }))
+  await page.goto('/settings/account')
+  await page.getByLabel('Email address', { exact: true }).fill(user.email)
+  await page.getByLabel('Password', { exact: true }).fill('existing-password')
+  await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Welcome', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toHaveCount(0)
+})
+
+test('password reset sends the existing callback and shows confirmation', async ({ page }) => {
+  await page.route('**/auth/v1/recover*', (route) => route.fulfill({ headers: cors, json: {} }))
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Forgot password?', exact: true }).click()
+  await page.getByLabel('Email address', { exact: true }).fill('account-test@example.invalid')
+  const request = page.waitForRequest((request) => request.url().includes('/auth/v1/recover') && request.method() === 'POST')
+  await page.getByRole('button', { name: 'Send reset link', exact: true }).click()
+  expect(new URL((await request).url()).searchParams.get('redirect_to')).toBe('http://localhost:4173/settings/account')
+  await expect(page.getByRole('status')).toHaveText('Check your inbox for a password reset link.')
+})
+
+test('a recovery callback keeps the workspace gated until the new password is saved', async ({ page }) => {
+  const key = `${authStorageKey}-code-verifier`
+  await page.addInitScript((key) => localStorage.setItem(key, JSON.stringify('test-verifier/recovery')), key)
+  const user = { id: 'f0000000-0000-4000-8000-000000000001', aud: 'authenticated', email: 'account-test@example.invalid', user_metadata: {} }
+  await page.route('**/auth/v1/token?grant_type=pkce', (route) => route.fulfill({ headers: cors, json: { access_token: 'test-session', refresh_token: 'test-refresh', expires_in: 3600, token_type: 'bearer', user } }))
+  await page.route('**/auth/v1/user', (route) => route.fulfill({ headers: cors, json: user }))
+  await page.route('**/rest/v1/**', (route) => route.fulfill({ headers: cors, json: [] }))
+  await page.goto('/settings/account?code=test-recovery-code')
+  await expect(page.getByRole('heading', { name: 'Choose a new password', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toHaveCount(0)
+  await page.getByLabel('New password', { exact: true }).fill('replacement-password-1234')
+  const request = page.waitForRequest((request) => request.url().endsWith('/auth/v1/user') && request.method() === 'PUT')
+  await page.getByRole('button', { name: 'Update password', exact: true }).click()
+  expect((await request).postDataJSON().password).toBe('replacement-password-1234')
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible()
+})
 
 test('email sign-in accepts existing passwords and shows server errors', async ({
   page,

@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import { expect, test } from '@playwright/test'
+import { expect, test } from './workspace-test'
 
 declare global {
   interface Window { workerRegistrationPaints: string[]; workerRegistrationHasWorkspace: boolean }

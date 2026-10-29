@@ -9,7 +9,6 @@ import {
   LockKeyhole,
   Mail,
   RefreshCw,
-  ShieldCheck,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
@@ -37,7 +36,7 @@ function backupWorkspace() {
   link.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
-export function AccountSettings() {
+export function AccountSettings({ standalone = false, loading = false }: { standalone?: boolean; loading?: boolean }) {
   const { session, recovering, error: accountError } = useAccount()
   const sync = useWorkspace((s) => s.sync)
   const [mode, setMode] = useState<Mode>('signin'),
@@ -141,7 +140,7 @@ export function AccountSettings() {
       )}
     </>
   )
-  if (session && !recovering)
+  if (session && !recovering && !standalone)
     return (
       <div className="account-dashboard">
         <section className="account-profile flat-card">
@@ -240,35 +239,9 @@ export function AccountSettings() {
     )
   const isSignup = mode === 'signup',
     isReset = mode === 'reset'
+  const Heading = standalone ? 'h1' : 'h2'
   return (
     <div className="account-auth-layout">
-      <aside className="account-welcome">
-        <img className="account-brand-logo" src="/brand/favicon.svg" alt="SingBuild" width={80} height={80} />
-        <span className="eyebrow">A LITTLE SPACE FOR EVERYTHING</span>
-        <h2>
-          Your work.
-          <br />
-          Right where
-          <br />
-          you left it.
-        </h2>
-        <p className="muted">
-          One home for your notes, projects and plans. Sign in once and take
-          your workspace with you.
-        </p>
-        <div className="account-promise">
-          <Cloud size={18} />
-          <span>Saved across your devices</span>
-        </div>
-        <div className="account-promise">
-          <ShieldCheck size={18} />
-          <span>Private to your account</span>
-        </div>
-        <Link className="text-link" to="/">
-          Explore the local demo
-          <ArrowRight size={15} />
-        </Link>
-      </aside>
       <section
         className="account-auth-card flat-card"
         aria-label="Workspace authentication"
@@ -294,7 +267,7 @@ export function AccountSettings() {
             <div className="account-section-icon">
               <Mail size={24} />
             </div>
-            <h2>Check your inbox</h2>
+            <Heading>Check your inbox</Heading>
             <p className="muted">
               We sent a confirmation link to <strong>{email}</strong>. Open it
               to finish creating your workspace account.
@@ -310,16 +283,16 @@ export function AccountSettings() {
         ) : (
           <>
             <header className="account-form-heading">
-              <h2>
+              <Heading>
                 {recovering
                   ? 'Choose a new password'
                   : isReset
                     ? 'Reset your password'
                     : isSignup
                       ? 'Make room for your ideas'
-                      : 'Welcome back'}
-              </h2>
-              <p className="muted">
+                      : 'Welcome'}
+              </Heading>
+              {(recovering || isReset || isSignup) && <p className="muted">
                 {recovering
                   ? 'Use a strong password to keep your workspace secure.'
                   : isReset
@@ -327,13 +300,13 @@ export function AccountSettings() {
                     : isSignup
                       ? 'Create your private workspace in a moment.'
                       : 'Sign in to your SingBuild Workspace.'}
-              </p>
+              </p>}
             </header>
             {!isReset && !recovering && (
               <>
                 <button
                   className="account-google"
-                  disabled={!!busy || !supabase}
+                  disabled={loading || !!busy || !supabase}
                   onClick={() => void run('google', google)}
                 >
                   <GoogleMark />
@@ -434,7 +407,7 @@ export function AccountSettings() {
               {notice}
               <button
                 className="btn-accent account-submit"
-                disabled={!!busy || !supabase}
+                disabled={loading || !!busy || !supabase}
               >
                 {busy === 'email'
                   ? 'Please wait…'
@@ -459,10 +432,12 @@ export function AccountSettings() {
             </form>
           </>
         )}
-        <footer className="account-form-footer">
+        {loading && <p className="small muted" role="status">Connecting to your account…</p>}
+        {!loading && !supabase && <p className="account-notice account-error" role="alert">Account services are unavailable. Please try again shortly.</p>}
+        {!standalone && <footer className="account-form-footer">
           <LockKeyhole size={14} />
           <span>Your local work stays here. Import it after signing in.</span>
-        </footer>
+        </footer>}
       </section>
     </div>
   )
