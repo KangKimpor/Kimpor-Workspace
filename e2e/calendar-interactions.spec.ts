@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './workspace-test'
 const base = {
   id: 'verification-series',
   title: 'Recurring review',

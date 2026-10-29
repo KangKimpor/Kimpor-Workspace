@@ -44,6 +44,7 @@ export interface ProgressChange {
   recordedAt?: string
 }
 export interface NbcActivity {
+  baselineResetAt?: string
   id: string
   projectId: string
   wbs: string

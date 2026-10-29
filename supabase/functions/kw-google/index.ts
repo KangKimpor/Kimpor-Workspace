@@ -4,7 +4,7 @@ import { seal, unseal } from './crypto.ts'
 import { tokenFailure } from './token-error.ts'
 
 const env = (name: string) => Deno.env.get(name) || ''
-const appUrl = () => env('KW_APP_URL') || 'https://kimpor-workspace.vercel.app'
+const appUrl = () => env('KW_APP_URL') || 'https://singbuildworkspace.vercel.app'
 const callback = () => `${env('SUPABASE_URL')}/functions/v1/kw-google/callback`
 const masterKey = () =>
   env('KW_TOKEN_ENCRYPTION_KEY') || env('CREDENTIAL_ENCRYPTION_KEY')

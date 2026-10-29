@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './workspace-test'
 import AxeBuilder from '@axe-core/playwright'
 
 for (const theme of ['light', 'dark']) for (const width of [1397, 393]) {

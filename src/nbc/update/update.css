@@ -130,3 +130,7 @@
   .nbc-update .nbc-wbs tr[data-changed=true], .nbc-update .nbc-wbs tr[data-problem=true] { box-shadow: 0 0 0 1.5px var(--accent); }
   .nbc-update .nbc-wbs td[data-label=Description] .nbc-desc { min-width: 0; }
 }
+.nbc-chip.nbc-change-handler { background:#ffdbb5; border-color:#c76a0c; color:#803900; }
+.nbc-chip.nbc-change-handler:hover { background:#ffcc96; }
+[data-theme=dark] .nbc-chip.nbc-change-handler { background:#563315; border-color:#ba732e; color:#ffba75; }
+[data-theme=dark] .nbc-chip.nbc-change-handler:hover { background:#70431c; }

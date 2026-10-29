@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test } from '@playwright/test'
+import { expect, test } from './workspace-test'
 
 test('page creation, slash editing, persistence, trash and restore', async ({
   page,

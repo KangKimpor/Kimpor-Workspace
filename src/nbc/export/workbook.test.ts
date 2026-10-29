@@ -3,9 +3,16 @@ import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { fixtureActivities } from '../test-fixture'
 import type { NbcSubmission } from '../types'
 import { fixtureTemplate } from './test-template'
-import { confirmedCount, reportValues, weeklyWorkbook } from './workbook'
+import { confirmedCount, reportFilename, reportingBlock, reportValues, weeklyWorkbook } from './workbook'
 
 const NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'
+
+test('report filenames use full Sunday–Saturday dates, including month and year boundaries', () => {
+  expect(reportFilename('2026-10-19')).toBe('NBC-BP03-Progress Tracking by BOQ-(18 October to 24 October).xlsx')
+  expect(reportingBlock('2026-11-02')).toBe('1 November to 7 November')
+  expect(reportingBlock('2026-12-28')).toBe('27 December to 2 January')
+  expect(() => reportingBlock('2026-10-18')).toThrow('reporting week')
+})
 
 function cell(files: Record<string, Uint8Array>, sheet: number, address: string) {
   const doc = new DOMParser().parseFromString(strFromU8(files[`xl/worksheets/sheet${sheet}.xml`]!), 'application/xml')
@@ -47,6 +54,23 @@ test('reassignment moves the handler row and rewires the master progress formula
   const output = unzipSync(weeklyWorkbook(zipSync(template), activities, [], '2026-10-26').bytes)
   expect(cell(output, 1, 'N9').querySelector('f')?.textContent).toBe("'Kheng'!M6")
   expect(strFromU8(output['xl/worksheets/sheet7.xml']!)).not.toContain('Install board')
+})
+
+test('unchanged handler assignments keep original rows, formatting and trailing content', () => {
+  const files = unzipSync(fixtureTemplate())
+  const doc = new DOMParser().parseFromString(strFromU8(files['xl/worksheets/sheet7.xml']!), 'application/xml')
+  const rows = [...doc.getElementsByTagNameNS(NS, 'row')]
+  rows.find(r => r.getAttribute('r') === '6')!.remove()
+  const leaf = rows.find(r => r.getAttribute('r') === '7')!
+  leaf.setAttribute('ht', '37'); leaf.setAttribute('hidden', '1')
+  const footer = doc.createElementNS(NS, 'row'); footer.setAttribute('r', '20')
+  doc.getElementsByTagNameNS(NS, 'sheetData')[0]!.append(footer)
+  files['xl/worksheets/sheet7.xml'] = strToU8(new XMLSerializer().serializeToString(doc))
+  const output = unzipSync(weeklyWorkbook(zipSync(files), fixtureActivities(), [], '2026-10-26').bytes)
+  const saved = new DOMParser().parseFromString(strFromU8(output['xl/worksheets/sheet7.xml']!), 'application/xml')
+  expect([...saved.getElementsByTagNameNS(NS, 'row')].find(r => r.getAttribute('r') === '7')?.getAttribute('ht')).toBe('37')
+  expect([...saved.getElementsByTagNameNS(NS, 'row')].some(r => r.getAttribute('r') === '20')).toBe(true)
+  expect(cell(output, 1, 'N9').querySelector('f')?.textContent).toBe("'Tola'!M7")
 })
 
 test('rejects mismatched WBS data and changed template weights', () => {

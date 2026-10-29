@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './workspace-test'
 
 test.use({
   viewport: { width: 393, height: 852 },

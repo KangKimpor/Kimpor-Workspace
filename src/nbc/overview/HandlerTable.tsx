@@ -27,7 +27,7 @@ export function HandlerTable({ projectId, activities, submissions, now }: { proj
     } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
   }
   function weekRow(handler: Handler, week: string, label: string) {
-    const s = find(handler, week), editable = week === current || week === last
+    const s = find(handler, week), editable = week === current
     return <li className="nbc-week-row" key={week}>
       <strong>{label}</strong><span className="small muted">{weekLabel(week)}</span>
       {s || week === current ? <StatusPill status={submissionStatus(s, week, activities, now)} time={s?.confirmedAt}/> : <span className="small muted">Missing</span>}

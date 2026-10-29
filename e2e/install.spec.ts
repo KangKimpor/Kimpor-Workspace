@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './workspace-test'
 
 test('appearance provides platform install guidance and a deferred Chromium install action', async ({
   page,

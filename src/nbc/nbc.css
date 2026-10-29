@@ -103,3 +103,9 @@ html:has(.nbc-project) .canvas { padding-top: 0; }
   html:has(.nbc-project) { --h-button: 44px; --h-input: 44px; }
   html:has(.nbc-project) :is(.btn-accent,.btn-secondary,.glass-select) { min-height: 44px; }
 }
+.nbc-tabs { gap:6px; padding:6px; border-radius:12px; background:var(--bg-sidebar); width:fit-content; max-width:100%; }
+.nbc-tabs .view-tab { padding:9px 16px; border:0; border-radius:8px; transition:background 160ms ease,color 160ms ease,box-shadow 160ms ease; }
+.nbc-tabs .view-tab[aria-current=page] { background:var(--bg-canvas); box-shadow:0 1px 3px rgb(0 0 0 / .12),0 0 0 1px rgb(0 0 0 / .03); font-weight:600; }
+.nbc-tabs .view-tab:focus-visible { outline:2px solid var(--accent-text); outline-offset:2px; }
+@media(prefers-reduced-motion:reduce) { .nbc-tabs .view-tab { transition:none; } }
+@media(max-width:400px) { .nbc-tabs .view-tab { padding:9px 10px; } }

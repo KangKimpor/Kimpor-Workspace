@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
-import type { Page } from '@playwright/test'
+import { expect, test } from './workspace-test'
+import type { Page } from './workspace-test'
 import { readFileSync } from 'node:fs'
 import AxeBuilder from '@axe-core/playwright'
 import { strFromU8, unzipSync } from 'fflate'
@@ -32,7 +32,8 @@ async function exportFile(page: Page) {
   const download = page.waitForEvent('download')
   await page.getByRole('dialog').getByRole('button', { name: 'Export XLSX', exact: true }).click()
   const file = await download
-  return { name: file.suggestedFilename(), bytes: readFileSync((await file.path())!) }
+  // Linux WebKit replaces spaces with underscores in suggested download names.
+  return { name: file.suggestedFilename().replaceAll('_', ' '), bytes: readFileSync((await file.path())!) }
 }
 function value(xml: string, address: string) {
   const cell = xml.match(new RegExp(`<c\\b[^>]*r="${address}"[^>]*>([\\s\\S]*?)</c>`))?.[1]
@@ -111,14 +112,14 @@ for (const mobile of [false, true]) test(`weekly XLSX exports confirmed snapshot
   await page.screenshot({ path: testInfo.outputPath('export.png') })
   expect((await new AxeBuilder({ page }).include('[role="dialog"]').analyze()).violations).toEqual([])
   const file = await exportFile(page), xml = strFromU8(unzipSync(file.bytes)['xl/worksheets/sheet1.xml']!)
-  expect(file.name).toBe('NBC-BP03-2026-10-26-partial.xlsx')
+  expect(file.name).toBe('NBC-BP03-Progress Tracking by BOQ-(25 October to 31 October).xlsx')
   expect(value(xml, 'N9')).toBe(.8); expect(value(xml, 'L9')).toBe(.4); expect(value(xml, 'M9')).toBe(.4)
   await page.reload(); await page.getByRole('button', { name: 'Export XLSX', exact: true }).click()
   await expect(page.getByText('Saved template: NBC-template.xlsx')).toBeVisible()
   await page.getByRole('combobox', { name: 'Reporting week', exact: true }).click()
-  await page.getByRole('option', { name: /19 Oct/ }).click()
+  await page.getByRole('option', { name: /18 October/ }).click()
   const earlier = await exportFile(page), old = strFromU8(unzipSync(earlier.bytes)['xl/worksheets/sheet1.xml']!)
-  expect(earlier.name).toContain(last); expect(value(old, 'N9')).toBe(.4); expect(value(old, 'L9')).toBe(.25)
+  expect(earlier.name).toBe('NBC-BP03-Progress Tracking by BOQ-(18 October to 24 October).xlsx'); expect(value(old, 'N9')).toBe(.4); expect(value(old, 'L9')).toBe(.25)
 })
 
 test('actual private client template exports all BOQ rows in the browser', async ({ page }) => {
@@ -136,10 +137,22 @@ test('actual private client template exports all BOQ rows in the browser', async
   await page.getByLabel('Weekly report template').setInputFiles(process.env.NBC_EXPORT_TEMPLATE!)
   await expect(page.getByText(/^Saved template:/)).toBeVisible()
   const file = await exportFile(page), files = unzipSync(file.bytes), xml = strFromU8(files['xl/worksheets/sheet1.xml']!)
-  expect(file.name).toBe('NBC-BP03-2026-10-26.xlsx')
+  expect(file.name).toBe('NBC-BP03-Progress Tracking by BOQ-(25 October to 31 October).xlsx')
   expect(value(xml, 'N5')).toBeCloseTo(calculate(state.activities).overall, 10)
   expect(value(xml, 'L5')).toBeCloseTo(dataset.reconciliation.overall, 10)
   expect(value(xml, 'M5')).toBeGreaterThan(0)
   expect(Object.keys(files).filter(key => /^xl\/worksheets\/sheet\d+\.xml$/.test(key))).toHaveLength(7)
   if (process.env.NBC_EXPORT_OUTPUT) { const { writeFileSync } = await import('node:fs'); writeFileSync(process.env.NBC_EXPORT_OUTPUT, file.bytes) }
+})
+
+for (const view of ['activities', 'update?handler=Tola']) test(`issue reporting supports parent activities in ${view}`, async ({ page }) => {
+  await setup(page)
+  await page.goto(`/projects-progress/nbc-bp03/${view}`)
+  await page.locator('tr[data-wbs="1.6.1"]').click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Report issue for Test area', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Report issue', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  const task = await page.evaluate(() => JSON.parse(localStorage.getItem('kw-workspace-v1')!).tasks[0])
+  expect(task.nbcActivityId).toBe('nbc:1.6.1')
 })

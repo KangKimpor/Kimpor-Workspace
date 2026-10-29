@@ -65,7 +65,7 @@ export const sampleContent: Content = {
 }
 const KEY = 'kw-workspace-v1'
 function validWbsLink(state: Content, projectId: string, activityId?: string | null) {
-  return !activityId || (state.projects.some((p) => p.id === projectId && p.nbcBp03) && state.nbc_activities?.some((a) => a.id === activityId && a.projectId === projectId && a.editable))
+  return !activityId || (state.projects.some((p) => p.id === projectId && p.nbcBp03) && state.nbc_activities?.some((a) => a.id === activityId && a.projectId === projectId))
 }
 function read(): Content {
   try {

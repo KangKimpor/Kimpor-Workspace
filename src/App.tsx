@@ -2,7 +2,8 @@ import { Suspense, lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useWorkspace } from '@/data'
 import { workspaceStart } from '@/shell/landing'
-import { AppShell } from '@/shell/AppShell'
+import { AuthGate } from '@/components/AuthGate'
+const AppShell = lazy(() => import('@/shell/AppShell').then(module => ({ default: module.AppShell })))
 const SearchPage = lazy(()=>import('@/shell/WorkspaceOverlays').then(module=>({default:module.SearchPage})))
 
 const Design = lazy(() => import('@/pages/Design'))
@@ -20,6 +21,9 @@ function WorkspaceStart() {
   return <Navigate to={workspaceStart(scope, projects)} replace />
 }
 export function App() {
+  return <AuthGate><WorkspaceApp /></AuthGate>
+}
+function WorkspaceApp() {
   return (
     <Suspense
       fallback={
