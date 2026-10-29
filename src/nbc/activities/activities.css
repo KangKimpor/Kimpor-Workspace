@@ -52,3 +52,28 @@
   .nbc-issues > .project-table-toolbar > .btn-accent { margin-left: auto; }
 }
 .nbc-group-handlers { display:block; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-secondary); }
+
+@media (max-width: 767px) {
+  .nbc-activities .nbc-filters { gap: 8px; }
+  .nbc-activities .nbc-filters .search-field { flex-basis: 100%; max-width: none; }
+  .nbc-activities .nbc-filters .glass-select { flex: 1 1 120px; min-width: 0; }
+  .nbc-activities .nbc-wbs-scroll { box-shadow: none; border-radius: 0; }
+  .nbc-activities .nbc-wbs, .nbc-activities .nbc-wbs tbody { display: block; }
+  .nbc-activities .nbc-wbs thead { display: none; }
+  .nbc-activities .nbc-wbs tr[data-wbs] { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--border-subtle); border-radius: 16px; background: var(--bg-raised); }
+  .nbc-activities .nbc-wbs tr[data-wbs] td { height: auto; min-width: 0; padding: 0; border: 0; background: transparent; text-align: start; white-space: normal; }
+  .nbc-activities .nbc-wbs td[data-label=WBS], .nbc-activities .nbc-wbs td[data-label=Description], .nbc-activities .nbc-wbs td:nth-child(n+5) { grid-column: 1 / -1; }
+  .nbc-activities .nbc-wbs td[data-label=Description] { padding-inline-start: 0 !important; }
+  .nbc-activities .nbc-desc { min-width: 0; gap: 8px; flex-wrap: wrap; }
+  .nbc-activities .nbc-toggle-gap { display: none; }
+  .nbc-activities .nbc-wbs .nbc-name { flex: 1; min-width: 0; font-size: 15px; line-height: 1.5; min-height: 44px; }
+  .nbc-activities .nbc-wbs td.nbc-num { font: 14px var(--font-sans); font-variant-numeric: tabular-nums; }
+  .nbc-activities .nbc-wbs td[data-label]:not([data-label=WBS]):not([data-label=Description])::before { content: attr(data-label); display: block; margin-bottom: 4px; color: var(--text-secondary); font: 12px var(--font-sans); }
+  .nbc-activities .nbc-wbs tr[data-group=true] { background: var(--bg-sidebar); }
+  .nbc-activities .nbc-wbs tr[data-group=true][data-wbs] td { background: transparent; }
+  .nbc-activities .nbc-wbs tr[data-group=true] td:nth-child(n+3) { display: none; }
+  .nbc-activities .nbc-wbs-no { overflow-wrap: anywhere; }
+  .nbc-activities .nbc-handler-button { min-height: 44px; }
+  .nbc-activities .nbc-toggle { width: 44px; height: 44px; }
+  .nbc-activity-band .nbc-view { display: inline-flex; align-items: center; min-height: 44px; }
+}

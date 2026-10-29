@@ -18,6 +18,19 @@ function Screen({ handler = 'Tola' }: { handler?: string | null }) {
 const wbsOrder = () => [...document.querySelectorAll('tbody tr[data-wbs]')].map((r) => r.getAttribute('data-wbs'))
 const value = (wbs: string) => screen.getByLabelText(`This week % for ${wbs}`) as HTMLInputElement
 
+test('the first autosave keeps the confirmation sheet open and the active field mounted', async () => {
+  render(<Screen/>)
+  const input = value('1.6.1.2')
+  fireEvent.change(input, { target: { value: '45.25' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm update' }))
+  await act(async () => { await vi.advanceTimersByTimeAsync(450) })
+  expect(useWorkspace.getState().nbc_submissions).toHaveLength(1)
+  expect(screen.getByRole('dialog', { name: 'Confirm update' })).toBeInTheDocument()
+  expect(value('1.6.1.2')).toBe(input)
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+  expect(input).toHaveValue('45.25')
+})
+
 test('expanding and collapsing the editor preserves typed progress and remarks', () => {
   render(<Screen/>)
   fireEvent.change(value('1.6.1.2'), { target: { value: '45' } })

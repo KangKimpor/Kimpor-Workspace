@@ -30,7 +30,7 @@ export function WbsTable({ rows, caption, collapsed, onToggle, previous, current
   const scroll = useRef<HTMLDivElement>(null)
   const [menu, setMenu] = useState<RowActionTarget | null>(null)
   // oxlint-disable-next-line react/incompatible-library -- React Compiler is not enabled; this virtualizer is not memoized.
-  const virtualizer = useVirtualizer({ count: virtual ? rows.length : 0, getScrollElement: () => scroll.current, estimateSize: () => ROW, overscan: 12, initialRect: { width: 1200, height: 800 } })
+  const virtualizer = useVirtualizer({ count: virtual ? rows.length : 0, getScrollElement: () => scroll.current, estimateSize: () => ROW, measureElement: (element) => element.getBoundingClientRect().height + (parseFloat(getComputedStyle(element).marginBottom) || 0), overscan: 12, initialRect: { width: 1200, height: 800 } })
   const items = virtual ? virtualizer.getVirtualItems() : rows.map((_, index) => ({ index, start: 0, end: 0 }))
   const before = virtual && items.length ? items[0]!.start : 0
   const after = virtual && items.length ? virtualizer.getTotalSize() - items.at(-1)!.end : 0
@@ -41,7 +41,7 @@ export function WbsTable({ rows, caption, collapsed, onToggle, previous, current
       {before > 0 && <tr aria-hidden="true"><td aria-hidden="true" colSpan={columns} style={{ height: before, padding: 0, border: 0 }}/></tr>}
       {items.map(({ index }) => {
         const row = rows[index]!, a = row.activity, open = !collapsed.has(a.id)
-        return <tr key={a.id} data-level={row.level} data-group={row.group} data-wbs={a.wbs} {...rowAttrs?.(row)} onContextMenu={event => {
+        return <tr key={a.id} data-index={index} ref={virtual ? virtualizer.measureElement : undefined} data-level={row.level} data-group={row.group} data-wbs={a.wbs} {...rowAttrs?.(row)} onContextMenu={event => {
           if ((event.target as HTMLElement).closest('input,textarea,[contenteditable=true]')) return
           event.preventDefault()
           setMenu({ id: a.id, title: a.name, projectId: a.projectId, nbcActivityId: a.id, x: event.clientX, y: event.clientY })

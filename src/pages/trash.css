@@ -21,6 +21,7 @@
 .trash-dialog .trash-emblem { margin-bottom: 20px; }
 .trash-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
 @media (max-width: 639px) {
+  .page.trash-page { padding: 16px; }
   .trash-heading { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 14px; margin-bottom: 24px; }
   .trash-heading .trash-emblem { width: 48px; height: 48px; border-radius: 14px; }
   .trash-heading > button { grid-column: 2; justify-self: start; margin-left: 0; min-height: 44px; }

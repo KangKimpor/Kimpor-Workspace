@@ -6,6 +6,7 @@ for (const width of [1280, 820, 393]) for (const theme of ['light', 'dark'] as c
   test(`Stitch screens retain navigation, data and accessible layouts at ${width} ${theme}`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 1000 })
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
+    await page.addInitScript((theme) => localStorage.setItem('kw-theme', theme), theme)
     await page.clock.install({ time: new Date('2026-10-28T07:00:00Z') })
     await page.addInitScript(({ project, activities }) => {
       if (!localStorage.getItem('kw-workspace-v1')) localStorage.setItem('kw-workspace-v1', JSON.stringify({
@@ -28,9 +29,9 @@ for (const width of [1280, 820, 393]) for (const theme of ['light', 'dark'] as c
       await expect(parent.getByRole('link', { name: new RegExp(fixtureProject.name) }).first()).toBeVisible()
       expect((await children.boundingBox())!.x).toBeGreaterThan((await parent.boundingBox())!.x)
     }
-    for (const [view, label] of [['overview', 'Overview'], ['activities', 'Progress'], ['issues', 'Issues'], ['update', 'Update Progress']] as const) {
+    for (const [view, label] of [['overview', 'Overview'], ['activities', 'Project Progress'], ['issues', 'Issues'], ['update', 'Update Progress']] as const) {
       await page.locator(view === 'issues' ? '.nbc-views' : '.nbc-tabs').getByRole('link', { name: label, exact: true }).click()
-      await expect(page.locator('.nbc-tabs a[aria-current=page]')).toHaveText(view === 'issues' ? 'Progress' : label)
+      await expect(page.locator('.nbc-tabs a[aria-current=page]')).toHaveText(view === 'issues' ? 'Project Progress' : label)
       await expect(page.getByRole('heading', { name: fixtureProject.name, exact: true })).toBeVisible()
       if (view === 'overview') {
         await expect(page.locator('.nbc-kpi').filter({ hasText: 'Overall progress' }).locator('strong')).toHaveText('35.0%')

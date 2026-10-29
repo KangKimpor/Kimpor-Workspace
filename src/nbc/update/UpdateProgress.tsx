@@ -36,7 +36,7 @@ function UpdateScreen({ projectId, activities, submissions, handler, onChange }:
         </button>
       </div>
     </header>
-    <UpdateEditor key={`${scope}:${week}:${handler}:${selected?.status ?? 'new'}:${activities[0]?.baselineResetAt ?? ''}`} projectId={projectId} week={week} handler={handler} activities={activities} submission={selected} pastDeadline={deadline.late}/>
+    <UpdateEditor key={`${scope}:${week}:${handler}:${selected?.status === 'confirmed' ? 'confirmed' : 'editing'}:${activities[0]?.baselineResetAt ?? ''}`} projectId={projectId} week={week} handler={handler} activities={activities} submission={selected} pastDeadline={deadline.late}/>
   </section>
 }
 
