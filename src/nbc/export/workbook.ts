@@ -15,7 +15,7 @@ export function reportingBlock(week: string) {
   const format = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`))
   return `${format(addDays(week, -1))} to ${format(addDays(week, 5))}`
 }
-export const reportFilename = (week: string) => `NBC-BP03-Progress Tracking by BOQ-(${reportingBlock(week)}).xlsx`
+export const reportFilename = (week: string, projectId = 'nbc-bp03') => `${projectId.toUpperCase()}-Progress Tracking by BOQ-(${reportingBlock(week)}).xlsx`
 
 function xml(data: Uint8Array | undefined) {
   if (!data) throw new Error('The Excel template is missing a required workbook part.')

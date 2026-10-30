@@ -23,7 +23,7 @@ export function HandlerTable({ projectId, activities, submissions, now }: { proj
   async function edit(s: NbcSubmission) {
     setBusy(true)
     try {
-      if (s.status === 'confirmed') await reopenUpdate(s.weekStart, s.handler)
+      if (s.status === 'confirmed') await reopenUpdate(s.weekStart, s.handler, projectId)
       navigate(`/projects-progress/${projectId}/update?handler=${s.handler}${s.weekStart === last ? `&week=${s.weekStart}` : ''}`)
     } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
   }

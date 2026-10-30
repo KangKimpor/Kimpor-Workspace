@@ -15,6 +15,7 @@ export type PaletteColor =
   | 'red'
 
 export interface ProjectSummary {
+  /** Legacy field name: enables the shared NBC BOQ workflow for BP03 and BP04. */
   nbcBp03?: boolean
   id: string
   name: string

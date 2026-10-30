@@ -14,10 +14,13 @@ import sys
 import openpyxl
 
 
-def extract(source):
+def extract(source, project_id='nbc-bp03'):
+    assert project_id in ('nbc-bp03', 'nbc-bp04')
+    prefix = 'nbc:' if project_id == 'nbc-bp03' else project_id + ':'
     formulas = openpyxl.load_workbook(source, data_only=False)
     values = openpyxl.load_workbook(source, data_only=True)
     sheet = values['Progress']
+    assert project_id[-4:].upper() in str(sheet['A1'].value).upper(), 'Workbook project title does not match'
     assert values.sheetnames == ['Progress', 'Sitha', 'Lychhinh', 'Chhorvaon', 'Srun', 'Kheng', 'Tola']
     errors = [(s.title, c.coordinate, c.value) for s in values for row in s for c in row if c.data_type == 'e']
     assert not errors, errors
@@ -38,8 +41,8 @@ def extract(source):
         parent = wbs.rsplit('.', 1)[0] if wbs.count('.') > 2 else None
         hierarchy = [sheet.cell(r, c).value for c in range(2, 10)]
         nodes.append(dict(
-            id='nbc:' + wbs, projectId='nbc-bp03', wbs=wbs,
-            parentId='nbc:' + parent if parent else None, order=r,
+            id=prefix + wbs, projectId=project_id, wbs=wbs,
+            parentId=prefix + parent if parent else None, order=r,
             name=sheet.cell(r, 10).value, description=' / '.join(str(v) for v in hierarchy if v),
             relativeWeight=sheet.cell(r, 11).value, globalWeight=sheet.cell(r, 19).value,
             baseline=sheet.cell(r, 14).value, progress=sheet.cell(r, 14).value,
@@ -51,7 +54,9 @@ def extract(source):
                             for c in range(11,22) if formulas['Progress'].cell(r,c).data_type == 'f'},
         ))
     by_id = {n['id']: n for n in nodes}
-    assert len(by_id) == len(nodes) == 790
+    assert len(by_id) == len(nodes) > 0
+    if project_id == 'nbc-bp03':
+        assert len(nodes) == 790
     children = collections.defaultdict(list)
     for n in nodes:
         assert n['parentId'] is None or n['parentId'] in by_id
@@ -99,9 +104,10 @@ def extract(source):
             close(n['boqValue'] / total_boq, n['relativeWeight'], n['wbs'] + ' root')
             close(n['relativeWeight'], n['globalWeight'], n['wbs'] + ' root global')
     counts = dict(collections.Counter(n['handler'] for n in nodes if n['handler']))
-    assert counts == dict(Sitha=193, Lychhinh=50, Chhorvaon=6, Srun=31, Kheng=31, Tola=250), counts
+    if project_id == 'nbc-bp03':
+        assert counts == dict(Sitha=193, Lychhinh=50, Chhorvaon=6, Srun=31, Kheng=31, Tola=250), counts
     leaves = [n for n in nodes if n['editable']]
-    assert len(leaves) == len(assigned) + 1 == 562
+    assert len(leaves) == len(assigned) + 1
     weight = sum(n['globalWeight'] for n in leaves)
     overall = sum(n['globalWeight'] * n['progress'] for n in leaves)
     close(weight, sheet['K5'].value, 'total weight')
@@ -118,8 +124,9 @@ def extract(source):
             changed[n['id']] = sum(c['relativeWeight'] * changed[c['id']] for c in cs) / denominator if denominator else 0
     propagated = sum(n['globalWeight'] * changed[n['id']] for n in roots)
     close(propagated, overall + leaf['globalWeight'] * (0.375 - leaf['progress']), 'edited propagation')
-    project = dict(id='nbc-bp03', name='NBC BP03 – Pan Pacific Hotel', workspace='team',
-                   color='blue', description='Interior Fit-Out · NBC BP03', target='', status='Active',
+    code = project_id.upper().replace('-', ' ')
+    project = dict(id=project_id, name=code + ' – Pan Pacific Hotel', workspace='team',
+                   color='blue', description='Interior Fit-Out � NBC BP03' if project_id == 'nbc-bp03' else '', target='', status='Active',
                    progress=overall, nbcBp03=True)
     reconciliation = dict(nodes=len(nodes), assignedActivities=len(assigned), editableEntries=len(leaves),
                           handlers=counts, rootWeight=sum(n['relativeWeight'] for n in roots),
@@ -142,16 +149,17 @@ declare owner uuid := current_setting('nbc.owner_id')::uuid; payload jsonb := '"
 pid text; matches integer; total integer;
 begin
   if not exists(select 1 from auth.users where id=owner) then raise exception 'Owner account does not exist'; end if;
-  perform pg_advisory_xact_lock(hashtextextended('nbc-bp03-initialization',0));
+  perform pg_advisory_xact_lock(hashtextextended('nbc-initialization',0));
   if exists(select 1 from public.kw_projects where data->>'nbcBp03'='true' and user_id<>owner) then raise exception 'Company NBC is already initialized under another storage owner; use that existing owner instead of creating a copy'; end if;
   select count(*),min(id) into matches,pid from public.kw_projects
-    where user_id=owner and (data->>'nbcBp03'='true' or regexp_replace(lower(data->>'name'),'[^a-z0-9]','','g') like 'nbcbp03%');
-  if matches>1 then raise exception 'Multiple NBC BP03 projects; resolve explicitly before initializing'; end if;
+    where user_id=owner and id=payload->'project'->>'id';
+  if matches>1 then raise exception 'Multiple matching NBC projects; resolve explicitly before initializing'; end if;
   if matches=0 then
-    pid='nbc-bp03';
+    pid=payload->'project'->>'id';
     if exists(select 1 from public.kw_projects where user_id=owner and id=pid) then raise exception 'Project ID is already used'; end if;
     insert into public.kw_projects(user_id,id,data) values(owner,pid,payload->'project');
   else
+    if not exists(select 1 from public.kw_projects where user_id=owner and id=pid and data->>'nbcBp03'='true') then raise exception 'Project ID is already used'; end if;
     update public.kw_projects set data=data||jsonb_build_object('nbcBp03',true,'workspace','team'),updated_at=clock_timestamp()
     where user_id=owner and id=pid and (data->>'nbcBp03' is distinct from 'true' or data->>'workspace' is distinct from 'team');
   end if;

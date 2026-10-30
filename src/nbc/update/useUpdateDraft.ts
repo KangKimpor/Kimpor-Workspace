@@ -17,13 +17,13 @@ interface Args { projectId: string; week: string; handler: Handler; activities: 
 /** Draft, autosave and confirmation state for one handler and week. Behaviour is unchanged from the earlier editor. */
 export function useUpdateDraft({ projectId, week, handler, activities, submission }: Args) {
   const scope = useWorkspace((s) => s.scope), sync = useWorkspace((s) => s.sync)
-  const [initial] = useState(() => draftEntries(week, handler))
+  const [initial] = useState(() => draftEntries(week, handler, projectId))
   const resetAt = activities[0]?.baselineResetAt
   const [form, setForm] = useState<HandlerDraft>(() => (submission?.status !== 'confirmed' && readHandlerDraft(scope, projectId, week, handler, resetAt)) || { values: Object.fromEntries(initial.map((e) => [e.activityId, { text: formatPercent(e.progress), remark: e.remark, baseRevision: e.baseRevision }])), note: submission?.note ?? '' })
   const [dirty, setDirty] = useState(() => !!readHandlerDraft(scope, projectId, week, handler, resetAt)), [error, setError] = useState(''), [busy, setBusy] = useState(false)
   const [touched, setTouched] = useState<ReadonlySet<string>>(new Set())
   const confirmed = submission?.status === 'confirmed'
-  const rows = draftEntries(week, handler)
+  const rows = draftEntries(week, handler, projectId)
 
   function parseEntry(entry: SubmissionEntry, formValue: HandlerDraft): SubmissionEntry {
     const value = formValue.values[entry.activityId], parsed = parseProgress(value?.text ?? formatPercent(entry.progress))
@@ -50,7 +50,7 @@ export function useUpdateDraft({ projectId, week, handler, activities, submissio
     setTouched((old) => new Set(old).add(id))
     change({ ...form, values: { ...form.values, [id]: { text: formatPercent(entry.progress), remark: entry.remark, baseRevision: entry.baseRevision, ...form.values[id], ...patch } } })
   }
-  function persist() { saveDraft(week, handler, parse(), form.note); setDirty(false) }
+  function persist() { saveDraft(week, handler, parse(), form.note, projectId); setDirty(false) }
   useEffect(() => {
     if (!dirty || confirmed || busy) return
     const timer = setTimeout(() => { try { persist(); setError('') } catch (e) { setError((e as Error).message) } }, 400)
@@ -63,13 +63,13 @@ export function useUpdateDraft({ projectId, week, handler, activities, submissio
   const confirm = () => run(async () => {
     if (needsRemark.size) throw new Error('Add a remark to every activity you lowered.')
     persist()
-    const result = await confirmUpdate(week, handler)
+    const result = await confirmUpdate(week, handler, projectId)
     clearHandlerDraft(scope, projectId, week, handler)
     useWorkspaceUI.getState().notify('Update confirmed', () => { void result.undo().catch((e) => useWorkspaceUI.getState().notify((e as Error).message)) })
   })
-  const edit = () => run(async () => { await reopenUpdate(week, handler) })
+  const edit = () => run(async () => { await reopenUpdate(week, handler, projectId) })
   const remove = () => run(async () => {
-    await deleteUpdate(week, handler)
+    await deleteUpdate(week, handler, projectId)
     clearHandlerDraft(useWorkspace.getState().scope, projectId, week, handler)
     useWorkspaceUI.getState().notify('Update deleted. Activity values restored.')
   })

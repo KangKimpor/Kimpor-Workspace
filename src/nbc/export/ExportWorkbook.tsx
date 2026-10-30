@@ -22,7 +22,7 @@ export default function ExportWorkbook({ projectId, activities, submissions, onC
     let active = true
     setLoading(true); setTemplate(null); setError('')
     const source = scope === 'guest' ? db.reportTemplates.get(key) : loadReportTemplate(projectId)
-    void source.then(file => { if (active && file) setTemplate(file) }).catch(() => { if (active) setError('Could not load the BP03 report format. Close and reopen export to try again.') }).finally(() => { if (active) setLoading(false) })
+    void source.then(file => { if (active && file) setTemplate(file) }).catch(() => { if (active) setError('Could not load the project report format. Close and reopen export to try again.') }).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [key, projectId, scope])
   async function choose(file: File) {
@@ -42,7 +42,7 @@ export default function ExportWorkbook({ projectId, activities, submissions, onC
     try {
       const result = weeklyWorkbook(new Uint8Array(template.data), activities, submissions, week)
       const url = URL.createObjectURL(new Blob([Uint8Array.from(result.bytes).buffer], { type: XLSX_TYPE }))
-      const link = document.createElement('a'); link.href = url; link.download = reportFilename(week); link.click()
+      const link = document.createElement('a'); link.href = url; link.download = reportFilename(week, projectId); link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
       useWorkspaceUI.getState().notify('Weekly Excel report exported')
       onClose()
@@ -58,7 +58,7 @@ export default function ExportWorkbook({ projectId, activities, submissions, onC
         <p className="small" role="status">{confirmed} of {handlers.length} handlers confirmed. {confirmed < handlers.length ? 'The workbook will show the confirmation count.' : 'All handlers have confirmed this week.'} Unconfirmed draft edits are excluded.</p>
         {scope === 'guest' && <label>Excel template<input type="file" accept=".xlsx" aria-label="Weekly report template" disabled={busy || loading} onChange={event => { const file = event.target.files?.[0]; if (file) void choose(file); event.target.value = '' }}/></label>}
         {template && <p className="small muted">Saved template: {template.name}</p>}
-        <p className="small muted">{loading ? 'Loading report format…' : scope === 'guest' ? 'Choose your NBC BOQ workbook once for this demo device.' : 'The BP03 baseline workbook format is ready to export.'}</p>
+        <p className="small muted">{loading ? 'Loading report format…' : scope === 'guest' ? 'Choose your NBC BOQ workbook once for this demo device.' : 'The project baseline workbook format is ready to export.'}</p>
         {error && <p className="form-error" role="alert">{error}</p>}
         <footer><Dialog.Close type="button" disabled={busy} className="btn-secondary">Cancel</Dialog.Close><button className="btn-accent" type="submit" disabled={!template || busy || loading}><Download size={15} aria-hidden="true"/>{busy ? 'Preparing…' : 'Export XLSX'}</button></footer>
       </form>

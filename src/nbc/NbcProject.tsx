@@ -37,11 +37,11 @@ export default function NbcProject({ project, view }: { project: ProjectSummary;
   }, [activities, submissions, current])
   useEffect(() => {
     if (!supabase || scope === 'guest') return
-    const client = supabase, channel = client.channel(`nbc-bp03:${scope}`)
+    const client = supabase, channel = client.channel(`nbc:${scope}:${project.id}`)
     for (const table of ['kw_nbc_activities', 'kw_nbc_submissions', 'kw_nbc_summaries']) channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => { void syncWorkspace() })
     channel.subscribe((status) => { if (status === 'SUBSCRIBED') void syncWorkspace() })
     return () => { void client.removeChannel(channel) }
-  }, [scope])
+  }, [scope, project.id])
 
   if (aliases[view]) return <Navigate to={`/projects-progress/${project.id}/${aliases[view]}${location.search}`} replace/>
   if (!views.some(([key]) => key === view) && view !== 'issues') return <Navigate to={`/projects-progress/${project.id}/overview`} replace/>

@@ -105,5 +105,44 @@ const freshRevision=(await select('kw_nbc_activities','tola')).data.updatedAt
 await call('save',current,'Tola',[entry(.6,'tola',freshRevision)])
 await db.exec('reset role; set role anon')
 await assert.rejects(db.exec('select * from public.kw_nbc_templates'),/permission denied/)
+
+await db.exec('reset role')
+const beforeBp03 = JSON.stringify((await db.query("select * from public.kw_nbc_activities where project_id='nbc-bp03' order by id")).rows)
+await db.exec(await readFile('supabase/migrations/20261030090000_nbc_multiple_projects.sql','utf8'))
+const bp04Project = {id:'nbc-bp04',name:'NBC BP04 – Pan Pacific Hotel',workspace:'team',nbcBp03:true}
+await assert.rejects(db.query('insert into public.kw_projects(id,user_id,data) values($1,$2,$3)', ['wrong-owner',other,JSON.stringify({...bp04Project,id:'wrong-owner'})]), /existing company storage owner/)
+await db.query('insert into public.kw_projects(id,user_id,data) values($1,$2,$3)', ['nbc-bp04',owner,JSON.stringify(bp04Project)])
+const bp04Activity = {...activity('nbc-bp04:tola','Tola',1,0),projectId:'nbc-bp04'}
+await db.query('insert into public.kw_nbc_activities(id,user_id,data) values($1,$2,$3)',[bp04Activity.id,owner,JSON.stringify(bp04Activity)])
+await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub','${other}',false)`)
+assert.equal((await db.query('select public.kw_nbc_owner() as owner')).rows[0].owner,owner)
+assert.equal((await db.query("select count(*)::int as n from public.kw_projects where data->>'nbcBp03'='true'")).rows[0].n,2)
+const bp04Call = async(operation, entries, expected) => (await db.query('select public.kw_nbc_submission_write($1,$2::jsonb,$3::timestamptz) as result',[operation,JSON.stringify({projectId:'nbc-bp04',weekStart:current,handler:'Tola',entries}),expected??null])).rows[0].result
+await assert.rejects(bp04Call('save',[entry(.5)]),/activities|handler|project/i)
+await bp04Call('save',[{activityId:bp04Activity.id,previous:0,progress:.5,remark:'BP04 only'}])
+const bp04Saved = await select('kw_nbc_submissions',`nbc-bp04:${current}:Tola`)
+await bp04Call('confirm',undefined,bp04Saved.updated_at)
+assert.equal((await select('kw_nbc_activities',bp04Activity.id)).data.progress,.5)
+assert.equal((await select('kw_nbc_summaries',`nbc-bp04:${current}`)).data.overall,.5)
+assert.equal(JSON.stringify((await db.query("select * from public.kw_nbc_activities where project_id='nbc-bp03' order by id")).rows),beforeBp03)
+await db.exec("delete from public.kw_projects where id='nbc-bp04'")
+assert.ok(await select('kw_projects','nbc-bp04'))
+await db.exec('reset role; set role anon')
+await assert.rejects(db.exec('select * from public.kw_nbc_submissions'),/permission denied/)
+await db.exec('reset role')
+console.log('Two-project owner, access, cross-project entry rejection, confirmation and BP03 preservation passed.')
+
+// Run the exact private preparation transaction twice in disposable PostgreSQL only.
+try {
+  const seed = (await readFile('.private/nbc-bp04/initialize.sql','utf8')).replace('\\set ON_ERROR_STOP on','').replaceAll(":'owner_id'", `'${owner}'`)
+  await db.exec("delete from public.kw_nbc_submissions where project_id='nbc-bp04'; delete from public.kw_nbc_summaries where project_id='nbc-bp04'; delete from public.kw_nbc_activities where project_id='nbc-bp04'; delete from public.kw_projects where id='nbc-bp04';")
+  await db.exec(seed)
+  const initial = JSON.stringify((await db.query("select * from public.kw_nbc_activities where project_id='nbc-bp04' order by id")).rows)
+  assert.equal((await db.query("select count(*)::int as n from public.kw_nbc_activities where project_id='nbc-bp04'")).rows[0].n,382)
+  await db.exec(seed)
+  assert.equal(JSON.stringify((await db.query("select * from public.kw_nbc_activities where project_id='nbc-bp04' order by id")).rows),initial)
+  assert.equal(JSON.stringify((await db.query("select * from public.kw_nbc_activities where project_id='nbc-bp03' order by id")).rows),beforeBp03)
+  console.log('Exact private BP04 initializer: 382 rows, template, rerun preservation and unchanged BP03 passed.')
+} catch (error) { if (error.code !== 'ENOENT') throw error }
 await db.close()
 console.log('NBC migration, preservation, autosave, confirm/edit/delete/undo, re-chaining, GR&P, summaries, CAS and access checks passed.')

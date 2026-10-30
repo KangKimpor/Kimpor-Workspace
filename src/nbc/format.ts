@@ -9,5 +9,5 @@ export function exportSubmission(submission: NbcSubmission, activities: NbcActiv
   const cell = (value: string | number) => `"${String(typeof value === 'string' && /^[=+\-@\t\r\n]/.test(value) ? `'${value}` : value).replaceAll('"', '""')}"`
   const rows = [['Week',weekLabel(submission.weekStart)],['Handler',submission.handler],['Status',submission.status],['Confirmed at',submission.confirmedAt??''],['Note',submission.note],[],['WBS','Activity','Previous %','Progress %','Change %','Remark'],...submission.entries.map((e)=>{const a=activities.find((a)=>a.id===e.activityId);return [a?.wbs??e.activityId,a?.name??e.activityId,percent(e.previous),percent(e.progress),`${delta(e.progress-e.previous)}%`,e.remark]})]
   const url=URL.createObjectURL(new Blob(['\uFEFF',rows.map((r)=>r.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}))
-  const link=document.createElement('a');link.href=url;link.download=`NBC-BP03-${submission.weekStart}-${submission.handler}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)
+  const link=document.createElement('a');link.href=url;link.download=`${submission.projectId.toUpperCase()}-${submission.weekStart}-${submission.handler}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)
 }

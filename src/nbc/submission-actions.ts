@@ -5,15 +5,15 @@ import { appliedEntries, assertEditableWeek, canUpdate, submissionId, transition
 import type { SubmissionOperation } from './submissions'
 import type { Handler, NbcSubmission, SubmissionEntry } from './types'
 
-function context(week: string, handler: Handler) {
+function context(week: string, handler: Handler, projectId: string) {
   assertEditableWeek(week)
-  const state = useWorkspace.getState(), project = state.projects.find((p) => p.nbcBp03)
-  if (!project) throw new Error('NBC BP03 is not initialized.')
+  const state = useWorkspace.getState(), project = state.projects.find((p) => p.id === projectId && p.nbcBp03)
+  if (!project) throw new Error('This NBC project is not initialized.')
   const id = submissionId(project.id, week, handler)
   return { state, project, id, submission: state.nbc_submissions?.find((s) => s.id === id) }
 }
-export function draftEntries(week: string, handler: Handler): SubmissionEntry[] {
-  const { state, project, submission } = context(week, handler)
+export function draftEntries(week: string, handler: Handler, projectId = 'nbc-bp03'): SubmissionEntry[] {
+  const { state, project, submission } = context(week, handler, projectId)
   const existing = new Map(submission?.entries.map((e) => [e.activityId, e]))
   return (state.nbc_activities ?? []).filter((a) => a.projectId === project.id && canUpdate(a, handler)).map((a) => {
     if (existing.has(a.id)) return existing.get(a.id)!
@@ -26,8 +26,8 @@ export function draftEntries(week: string, handler: Handler): SubmissionEntry[] 
   })
 }
 /** Synchronous store commit journals autosaves through the existing cloud/offline queue. */
-export function saveDraft(week: string, handler: Handler, entries: SubmissionEntry[], note = '') {
-  const { state, project, id, submission } = context(week, handler)
+export function saveDraft(week: string, handler: Handler, entries: SubmissionEntry[], note = '', projectId = 'nbc-bp03') {
+  const { state, project, id, submission } = context(week, handler, projectId)
   if (submission?.status === 'confirmed') throw new Error('Choose Edit before changing a confirmed update.')
   if (note.length > 4000) throw new Error('Keep the note under 4,000 characters.')
   const activities = (state.nbc_activities ?? []).filter((a) => a.projectId === project.id)
@@ -39,8 +39,8 @@ export function saveDraft(week: string, handler: Handler, entries: SubmissionEnt
   state.commitNbc({ nbc_submissions: [...(state.nbc_submissions ?? []).filter((s) => s.id !== id), draft] })
   if (useWorkspace.getState().storageError) throw new Error('Could not autosave on this device. Keep this page open.')
 }
-async function operate(week: string, handler: Handler, operation: SubmissionOperation) {
-  let { state, id, submission } = context(week, handler)
+async function operate(week: string, handler: Handler, operation: SubmissionOperation, projectId: string) {
+  let { state, id, submission } = context(week, handler, projectId)
   if (!submission) throw new Error('Update not found.')
   if (state.scope === 'guest') {
     const result = transitionSubmission({ activities: state.nbc_activities ?? [], submissions: state.nbc_submissions ?? [], summaries: state.nbc_summaries ?? [] }, id, operation, state.scope)
@@ -50,7 +50,7 @@ async function operate(week: string, handler: Handler, operation: SubmissionOper
     await syncWorkspace()
     if (pendingCollectionIds('nbc_submissions').has(id) || pendingCollectionIds('nbc_activities').size || !navigator.onLine || !supabase) throw new Error('Your draft is kept. Connect and wait for autosave before confirming.')
     if (useWorkspace.getState().scope !== scope) throw new Error('Account changed. Reopen this update.')
-    ;({ state, submission } = context(week, handler))
+    ;({ state, submission } = context(week, handler, projectId))
     if (!submission) throw new Error('This update changed. Reload before continuing.')
     const { data, error } = await supabase.rpc('kw_nbc_submission_write', { operation, payload: { projectId: submission.projectId, weekStart: week, handler }, expected: submission.updatedAt })
     if (error) { await syncWorkspace(); throw new Error(error.message) }
@@ -58,9 +58,9 @@ async function operate(week: string, handler: Handler, operation: SubmissionOper
     if (useWorkspace.getState().scope !== scope) throw new Error('Account changed.')
     if (data.conflict) throw new Error('This update changed in another session. Review it and try again.')
   }
-  return { weekStart: week, handler, undo: () => undoConfirm(week, handler) }
+  return { weekStart: week, handler, undo: () => undoConfirm(week, handler, projectId) }
 }
-export const confirmUpdate = (week: string, handler: Handler) => operate(week, handler, 'confirm')
-export const reopenUpdate = (week: string, handler: Handler) => operate(week, handler, 'reopen')
-export const deleteUpdate = (week: string, handler: Handler) => operate(week, handler, 'delete')
-export const undoConfirm = (week: string, handler: Handler) => operate(week, handler, 'undo')
+export const confirmUpdate = (week: string, handler: Handler, projectId = 'nbc-bp03') => operate(week, handler, 'confirm', projectId)
+export const reopenUpdate = (week: string, handler: Handler, projectId = 'nbc-bp03') => operate(week, handler, 'reopen', projectId)
+export const deleteUpdate = (week: string, handler: Handler, projectId = 'nbc-bp03') => operate(week, handler, 'delete', projectId)
+export const undoConfirm = (week: string, handler: Handler, projectId = 'nbc-bp03') => operate(week, handler, 'undo', projectId)

@@ -242,7 +242,7 @@ export const useWorkspace = create<Workspace>((set, get) => {
     updateTask: (id, patch) => {
       const previous = get().tasks.find((t) => t.id === id)
       if (previous && patch.projectId && patch.projectId !== previous.projectId && patch.nbcActivityId === undefined) patch = { ...patch, nbcActivityId: null }
-      if (previous && !validWbsLink(get(), patch.projectId ?? previous.projectId, patch.nbcActivityId)) throw new Error('Choose a WBS activity from the same NBC BP03 project.')
+      if (previous && !validWbsLink(get(), patch.projectId ?? previous.projectId, patch.nbcActivityId)) throw new Error('Choose a WBS activity from the same NBC project.')
       if (
         !previous ||
         (patch.parentId !== undefined &&
@@ -402,7 +402,7 @@ export const useWorkspace = create<Workspace>((set, get) => {
       const projectId = get().projects.some((p) => p.id === input.projectId)
         ? input.projectId
         : (get().projects[0]?.id ?? get().addProject('Personal'))
-      if (!validWbsLink(get(), projectId, input.nbcActivityId)) throw new Error('Choose a WBS activity from the same NBC BP03 project.')
+      if (!validWbsLink(get(), projectId, input.nbcActivityId)) throw new Error('Choose a WBS activity from the same NBC project.')
       const id = crypto.randomUUID(),
         pageId = crypto.randomUUID(),
         now = new Date().toISOString()
