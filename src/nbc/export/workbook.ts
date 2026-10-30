@@ -1,5 +1,6 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { calculate } from '../progress'
+import { weightValues } from './weight-values'
 import { addDays, appliedEntries, submissionStatus, weekStart } from '../submissions'
 import { handlers } from '../types'
 import type { NbcActivity, NbcSubmission } from '../types'
@@ -41,7 +42,7 @@ export const confirmedCount = (activities: NbcActivity[], submissions: NbcSubmis
   return submission?.status === 'confirmed' && submissionStatus(submission, week, activities) !== 'Needs review'
 }).length
 
-/** Shared workbook validation for import and export. No formulas are executed. */
+/** Shared read-only validation; only supported weight arithmetic is evaluated. */
 export function readNbcWorkbook(template: Uint8Array, activities: NbcActivity[]) {
   if (!activities.length) throw new Error('There are no BOQ activities to export.')
   if (template.byteLength > MAX_TEMPLATE_BYTES) throw new Error('Choose an XLSX template up to 10 MB.')
@@ -78,13 +79,15 @@ export function readNbcWorkbook(template: Uint8Array, activities: NbcActivity[])
   }
   const masterRows = wbsRows(docs[0]!), byWbs = new Map(activities.map(a => [a.wbs, a]))
   if (masterRows.size !== activities.length || byWbs.size !== activities.length || activities.some(a => !masterRows.has(a.wbs))) throw new Error('The template WBS activities do not match this project. Choose the matching NBC workbook.')
+  const weight = weightValues(new Map(elements(docs[0]!, 'c').map(cell => [cell.getAttribute('r')!, cell])), read)
   for (const a of activities) {
     if (a.editable && a.wbs !== 'GR&P' && !handlers.some(h => h === a.handler)) throw new Error(`Assign WBS ${a.wbs} to one of the six handlers before exporting.`)
     const row = masterRows.get(a.wbs)!
     if (read(findCell(row, 'J')) !== a.name) throw new Error(`Template task name does not match WBS ${a.wbs}.`)
     for (const [column, value] of [['K', a.relativeWeight], ['S', a.globalWeight]] as const) {
-      const raw = read(findCell(row, column))
-      if (!raw || !Number.isFinite(Number(raw)) || Math.abs(Number(raw) - value) > 1e-9) throw new Error(`Template weighting does not match WBS ${a.wbs}.`)
+      let actual: number
+      try { actual = weight(`${column}${row.getAttribute('r')}`) } catch { throw new Error(`Template weighting cannot be read for WBS ${a.wbs}.`) }
+      if (Math.abs(actual - value) > 1e-9) throw new Error(`Template weighting does not match WBS ${a.wbs}.`)
     }
   }
   return { files, book, rels, paths, docs, read, findCell, rows, wbsRows, masterRows, byWbs }
