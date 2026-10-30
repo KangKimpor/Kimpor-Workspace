@@ -128,6 +128,13 @@ export function weeklyWorkbook(template: Uint8Array, activities: NbcActivity[], 
     }
     return levels
   })
+  const rootOf = (a: NbcActivity) => { let node = a; while (node.parentId && current.byId.get(node.parentId)) node = current.byId.get(node.parentId)!; return node }
+  // BP02 handler tabs carry a floor code in column N; reuse the one the template already shows for each floor.
+  const floorCodes = new Map<string, string>()
+  for (const doc of docs.slice(1)) for (const [wbs, row] of wbsRows(doc)) {
+    const code = read(findCell(row, 'N')), a = byWbs.get(wbs)
+    if (code && a) floorCodes.set(rootOf(a).wbs, code)
+  }
   // Rebuild handler rows from current assignments, keeping the template's row styles by level.
   for (const [i, handler] of handlers.entries()) {
     const doc = docs[i + 1]!, data = elements(doc, 'sheetData')[0]!
@@ -156,7 +163,11 @@ export function weeklyWorkbook(template: Uint8Array, activities: NbcActivity[], 
       const row = doc.importNode(prototype, true), number = index + 5
       row.setAttribute('r', String(number))
       for (const cell of row.children) { cell.setAttribute('r', cell.getAttribute('r')!.replace(/\d+$/, String(number))); cell.replaceChildren(); cell.removeAttribute('t') }
-      set(row, 'A', a.wbs); set(row, String.fromCharCode(65 + Math.min(depth, 8)), a.name); set(row, 'J', a.name)
+      // The name goes in the hierarchy column the Progress sheet uses for this row (differs between projects).
+      const master = masterRows.get(a.wbs)!, levelColumn = 'BCDEFGHI'.split('').find(column => read(findCell(master, column)) !== '')
+      set(row, 'A', a.wbs); set(row, levelColumn ?? String.fromCharCode(65 + Math.min(depth, 8)), a.name); set(row, 'J', a.name)
+      const floor = floorCodes.get(rootOf(a).wbs)
+      if (floor) set(row, 'N', floor)
       if (a.editable) {
         set(row, 'K', previous.progress.get(a.id)!); set(row, 'M', current.progress.get(a.id)!)
         set(row, 'L', Math.round((current.progress.get(a.id)! - previous.progress.get(a.id)!) * 1e6) / 1e6, `ROUND(M${number}-K${number},6)`)
@@ -164,7 +175,8 @@ export function weeklyWorkbook(template: Uint8Array, activities: NbcActivity[], 
       }
       data.append(row)
     })
-    elements(doc, 'dimension')[0]?.setAttribute('ref', `A1:M${Math.max(4, body.length + 4)}`)
+    const dimension = elements(doc, 'dimension')[0], lastColumn = /:([A-Z]+)\d+$/.exec(dimension?.getAttribute('ref') ?? '')?.[1] ?? 'M'
+    dimension?.setAttribute('ref', `A1:${lastColumn.length > 1 || lastColumn > 'M' ? lastColumn : 'M'}${Math.max(4, body.length + 4)}`)
   }
   for (const a of activities) {
     const row = masterRows.get(a.wbs)!, r = rowNumber(a), children = current.children.get(a.id) ?? [], assigned = handlerRows.get(a.id)

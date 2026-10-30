@@ -82,3 +82,15 @@ test.skipIf(!existsSync('.private/nbc-bp02/initial.json'))('private BP02 BOQ rec
   const edited = activities.map(a => a.id === leaf.id ? { ...a, progress: 1 } : a)
   expect(Number(doc(weeklyWorkbook(template, edited, [], '2026-10-26').bytes).querySelector('c[r="N5"] v')?.textContent)).toBeCloseTo(c.overall + leaf.globalWeight * (1 - leaf.progress), 12)
 }, 120000)
+
+test.skipIf(!existsSync('.private/nbc-bp02/initial.json'))('BP02 export keeps its hierarchy column and floor code when a handler is reassigned', () => {
+  const { activities } = JSON.parse(readFileSync('.private/nbc-bp02/initial.json', 'utf8')) as { activities: NbcActivity[] }
+  const template = new Uint8Array(readFileSync('.private/nbc-bp02/template.xlsx'))
+  const leaf = activities.find(a => a.editable && a.handler === 'Tola' && a.wbs === '1.8.1.3.1.4.1.1')!
+  const files = unzipSync(weeklyWorkbook(template, activities.map(a => a.id === leaf.id ? { ...a, handler: 'Sitha' } : a), [], '2026-10-26').bytes)
+  const text = strFromU8(files['xl/worksheets/sheet2.xml']!)
+  const row = new DOMParser().parseFromString(text, 'application/xml').querySelector(`c[r^="A"] :is(v,t)`) && [...new DOMParser().parseFromString(text, 'application/xml').querySelectorAll('row')].find(r => r.textContent?.includes(leaf.wbs))
+  expect(row?.querySelector('c[r^="N"]')?.textContent).toBe('L18')
+  expect(row?.querySelector('c[r^="H"]')?.textContent).toBe(leaf.name)
+  expect(row?.querySelector('c[r^="I"]')?.textContent ?? '').toBe('')
+}, 120000)
