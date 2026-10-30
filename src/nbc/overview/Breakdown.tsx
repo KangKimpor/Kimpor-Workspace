@@ -10,11 +10,12 @@ const link = (projectId: string | undefined, params: Record<string, string>) => 
 /** Progress grouped by one activity attribute, furthest behind first. Each row opens the filtered Progress tab. */
 export function Breakdown({ field, activities, previous }: { field: BreakdownField; activities: NbcActivity[]; previous: Map<string, number> }) {
   const groups = new Map<string, NbcActivity[]>()
-  for (const a of activities) if (a.editable) { const key = a[field] || 'Unassigned'; groups.set(key, [...(groups.get(key) ?? []), a]) }
+  for (const a of activities) if (a.editable) { const key = a[field] || 'Unassigned'; const list = groups.get(key) ?? []; list.push(a); groups.set(key, list) }
   const rows = [...groups].map(([name, list]) => ({ name, ...summarize(list, previous) })).sort((a, b) => a.progress - b.progress || a.name.localeCompare(b.name))
   return <section className="nbc-breakdown" aria-label={TITLES[field]}>
     <h3>{TITLES[field]}</h3>
-    <ul>{rows.map((r) => <li key={r.name}><Link to={link(activities[0]?.projectId, { [field]: r.name })}><span className="nbc-breakdown-name">{r.name}</span><progress max={1} value={r.progress} aria-label={`${r.name} progress`}/><span className="nbc-num">{percent(r.progress)}</span></Link></li>)}</ul>
+    <ul>{rows.map((r) => <li key={r.name}><Link to={link(activities[0]?.projectId, { [field]: r.name })} data-empty={r.progress === 0}><span className="nbc-breakdown-label"><span className="nbc-breakdown-name">{r.name}</span><span className="nbc-progress-value">{percent(r.progress)}</span></span><progress max={1} value={r.progress} aria-label={`${r.name} progress`}/><span className="nbc-progress-note">{r.progress === 0 ? 'Not started' : `${percent(Math.max(0, 1 - r.progress))} remaining`}</span></Link></li>)}</ul>
+    <p className="nbc-progress-legend">Each track represents 0–100% complete.</p>
   </section>
 }
 

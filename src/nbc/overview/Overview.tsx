@@ -53,11 +53,11 @@ export default function Overview({ project, activities, submissions, summaries, 
     <p className="nbc-forecast small" role="status"><span className="nbc-pill">Forecast</span>{forecast}</p>
     <Attention items={attention}/>
     <Trend summaries={summaries} today={today}/>
-    <HandlerTable projectId={project.id} activities={activities} submissions={submissions} now={now}/>
-    <section className="nbc-execution"><div className="row-between"><div><h2>Where the delay is</h2><p className="small muted">Furthest behind first. Select a row to open its activities.</p></div><div className="nbc-seg" role="group" aria-label="Breakdown grouping">{GROUPS.map(([key, label]) => <button key={key} aria-pressed={group === key} onClick={() => { setGroup(key); setBreakdown(true) }}>{label}</button>)}</div></div>
+    <div className="nbc-progress-panels"><HandlerTable projectId={project.id} activities={activities} submissions={submissions} now={now}/>
+    <section className="nbc-execution"><div className="row-between"><div><h2>Completion breakdown</h2><p className="small muted">Furthest behind first. Select a row to open its activities.</p></div><div className="nbc-seg" role="group" aria-label="Breakdown grouping">{GROUPS.map(([key, label]) => <button key={key} aria-pressed={group === key} onClick={() => { setGroup(key); setBreakdown(true) }}>{label}</button>)}</div></div>
       {breakdown && <div className="nbc-breakdowns">{group === 'heatmap' ? <Heatmap activities={activities}/> : <Breakdown field={group} activities={activities} previous={baseline}/>}</div>}
       <button className="nbc-linkish nbc-breakdown-toggle" aria-expanded={breakdown} onClick={() => setBreakdown(!breakdown)}>{breakdown ? 'Hide breakdown' : 'Show breakdown'}</button>
-    </section>
+    </section></div>
     {digest && <Digest title={`${project.name} · ${weekLabel(current)}`} lines={digestLines} onClose={() => setDigest(false)}/>}
   </div>
 }

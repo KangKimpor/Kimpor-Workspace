@@ -42,6 +42,7 @@ test('autosaved draft survives reload without changing live progress, then confi
   await expect(page.getByLabel('This week % for 1.6.1.2')).toHaveCount(0)
   await page.getByRole('link', { name: 'Overview', exact: true }).click()
   await expect(page.getByText('1 of 6 handlers updated this week')).toBeVisible()
+  await page.getByRole('button', { name: 'Expand Tola', exact: true }).click()
   await expect(page.getByRole('link', { name: 'Tola this week update' })).toContainText('Updated')
 })
 test('no-change confirmation and short-window Undo keep a saved editable draft', async ({ page }) => {
@@ -166,6 +167,32 @@ for (const viewport of [{ width: 1920, height: 1080 }, { width: 820, height: 118
   await expect(page.getByLabel('Search activities')).toHaveValue('Install')
 
 })
+for (const width of [320, 393, 1440]) for (const theme of ['light', 'dark']) test(`approved progress cards at ${width}px ${theme}`, async ({ page }) => {
+  await setup(page)
+  await page.setViewportSize({ width, height: 1000 })
+  await page.addInitScript(theme => localStorage.setItem('kw-theme', theme), theme)
+  await page.goto('/projects-progress/nbc-bp03/overview')
+  const panel = page.getByRole('region', { name: 'Handler updates' })
+  const track = page.getByRole('progressbar', { name: 'Tola contribution', exact: true })
+  await expect(track).toHaveAttribute('value', '0.15')
+  await expect(page.getByRole('progressbar', { name: 'Kheng contribution', exact: true })).toHaveAttribute('value', '0')
+  expect((await track.boundingBox())!.width).toBeGreaterThan((await panel.boundingBox())!.width * .75)
+  await expect(panel.locator('.nbc-contribution')).toHaveCount(0)
+  expect(await panel.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true)
+  await page.getByRole('button', { name: 'Expand Tola', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Older weeks', exact: true })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.getByRole('button', { name: 'Collapse Tola', exact: true }).click()
+  await page.getByRole('button', { name: 'Work area', exact: true }).click()
+  const breakdown = page.getByRole('region', { name: 'Work area', exact: true })
+  await expect(breakdown.getByRole('progressbar', { name: 'Test area progress', exact: true })).toHaveAttribute('value', '0.35')
+  expect((await new AxeBuilder({ page }).include('.nbc-progress-panels').analyze()).violations).toEqual([])
+  await page.locator('.nbc-progress-panels').screenshot({ path: `test-results/progress-cards-${width}-${theme}.png` })
+  await breakdown.getByRole('link').filter({ hasText: 'Test area' }).click()
+  await expect(page).toHaveURL(/\/activities\?area=Test\+area$/)
+  await expect(page.getByRole('combobox', { name: 'Work area', exact: true })).toContainText('Test area')
+})
+
 test.describe('mobile progress work', () => {
   test.use({ hasTouch: true, isMobile: true })
   for (const width of [320, 393]) test(`touch editing and long project lists at ${width}px`, async ({ page }) => {

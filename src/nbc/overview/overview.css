@@ -1,44 +1,63 @@
 .nbc-overview { display: grid; gap: 24px; min-width: 0; }
-.nbc-project progress { appearance: none; height: 6px; border: 0; border-radius: 99px; overflow: hidden; background: var(--surface-hover); accent-color: var(--accent); }
-.nbc-project progress::-webkit-progress-bar { background: var(--surface-hover); border-radius: 99px; }
-.nbc-project progress::-webkit-progress-value { background: var(--accent); border-radius: 99px; }
-.nbc-project progress::-moz-progress-bar { background: var(--accent); border-radius: 99px; }
-.nbc-handler-panel { border-radius: 8px; background: var(--bg-sidebar); overflow: hidden; box-shadow: 0 1px 3px rgb(0 0 0 / .04); min-width: 0; }
-.nbc-section-heading { display: flex; align-items: center; gap: 12px; padding: 14px 24px; }
-.nbc-section-heading h2 { display: inline-flex; align-items: center; gap: 8px; }
-.nbc-section-heading svg { color: var(--text-secondary); }
-.nbc-section-heading > span { font-family: var(--font-mono); font-size: 11px; }
-.nbc-handlers { width: 100%; border-collapse: collapse; font-size: var(--fs-small); font-variant-numeric: tabular-nums; }
-.nbc-handlers th { text-align: start; font-weight: 500; color: var(--text-secondary); padding: 6px 24px; background: var(--status-neutral-bg); font-size: 11px; text-transform: uppercase; letter-spacing: .025em; white-space: nowrap; }
-.nbc-handlers td { padding: 10px 24px; height: 52px; background: var(--bg-canvas); }
-.nbc-handler-name { display: flex; align-items: center; gap: 8px; font-size: 14px; }
-.nbc-handler-avatar { display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-selected); font-size: 11px; }
-.nbc-handler-avatar[data-handler=Sitha] { background: var(--chip-blue); }
-.nbc-handler-avatar[data-handler=Lychhinh] { background: var(--status-success-bg); }
-.nbc-handler-avatar[data-handler=Tola] { background: var(--accent); color: #fff; }
-.nbc-contribution { display: flex; justify-content: end; align-items: center; gap: 8px; font: 11px var(--font-mono); }
-.nbc-contribution progress { width: 64px; }
-.nbc-handler-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 12px 24px; font-size: 11px; color: var(--text-secondary); }
-.nbc-handler-footer strong { display: inline-block; padding: 2px 8px; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-mono); }
-.nbc-handlers .nbc-num { text-align: end; }
-.nbc-handlers tbody tr:not(.nbc-weeks):hover { background: var(--bg-hover); }
-.nbc-handlers td:first-child .nbc-toggle { vertical-align: middle; margin-inline-end: var(--space-4); }
+.nbc-overview { --nbc-progress-fill: #0067d6; --nbc-progress-track: color-mix(in srgb, var(--text-primary) 10%, var(--bg-raised)); }
+[data-theme=dark] .nbc-overview { --nbc-progress-fill: #70b5ff; }
+.nbc-overview progress { display: block; appearance: none; width: 100%; height: 6px; border: 0; border-radius: 99px; overflow: hidden; background: var(--nbc-progress-track); color: var(--nbc-progress-fill); }
+.nbc-overview progress::-webkit-progress-bar { background: var(--nbc-progress-track); border-radius: 99px; }
+.nbc-overview progress::-webkit-progress-value { background: var(--nbc-progress-fill); border-radius: 99px; }
+.nbc-overview progress::-moz-progress-bar { background: var(--nbc-progress-fill); border-radius: 99px; }
+.nbc-progress-panels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 24px; min-width: 0; }
+.nbc-handler-panel { border: 1px solid var(--border-subtle); border-radius: 22px; background: var(--bg-raised); overflow: hidden; box-shadow: 0 2px 6px rgb(0 0 0 / .02), 0 12px 32px rgb(0 0 0 / .02); min-width: 0; }
+.nbc-section-heading { padding: 24px 24px 8px; }
+.nbc-project .nbc-section-heading h2 { font-size: 19px; letter-spacing: -.025em; }
+.nbc-project .nbc-section-heading p { margin: 5px 0 0; font-size: 13px; color: var(--text-secondary); }
+.nbc-handlers, .nbc-handlers tbody { display: block; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+.nbc-handler-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 10px 12px; margin-inline: 24px; padding: 14px 0 16px; border-bottom: 1px solid var(--border-subtle); }
+.nbc-handlers .nbc-handler-row td { padding: 0; height: auto; min-width: 0; border: 0; background: transparent; }
+.nbc-handler-row td:first-child { grid-column: 1 / -1; grid-row: 1; padding-right: 65px; }
+.nbc-handler-name { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; max-width: 100%; border: 0; padding: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: 14px; font-weight: 500; text-align: start; }
+.nbc-handler-toggle > svg { flex: none; color: var(--text-secondary); }
+.nbc-handler-avatar { display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); color: var(--text-secondary); font-size: 12px; }
+.nbc-handler-row td:nth-child(2) { grid-column: 1; grid-row: 3; }
+.nbc-handler-row td:nth-child(3) { grid-column: 2; grid-row: 3; }
+.nbc-handler-row td:nth-child(4) { grid-column: 3; grid-row: 3; text-align: end; }
+.nbc-handler-meta-label { display: block; margin-bottom: 5px; font-size: 11px; color: var(--text-secondary); }
+.nbc-handler-row td:nth-child(2) > a, .nbc-handler-row .nbc-linkish { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; }
+.nbc-project .nbc-handler-row .nbc-pill { max-width: 100%; white-space: normal; }
+.nbc-handler-row .nbc-pill-time { display: none; }
+.nbc-handler-contribution { grid-column: 1 / -1; grid-row: 2; }
+.nbc-progress-value { font: 600 15px var(--font-sans); font-variant-numeric: tabular-nums; letter-spacing: -.025em; white-space: nowrap; }
+.nbc-handler-contribution > .nbc-progress-value { position: absolute; top: 27px; right: 0; }
+[data-empty=true] .nbc-progress-value { color: var(--text-secondary); font-weight: 400; }
+.nbc-handler-footer { padding: 20px 24px 24px; background: color-mix(in srgb, var(--nbc-progress-fill) 5%, var(--bg-raised)); }
+.nbc-handler-footer > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; font-weight: 500; }
+.nbc-handler-footer strong { color: var(--nbc-progress-fill); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.nbc-handler-footer progress { height: 7px; margin-top: 13px; }
+.nbc-project .nbc-handler-footer p { font-size: 11px; line-height: 1.6; color: var(--text-secondary); margin: 10px 0 0; }
 .nbc-handlers a { text-decoration: none; color: inherit; }
-.nbc-weeks > td { padding: 0 0 var(--space-8) var(--space-32); background: var(--bg-canvas); }
+.nbc-weeks, .nbc-weeks > td { display: block; }
+.nbc-weeks > td { padding: 0 24px 12px; background: var(--bg-sidebar); }
 .nbc-weeks ul { list-style: none; margin: 0; padding: 0; }
-.nbc-week-row { display: grid; grid-template-columns: 6rem 8rem auto 1fr auto; align-items: center; gap: var(--space-12); padding: var(--space-4) var(--space-8); border-bottom: 1px solid var(--border-subtle); }
-.nbc-weeks ul ul { padding-inline-start: var(--space-16); }
+.nbc-week-row { position: relative; display: grid; gap: 6px; padding: 14px 48px 14px 0; border-bottom: 1px solid var(--border-subtle); overflow-wrap: anywhere; }
+.nbc-week-row > .ibtn { position: absolute; right: 0; top: 12px; }
+.nbc-week-row .nbc-pill { justify-self: start; }
+.nbc-weeks ul ul { padding-inline-start: 12px; }
 .nbc-linkish { border: 0; background: transparent; padding: 0; color: var(--text-secondary); font: inherit; font-size: var(--fs-small); text-align: start; }
 .nbc-linkish:hover { color: var(--text-primary); }
+.nbc-weeks .nbc-linkish { min-height: 44px; }
 .nbc-breakdown-toggle { justify-self: start; }
 .nbc-breakdowns { display: grid; gap: 16px; margin-top: 16px; }
 .nbc-execution > .row-between { flex-wrap: wrap; gap: 12px; }
 .nbc-execution > .nbc-breakdown-toggle { margin-top: 12px; }
 .nbc-breakdown h3 { margin-bottom: var(--space-8); color: var(--text-secondary); font-weight: 500; }
 .nbc-breakdown ul { list-style: none; margin: 0; padding: 0; }
-.nbc-breakdown a { display: grid; grid-template-columns: minmax(0, 1fr) 6rem 4rem; gap: var(--space-8); align-items: center; padding: 12px 16px; margin-top: 6px; background: var(--bg-sidebar); border-radius: 8px; color: inherit; text-decoration: none; font-size: 13px; }
-.nbc-breakdown a:hover { background: var(--bg-selected); }
-.nbc-breakdown .nbc-num { text-align: end; font-variant-numeric: tabular-nums; }
+.nbc-breakdown a { display: grid; gap: 12px; padding: 22px 0; border-bottom: 1px solid var(--border-subtle); color: inherit; text-decoration: none; font-size: 14px; }
+.nbc-breakdown li:last-child a { border-bottom: 0; }
+.nbc-breakdown a:hover .nbc-breakdown-name { color: var(--nbc-progress-fill); }
+.nbc-breakdown-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.nbc-breakdown-name { min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
+.nbc-breakdown progress { height: 7px; }
+.nbc-progress-note, .nbc-project .nbc-progress-legend { color: var(--text-secondary); font-size: 11px; }
+.nbc-project .nbc-progress-legend { margin: 12px 0 0; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
 .nbc-peek-table { width: 100%; border-collapse: collapse; font-size: var(--fs-small); }
 .nbc-peek-table th, .nbc-peek-table td { text-align: start; padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--border-subtle); }
 .nbc-peek-table .nbc-num { text-align: end; }
@@ -50,11 +69,6 @@
   .nbc-snapshot, .nbc-trend, .nbc-execution { padding: 16px; }
   .nbc-snapshot-meta .nbc-pill { margin-bottom: 8px; }
   .nbc-progress-scale span:last-child { display: none; }
-  .nbc-handlers td, .nbc-handlers th { padding-inline: 12px; }
-  .nbc-handlers { min-width: 620px; }
-  .nbc-section-heading { padding: 12px; }
-  .nbc-handler-footer { padding: 12px; }
-  .nbc-breakdown a { grid-template-columns: minmax(0, 1fr) 3rem 4rem; }
 }
 
 /* Overview: Apple-style polish. Same tokens, so light and dark follow the theme. */
@@ -92,16 +106,10 @@
 .nbc-legend { display: inline-flex; align-items: center; gap: var(--space-6); font-size: 12px; color: var(--text-secondary); }
 .nbc-legend i { display: inline-block; width: 18px; border-top: 3px solid var(--accent); margin-inline-start: var(--space-8); }
 .nbc-legend i[data-line=plan] { border-top: 2.5px dashed var(--text-secondary); }
-.nbc-handler-panel { border-radius: 20px; background: var(--bg-raised); box-shadow: 0 0 0 .5px var(--border-subtle), 0 2px 12px rgb(0 0 0 / .05); }
-.nbc-handlers th { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; background: transparent; border-bottom: .5px solid var(--border-strong); }
-.nbc-handlers td { height: 48px; background: transparent; border-bottom: .5px solid var(--border-subtle); }
-.nbc-weeks > td { background: var(--bg-sidebar); }
-.nbc-handler-footer strong { border-radius: var(--radius-pill); padding: 2px 10px; background: var(--status-neutral-bg); }
 .nbc-execution > .row-between { margin-bottom: var(--space-4); }
 .nbc-execution .nbc-seg { display: inline-flex; padding: 2px; border-radius: 10px; background: var(--status-neutral-bg); }
 .nbc-execution .nbc-seg button { border: 0; background: transparent; padding: 5px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text-primary); }
 .nbc-execution .nbc-seg button[aria-pressed=true] { background: var(--bg-raised); box-shadow: 0 1px 3px rgb(0 0 0 / .14), 0 0 0 .5px rgb(0 0 0 / .05); font-weight: 600; }
-.nbc-breakdown a { border-radius: 14px; background: var(--status-neutral-bg); }
 .nbc-heat-grid { display: grid; gap: 4px; font-size: 13px; }
 .nbc-heat-head { color: var(--text-secondary); font-size: 12px; font-weight: 500; align-self: center; text-align: center; }
 .nbc-heat-row { text-align: start; }
@@ -125,3 +133,23 @@ a.nbc-heat-cell:hover { outline: 2px solid var(--accent); }
 }
 .nbc-digest-backdrop { position: absolute; inset: 0; border: 0; background: transparent; cursor: default; }
 .nbc-digest { position: relative; }
+
+/* The approved progress cards stack before their content becomes cramped. */
+.nbc-progress-panels .nbc-execution { padding: 24px; border: 1px solid var(--border-subtle); border-radius: 22px; box-shadow: 0 2px 6px rgb(0 0 0 / .02), 0 12px 32px rgb(0 0 0 / .02); }
+.nbc-progress-panels .nbc-execution > .row-between { align-items: stretch; flex-direction: column; gap: 18px; }
+.nbc-progress-panels .nbc-seg { max-width: 100%; overflow-x: auto; }
+.nbc-progress-panels .nbc-seg button { flex: 1; min-height: 44px; padding-inline: 10px; }
+.nbc-progress-panels .nbc-breakdown-toggle { min-height: 44px; }
+.nbc-progress-panels .nbc-heatmap { overflow-x: auto; }
+.nbc-heatmap .nbc-heat-grid { min-width: max-content; }
+@media (max-width: 1099px) { .nbc-progress-panels { grid-template-columns: minmax(0, 1fr); gap: 18px; } }
+@media (max-width: 767px) {
+  .nbc-section-heading { padding: 22px 20px 8px; }
+  .nbc-handler-row { margin-inline: 20px; }
+  .nbc-handler-footer { padding-inline: 20px; }
+  .nbc-weeks > td { padding-inline: 20px; }
+  .nbc-progress-panels .nbc-execution { padding: 20px; }
+  .nbc-progress-panels .nbc-seg button { padding-inline: 6px; font-size: 12px; }
+}
+
+.nbc-handler-toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; border: 0; background: transparent; padding: 0; color: inherit; font: inherit; text-align: start; }
