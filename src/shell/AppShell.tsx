@@ -1,3 +1,4 @@
+import '@/styles/stitch.css'
 import {
   lazy,
   Suspense,

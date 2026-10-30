@@ -1,7 +1,7 @@
 import './nbc.css'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { Download, X } from 'lucide-react'
+import { Download, Upload, X } from 'lucide-react'
 import type { ProjectSummary } from '@/data'
 import { useWorkspace } from '@/data'
 import { Tile } from '@/components/WorkspaceUI'
@@ -17,12 +17,14 @@ import type { NbcActivity, NbcSubmission, NbcWeekSummary } from './types'
 const EMPTY_ACTIVITIES: NbcActivity[] = [], EMPTY_SUBMISSIONS: NbcSubmission[] = [], EMPTY_SUMMARIES: NbcWeekSummary[] = []
 const views = [['overview', 'Overview'], ['activities', 'Project Progress'], ['update', 'Update Progress']] as const
 const ExportWorkbook = lazy(() => import('./export/ExportWorkbook'))
+const ImportWorkbook = lazy(() => import('./import/ImportWorkbook'))
 /** Earlier URLs keep working: Past Updates now lives inside Overview. */
 const aliases: Record<string, string> = { boq: 'activities', progress: 'activities', weekly: 'update', handlers: 'overview', past: 'overview', board: 'issues' }
 
 export default function NbcProject({ project, view }: { project: ProjectSummary; view: string }) {
   const scope = useWorkspace((s) => s.scope), [now, setNow] = useState(Date.now), [dismissed, setDismissed] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(timer) }, [])
   const allActivities = useWorkspace((s) => s.nbc_activities ?? EMPTY_ACTIVITIES), allSubmissions = useWorkspace((s) => s.nbc_submissions ?? EMPTY_SUBMISSIONS), allSummaries = useWorkspace((s) => s.nbc_summaries ?? EMPTY_SUMMARIES)
   const activities = useMemo(() => allActivities.filter((a) => a.projectId === project.id), [allActivities, project.id])
@@ -47,7 +49,7 @@ export default function NbcProject({ project, view }: { project: ProjectSummary;
   if (!views.some(([key]) => key === view) && view !== 'issues') return <Navigate to={`/projects-progress/${project.id}/overview`} replace/>
   const activityView = view === 'issues' ? view : 'activities'
   return <div className="workspace-surface project-page nbc-project" data-view={view}>
-    <header className="nbc-project-header"><Tile name={project.icon || 'building'} color={project.color}/><div><h1>{project.name}</h1><p className="small muted">{weekLabel(current)} · This week · Due Saturday 12:00 PM</p></div><div className="nbc-project-actions"><button className="btn-secondary nbc-export-button" aria-label="Export XLSX" title="Export XLSX" disabled={!activities.length || !calculation} onClick={() => setExportOpen(true)}><Download size={15} aria-hidden="true"/><span>Export XLSX</span></button></div></header>
+    <header className="nbc-project-header"><Tile name={project.icon || 'building'} color={project.color}/><div><h1>{project.name}</h1><p className="small muted">{weekLabel(current)} · This week · Due Saturday 12:00 PM</p></div><div className="nbc-project-actions">{view === 'activities' && <button className="btn-secondary nbc-export-button" aria-label="Import XLSX" title="Import XLSX" disabled={!activities.length || !calculation} onClick={() => setImportOpen(true)}><Upload size={15} aria-hidden="true"/><span>Import XLSX</span></button>}<button className="btn-secondary nbc-export-button" aria-label="Export XLSX" title="Export XLSX" disabled={!activities.length || !calculation} onClick={() => setExportOpen(true)}><Download size={15} aria-hidden="true"/><span>Export XLSX</span></button></div></header>
     <nav className="view-tabs nbc-tabs" aria-label="Project views">{views.map(([key, label]) => <Link className="view-tab" key={key} aria-current={key === view || key === 'activities' && view === 'issues' ? 'page' : undefined} to={`/projects-progress/${project.id}/${key}`}>{label}</Link>)}</nav>
     {!activities.length
       ? <section><h2>BOQ data has not been initialized.</h2><p>Complete the private project setup.</p></section>
@@ -58,5 +60,6 @@ export default function NbcProject({ project, view }: { project: ProjectSummary;
         {(view === 'activities' || view === 'issues') && (calculation || activityView !== 'activities') && <Activities projectId={project.id} activities={activities} baseline={baseline} view={activityView}/>}
       </>}
     {exportOpen && <Suspense fallback={<span className="sr-only" role="status">Opening export…</span>}><ExportWorkbook projectId={project.id} activities={activities} submissions={submissions} onClose={() => setExportOpen(false)}/></Suspense>}
+    {importOpen && <Suspense fallback={<span role="status">Opening import…</span>}><ImportWorkbook projectId={project.id} activities={activities} onClose={() => setImportOpen(false)}/></Suspense>}
   </div>
 }

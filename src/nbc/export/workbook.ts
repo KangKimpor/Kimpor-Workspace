@@ -41,8 +41,8 @@ export const confirmedCount = (activities: NbcActivity[], submissions: NbcSubmis
   return submission?.status === 'confirmed' && submissionStatus(submission, week, activities) !== 'Needs review'
 }).length
 
-/** Patches a copy of the private template; unrelated workbook parts stay byte-identical. */
-export function weeklyWorkbook(template: Uint8Array, activities: NbcActivity[], submissions: NbcSubmission[], week: string) {
+/** Shared workbook validation for import and export. No formulas are executed. */
+export function readNbcWorkbook(template: Uint8Array, activities: NbcActivity[]) {
   if (!activities.length) throw new Error('There are no BOQ activities to export.')
   if (template.byteLength > MAX_TEMPLATE_BYTES) throw new Error('Choose an XLSX template up to 10 MB.')
   let expanded = 0
@@ -87,6 +87,12 @@ export function weeklyWorkbook(template: Uint8Array, activities: NbcActivity[], 
       if (!raw || !Number.isFinite(Number(raw)) || Math.abs(Number(raw) - value) > 1e-9) throw new Error(`Template weighting does not match WBS ${a.wbs}.`)
     }
   }
+  return { files, book, rels, paths, docs, read, findCell, rows, wbsRows, masterRows, byWbs }
+}
+
+/** Patches a copy of the private template; unrelated workbook parts stay byte-identical. */
+export function weeklyWorkbook(template: Uint8Array, activities: NbcActivity[], submissions: NbcSubmission[], week: string) {
+  const { files, book, rels, paths, docs, read, findCell, rows, wbsRows, masterRows, byWbs } = readNbcWorkbook(template, activities)
   const { current, previous } = reportValues(activities, submissions, week)
   const set = (row: Element, column: string, value: number | string, formula?: string) => {
     const doc = row.ownerDocument

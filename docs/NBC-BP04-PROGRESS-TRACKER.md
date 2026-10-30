@@ -14,6 +14,16 @@ No release setup remains. Signed-in production browser acceptance is the remaini
 
 NBC BP04 – Pan Pacific Hotel reuses BP03's three views and handler workflow. The legacy `nbcBp03` boolean is the shared BOQ-workflow switch; both projects use it. Existing BP03 IDs and data remain unchanged. BP04 uses project ID `nbc-bp04` and activity IDs `nbc-bp04:<WBS>`, including parent links. Submission IDs, raw draft recovery, summaries, CSV filenames, Excel filenames and stored templates are scoped by project. Every editor/history action now passes its project ID to the shared actions. BP03 defaults remain for compatibility with existing callers.
 
+## XLSX progress import
+
+In **Project Progress**, choose **Import XLSX**, select the project's BOQ workbook, review the changes and choose **Import drafts**. Import accepts the supplied BP04 seven-sheet workbook and matching BP03 workbooks. Each ordinary leaf reads its handler-sheet Accumulation % input (column M); shared GR&P reads Progress column N. Cached parent/master formulas are not authoritative and no spreadsheet formulas execute. Preview recalculates overall progress from the existing project weights.
+
+WBS rows, task names and relative/global weights must match the selected project. Blank, formula, nonnumeric, out-of-range, missing and duplicate handler inputs are rejected. Import changes percentages only: hierarchy, weights, assignments, historical weeks and templates remain intact. Lowered progress requires a reason, copied into its activity remarks. A changed shared GR&P value requires an explicit responsible handler and appears in only that handler's draft.
+
+Changed handlers receive current-week drafts through the existing autosave/offline queue in one validated local commit. Live progress stays unchanged until each handler confirms through **Update Progress**. Existing drafts/raw recovery are protected unless **Replace affected drafts** is explicitly checked. Confirmed handlers must choose **Edit** first; reimport retains their last applied values until reconfirmation. No database migration or new dependency is needed.
+
+The failed main-branch build shown on 30 October was the initial stylesheet size budget. Sidebar-only `stitch.css` now loads with the signed-in shell, bringing initial CSS below the existing 15 KiB gzip budget without changing the threshold.
+
 ## Authorized sources
 
 - Activities, WBS, durations, BOQ weights, assignments and initial progress: `C:/Users/Por/Downloads/NBC-BP04-Progress Tracking by BOQ.xlsx`, SHA-256 `bc1777cffbd7d49e25eb976a2275f3ae445d11b574b50262ea82e9d606f85370`.
