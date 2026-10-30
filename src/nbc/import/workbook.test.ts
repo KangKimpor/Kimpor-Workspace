@@ -92,3 +92,19 @@ test('a conflict in a later handler leaves every draft unchanged; explicit repla
   expect(useWorkspace.getState().nbc_activities?.find(a => a.id === 'nbc:1.6.1.2')?.progress).toBe(.625)
   expect(useWorkspace.getState().nbc_submissions?.find(s => s.handler === 'Tola')?.entries.find(e => e.activityId === 'nbc:1.6.1.2')?.progress).toBe(.75)
 })
+
+test('validates uncached weight formulas without modifying the workbook', () => {
+  let file = workbook()
+  file = patch(file, 1, 'K7', '<f>SUM(0.2,0.6)</f><v/>')
+  file = patch(file, 1, 'S7', '<f>$K$7</f><v/>')
+  file = patch(file, 1, 'K8', '<f>IFERROR(1/(3+1),0)</f><v/>')
+  file = patch(file, 1, 'S8', '<f>K8*S7</f><v/>')
+  const before = file.slice()
+  expect(importPercentages(file, fixtureActivities()).values.size).toBe(3)
+  expect(file).toEqual(before)
+  // A stale cache must never hide a changed formula.
+  expect(() => importPercentages(patch(file, 1, 'K8', '<f>1/2</f><v>0.25</v>'), fixtureActivities())).toThrow('weighting does not match')
+  for (const formula of ['K8', 'INDIRECT("K8")', "'[other.xlsx]Progress'!K8", 'SUM(K8:K9)', '1+'.repeat(200)]) {
+    expect(() => importPercentages(patch(file, 1, 'K8', `<f>${formula}</f><v>0.75</v>`), fixtureActivities())).toThrow('weighting cannot be read')
+  }
+})
