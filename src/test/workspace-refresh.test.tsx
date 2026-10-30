@@ -19,7 +19,7 @@ test('projects default to Personal, retain assignment and appear in only their g
   expect(screen.queryByText('Team Workspace')).not.toBeInTheDocument()
   expect(screen.queryByRole('link', { name: /Private planning/ })).not.toBeInTheDocument()
   expect(screen.queryByRole('link', { name: /Team planning/ })).not.toBeInTheDocument()
-  expect(screen.getByText('Personal Workspace')).toBeInTheDocument()
+  expect(screen.getByText('Personal Workspace (Testing Phase)')).toBeInTheDocument()
   expect(useWorkspace.getState().projects.find((p) => p.id === team)?.workspace).toBe('team')
   for (const name of ['Favorites', 'Pages', 'New page', 'My tasks', 'Home', 'Calendar']) expect(screen.queryByText(name, { exact: true })).not.toBeInTheDocument()
   expect(useWorkspace.getState().pages).toEqual(initial.pages)

@@ -79,7 +79,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </ul>
 
         <div className="nav-section">
-          <div className="t-caption">Personal Workspace</div>
+          <div className="t-caption">Personal Workspace (Testing Phase)</div>
           <ul className="nav-list">
             <Item to="/projects?workspace=personal" end icon={<FolderKanban {...ic} />} label="Personal projects" meta={<ChevronDown size={13} />}>
               <ul className="nav-list nav-projects" aria-label="Personal projects">
