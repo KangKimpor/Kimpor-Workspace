@@ -14,31 +14,46 @@ import sys
 import openpyxl
 
 
+# BP02 is BOQ-weighted by floor/group (not duration-weighted), nested deeper (1.8.x...), and has no GR&P row.
+BOQ_WEIGHTED = ('nbc-bp02',)
+COUNTS = {
+    'nbc-bp02': dict(nodes=9083, handlers=dict(Sitha=1126, Lychhinh=780, Chhorvaon=357, Srun=357, Kheng=390, Tola=2836)),
+}
+
+
 def extract(source, project_id='nbc-bp03'):
-    assert project_id in ('nbc-bp03', 'nbc-bp04')
+    assert project_id in ('nbc-bp02', 'nbc-bp03', 'nbc-bp04')
     prefix = 'nbc:' if project_id == 'nbc-bp03' else project_id + ':'
+    boq_weighted = project_id in BOQ_WEIGHTED
     formulas = openpyxl.load_workbook(source, data_only=False)
     values = openpyxl.load_workbook(source, data_only=True)
     sheet = values['Progress']
     assert project_id[-4:].upper() in str(sheet['A1'].value).upper(), 'Workbook project title does not match'
-    assert values.sheetnames == ['Progress', 'Sitha', 'Lychhinh', 'Chhorvaon', 'Srun', 'Kheng', 'Tola']
+    assert values.sheetnames[:7] == ['Progress', 'Sitha', 'Lychhinh', 'Chhorvaon', 'Srun', 'Kheng', 'Tola']
+    assert boq_weighted or len(values.sheetnames) == 7
     errors = [(s.title, c.coordinate, c.value) for s in values for row in s for c in row if c.data_type == 'e']
     assert not errors, errors
     assigned = {}
-    for handler in values.sheetnames[1:]:
+    for handler in values.sheetnames[1:7]:
         for row in values[handler].iter_rows(min_row=5):
             wbs, previous, actual = row[0].value, row[10].value, row[12].value
             if wbs and actual is not None:
                 assert wbs not in assigned, f'Duplicate assignment: {wbs}'
                 assert isinstance(previous, (int, float)) and isinstance(actual, (int, float))
                 assigned[wbs] = (handler, previous, actual)
-    nodes = []
+    nodes, known = [], set()
     for r in range(6, sheet.max_row + 1):
         wbs = sheet.cell(r, 1).value
         if not wbs:
             continue
-        assert wbs == 'GR&P' or re.fullmatch(r'1\.6(?:\.\d+)+', wbs), wbs
-        parent = wbs.rsplit('.', 1)[0] if wbs.count('.') > 2 else None
+        wbs = str(wbs)
+        if boq_weighted:
+            assert re.fullmatch(r'1\.8(?:\.\d+)+', wbs), wbs
+            known.add(wbs)
+            parent = wbs.rsplit('.', 1)[0] if wbs.rsplit('.', 1)[0] in known else None
+        else:
+            assert wbs == 'GR&P' or re.fullmatch(r'1\.6(?:\.\d+)+', wbs), wbs
+            parent = wbs.rsplit('.', 1)[0] if wbs.count('.') > 2 else None
         hierarchy = [sheet.cell(r, c).value for c in range(2, 10)]
         nodes.append(dict(
             id=prefix + wbs, projectId=project_id, wbs=wbs,
@@ -50,13 +65,15 @@ def extract(source, project_id='nbc-bp03'):
             duration=sheet.cell(r, 18).value, boqValue=sheet.cell(r, 20).value,
             schedule=sheet.cell(r, 21).value, handler=assigned.get(wbs, ('',))[0],
             remark='', history=[], sourceRow=r,
-            sourceFormulas={sheet.cell(4,c).value or str(c): formulas['Progress'].cell(r,c).value
-                            for c in range(11,22) if formulas['Progress'].cell(r,c).data_type == 'f'},
+            **({} if boq_weighted else dict(sourceFormulas={sheet.cell(4,c).value or str(c): formulas['Progress'].cell(r,c).value
+                            for c in range(11,22) if formulas['Progress'].cell(r,c).data_type == 'f'})),
         ))
     by_id = {n['id']: n for n in nodes}
     assert len(by_id) == len(nodes) > 0
     if project_id == 'nbc-bp03':
         assert len(nodes) == 790
+    if boq_weighted:
+        assert len(nodes) == COUNTS[project_id]['nodes'], len(nodes)
     children = collections.defaultdict(list)
     for n in nodes:
         assert n['parentId'] is None or n['parentId'] in by_id
@@ -75,12 +92,20 @@ def extract(source, project_id='nbc-bp03'):
         while root['parentId']:
             lineage.insert(0, root)
             root = by_id[root['parentId']]
-        n['area'] = root['name']
-        n['location'] = root['name'].split(' - ')[0] if ' - ' in root['name'] else root['name']
-        n['trade'] = lineage[0]['name'] if lineage else root['name']
+        if boq_weighted:
+            # Floor > room-type group > activity feed the Floor / Work area / Trade breakdowns.
+            n['location'] = root['name']
+            n['area'] = lineage[0]['name'] if lineage else root['name']
+            n['trade'] = lineage[1]['name'] if len(lineage) > 1 else n['area']
+        else:
+            n['area'] = root['name']
+            n['location'] = root['name'].split(' - ')[0] if ' - ' in root['name'] else root['name']
+            n['trade'] = lineage[0]['name'] if lineage else root['name']
         if cs:
             duration = sum(c['duration'] or 0 for c in cs)
             close(duration, n['duration'], n['wbs'] + ' duration')
+            if boq_weighted:
+                close(sum(c['relativeWeight'] for c in cs), 1, n['wbs'] + ' child weights')
             weight_sum = sum(c['relativeWeight'] for c in cs)
             progress = sum(c['relativeWeight'] * c['progress'] for c in cs) / weight_sum if weight_sum else 0
             close(progress, n['progress'], n['wbs'] + ' parent')
@@ -98,16 +123,20 @@ def extract(source, project_id='nbc-bp03'):
         if n['parentId']:
             siblings = children[n['parentId']]
             duration = sum(c['duration'] or 0 for c in siblings)
-            close((n['duration'] or 0) / duration if duration else 0, n['relativeWeight'], n['wbs'] + ' relative')
+            if not boq_weighted:
+                close((n['duration'] or 0) / duration if duration else 0, n['relativeWeight'], n['wbs'] + ' relative')
             close(n['relativeWeight'] * by_id[n['parentId']]['globalWeight'], n['globalWeight'], n['wbs'] + ' global')
         else:
             close(n['boqValue'] / total_boq, n['relativeWeight'], n['wbs'] + ' root')
             close(n['relativeWeight'], n['globalWeight'], n['wbs'] + ' root global')
     counts = dict(collections.Counter(n['handler'] for n in nodes if n['handler']))
+    if boq_weighted:
+        assert counts == COUNTS[project_id]['handlers'], counts
     if project_id == 'nbc-bp03':
         assert counts == dict(Sitha=193, Lychhinh=50, Chhorvaon=6, Srun=31, Kheng=31, Tola=250), counts
     leaves = [n for n in nodes if n['editable']]
-    assert len(leaves) == len(assigned) + 1
+    assert len(leaves) == len(assigned) + (0 if boq_weighted else 1)
+    assert not boq_weighted or 'GR&P' not in {n['wbs'] for n in nodes}
     weight = sum(n['globalWeight'] for n in leaves)
     overall = sum(n['globalWeight'] * n['progress'] for n in leaves)
     close(weight, sheet['K5'].value, 'total weight')
@@ -126,7 +155,7 @@ def extract(source, project_id='nbc-bp03'):
     close(propagated, overall + leaf['globalWeight'] * (0.375 - leaf['progress']), 'edited propagation')
     code = project_id.upper().replace('-', ' ')
     project = dict(id=project_id, name=code + ' â€“ Pan Pacific Hotel', workspace='team',
-                   color='blue', description='Interior Fit-Out · NBC BP03' if project_id == 'nbc-bp03' else '', target='', status='Active',
+                   color='blue', description={'nbc-bp03': 'Interior Fit-Out \u00b7 NBC BP03', 'nbc-bp02': 'Guestrooms L13\u2013L23 \u00b7 NBC BP02'}.get(project_id, ''), target='', status='Active',
                    progress=overall, nbcBp03=True)
     reconciliation = dict(nodes=len(nodes), assignedActivities=len(assigned), editableEntries=len(leaves),
                           handlers=counts, rootWeight=sum(n['relativeWeight'] for n in roots),

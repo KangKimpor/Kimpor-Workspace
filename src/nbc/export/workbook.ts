@@ -53,7 +53,8 @@ export function readNbcWorkbook(template: Uint8Array, activities: NbcActivity[])
     return true
   } })
   const book = xml(files['xl/workbook.xml']), rels = xml(files['xl/_rels/workbook.xml.rels'])
-  const sheets = elements(book, 'sheet'), expected = ['Progress', ...handlers]
+  const expected = ['Progress', ...handlers], sheets = elements(book, 'sheet').slice(0, expected.length)
+  // Extra reference sheets after the handler tabs (Notes, Weights, Schedule Import in BP02) are left untouched.
   if (sheets.length !== expected.length || sheets.some((s, i) => s.getAttribute('name') !== expected[i])) throw new Error('Use the NBC workbook with Progress and all six handler sheets.')
   const strings = files['xl/sharedStrings.xml'] ? elements(xml(files['xl/sharedStrings.xml']), 'si').map(si => elements(si, 't').map(t => t.textContent ?? '').join('')) : []
   const paths = sheets.map(sheet => {
@@ -72,7 +73,7 @@ export function readNbcWorkbook(template: Uint8Array, activities: NbcActivity[])
   const findCell = (row: Element, column: string) => [...row.children].find(c => c.getAttribute('r')?.replace(/\d+$/, '') === column)
   const rows = (doc: Document) => elements(doc, 'row')
   const wbsRows = (doc: Document) => {
-    const entries = rows(doc).flatMap(row => { const key = read(findCell(row, 'A')); return key.startsWith('1.6.') || key === 'GR&P' ? [[key, row] as const] : [] })
+    const entries = rows(doc).flatMap(row => { const key = read(findCell(row, 'A')); return /^1\.\d+(?:\.\d+)+$/.test(key) || key === 'GR&P' ? [[key, row] as const] : [] })
     const result = new Map(entries)
     if (result.size !== entries.length) throw new Error('The template contains duplicate WBS activities.')
     return result

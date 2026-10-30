@@ -1,5 +1,5 @@
 /** Read-only evaluation of the small arithmetic subset used by BOQ weights.
- * Never runs JavaScript, external references, or arbitrary Excel functions.
+ * Never runs JavaScript, external workbooks, or arbitrary Excel functions.
  */
 export function weightValues(cells: Map<string, Element>, read: (cell: Element | undefined) => string) {
   const cache = new Map<string, number>(), visiting = new Set<string>()
@@ -17,6 +17,17 @@ export function weightValues(cells: Map<string, Element>, read: (cell: Element |
       if (formula) {
         const source = formula.textContent ?? ''
         if (source.length > 10000) throw new Error('Weight formula is too long.')
+        if (source.includes('!')) {
+          // BOQ-weighted workbooks (BP02) pull unit-rate totals from a Weights sheet. Only the saved result of that
+          // one cross-sheet cell is used; every other formula is still evaluated here, and the result is still compared
+          // with the project's stored weights.
+          const saved = read(cell)
+          if (!saved.trim() || ![null, 'n'].includes(cell.getAttribute('t'))) throw new Error('Weight depends on a sheet without a saved value.')
+          result = Number(saved)
+          if (!Number.isFinite(result)) throw new Error('Invalid weight result.')
+          cache.set(address, result)
+          return result
+        }
         const tokens = source.match(/\$?[A-Z]+\$?\d+|(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?|[A-Z]+|[+*/(),-]|\s+/g) ?? []
         if (tokens.join('') !== source) throw new Error('Unsupported weight formula.')
         const input = tokens.filter(t => !/^\s+$/.test(t)); let pos = 0, depth = 0

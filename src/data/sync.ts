@@ -49,7 +49,11 @@ function saveRecovery() {
   if (scope === 'guest') return
   try {
     localStorage.setItem(recoveryKey(scope), JSON.stringify([...pending.values()]))
-    localStorage.setItem(`kw-cloud-cache:${scope}`, JSON.stringify(contentOf(useWorkspace.getState())))
+    const content = contentOf(useWorkspace.getState())
+    try { localStorage.setItem(`kw-cloud-cache:${scope}`, JSON.stringify(content)) } catch {
+      // Large BOQ activity lists can exceed the quota; they reload from the server, and pending edits stay in the recovery list above.
+      localStorage.setItem(`kw-cloud-cache:${scope}`, JSON.stringify({ ...content, nbc_activities: [] }))
+    }
     if (useWorkspace.getState().storageError) useWorkspace.setState({ storageError: false })
     return true
   } catch { useWorkspace.setState({ storageError: true }); return false }
@@ -106,8 +110,11 @@ export async function initializeData() {
   })
   addEventListener('online', () => { void syncWorkspace(); startGoogle(generation) })
   addEventListener('offline', () => { if (useWorkspace.getState().scope !== 'guest') useWorkspace.setState({ sync: { kind: 'offline', pending: pending.size } }) })
-  if (hasStoredSession() || /^\/settings\/(account|accounts)/.test(location.pathname)) await initializeCloud()
-  else {
+  if (hasStoredSession() || /^\/settings\/(account|accounts)/.test(location.pathname)) {
+    // A local workspace too large for localStorage (BP02) lives only in IndexedDB; a real account switch clears it again.
+    try { const guest = await db.snapshots.get('guest'); if (guest && !localStorage.getItem('kw-workspace-v1') && useWorkspace.getState().scope === 'guest') applyRemotePatch(normalize(guest.content)) } catch { /* In-memory only. */ }
+    await initializeCloud()
+  } else {
     try {
       const guest = await db.snapshots.get('guest')
       if (guest && !localStorage.getItem('kw-workspace-v1')) applyRemotePatch(normalize(guest.content))
@@ -156,6 +163,8 @@ async function switchAccount(session: Session | null) {
   try {
     const raw = localStorage.getItem(scope === 'guest' ? 'kw-workspace-v1' : `kw-cloud-cache:${scope}`)
     if (raw) applyRemotePatch(normalize(JSON.parse(raw)))
+    // A project too large for localStorage (BP02) is kept only in the IndexedDB snapshot.
+    else if (scope === 'guest') { const snapshot = await db.snapshots.get('guest'); if (snapshot) applyRemotePatch(normalize(snapshot.content)) }
     if (scope !== 'guest') {
       const writes: Write[] = JSON.parse(localStorage.getItem(recoveryKey(scope)) || '[]')
       for (const write of writes) if (write.scope === scope) { pending.set(write.key, write); applyRow(write.collection, write.remove ? null : { id: write.id, data: write.data, updated_at: String(write.data.updatedAt || '') }, write.id) }

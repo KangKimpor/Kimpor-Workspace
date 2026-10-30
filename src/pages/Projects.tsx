@@ -75,7 +75,7 @@ export default function Projects({ progressSection = false }: { progressSection?
         <Link to="/projects">All projects</Link>
       </div>
     )
-  if (project.nbcBp03) return <Suspense fallback={<p className="quiet-empty">Loading NBC BP03…</p>}><NbcProject key={`${scope}:${project.id}`} project={project} view={view} /></Suspense>
+  if (project.nbcBp03) return <Suspense fallback={<p className="quiet-empty">Loading project progress…</p>}><NbcProject key={`${scope}:${project.id}`} project={project} view={view} /></Suspense>
   const allTasks = tasks.filter((t) => !t.deletedAt && t.projectId === id)
   const filtered = allTasks.filter(
     (t) =>

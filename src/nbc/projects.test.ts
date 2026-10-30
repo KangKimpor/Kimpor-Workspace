@@ -61,3 +61,24 @@ test.skipIf(!existsSync('.private/nbc-bp04/initial.json'))('private BP04 BOQ rec
   expect(Number(editedDoc.querySelector('c[r="N5"] v')?.textContent)).toBeCloseTo(leaf.globalWeight * .5, 14)
   expect(() => weeklyWorkbook(template, fixtureActivities(), [], '2026-10-26')).toThrow('do not match')
 })
+
+test('BP02 uses its own report plan and exports a distinct report name', () => {
+  expect(projectPlan('nbc-bp02').commencement).toBe('2025-09-01')
+  expect(reportFilename('2026-10-26', 'nbc-bp02')).toContain('NBC-BP02-')
+})
+
+test.skipIf(!existsSync('.private/nbc-bp02/initial.json'))('private BP02 BOQ reconciles every parent, weights and export totals', () => {
+  const { activities, reconciliation } = JSON.parse(readFileSync('.private/nbc-bp02/initial.json', 'utf8')) as { activities: NbcActivity[]; reconciliation: { boqValue: number; workbookOverall: number } }
+  const c = calculate(activities)
+  expect(activities).toHaveLength(9083); expect(c.leaves).toHaveLength(5846)
+  expect(c.overall).toBeCloseTo(reconciliation.workbookOverall, 12)
+  expect(c.leaves.reduce((s, a) => s + a.globalWeight, 0)).toBeCloseTo(1, 12)
+  expect(activities.filter(a => !a.parentId).reduce((s, a) => s + (a.boqValue ?? 0), 0)).toBeCloseTo(reconciliation.boqValue, 6)
+  for (const a of activities) expect(c.progress.get(a.id)).toBeCloseTo(a.progress, 10)
+  const template = new Uint8Array(readFileSync('.private/nbc-bp02/template.xlsx'))
+  const doc = (bytes: Uint8Array) => new DOMParser().parseFromString(strFromU8(unzipSync(bytes)['xl/worksheets/sheet1.xml']!), 'application/xml')
+  expect(Number(doc(weeklyWorkbook(template, activities, [], '2026-10-26').bytes).querySelector('c[r="N5"] v')?.textContent)).toBeCloseTo(c.overall, 12)
+  const leaf = c.leaves.find(a => a.handler === 'Tola' && a.progress < 1)!
+  const edited = activities.map(a => a.id === leaf.id ? { ...a, progress: 1 } : a)
+  expect(Number(doc(weeklyWorkbook(template, edited, [], '2026-10-26').bytes).querySelector('c[r="N5"] v')?.textContent)).toBeCloseTo(c.overall + leaf.globalWeight * (1 - leaf.progress), 12)
+}, 120000)

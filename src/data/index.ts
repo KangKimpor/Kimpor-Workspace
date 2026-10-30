@@ -101,7 +101,12 @@ export const useWorkspace = create<Workspace>((set, get) => {
     const serialized = JSON.stringify(next)
     try {
       // The small recovery copy is kept until the IndexedDB transaction completes.
-      localStorage.setItem(recoveryKey, serialized)
+      try { localStorage.setItem(recoveryKey, serialized) } catch (error) {
+        // Very large BOQ projects (BP02) can exceed the localStorage quota. IndexedDB then holds the only local copy,
+        // and the stale small copy is removed so it cannot shadow that newer snapshot on the next start.
+        if (typeof indexedDB === 'undefined') throw error
+        localStorage.removeItem(recoveryKey)
+      }
       set({ ...patch, storageError: false, sync: { kind: 'saving' } })
       if (typeof indexedDB !== 'undefined')
         void import('./persistence')

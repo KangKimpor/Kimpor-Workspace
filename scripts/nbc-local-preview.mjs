@@ -2,7 +2,7 @@
 import { chromium } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 import { loadEnv } from 'vite'
-const datasets = await Promise.all(['nbc-bp03','nbc-bp04'].map(async id => JSON.parse(await readFile(`.private/${id}/initial.json`, 'utf8'))))
+const datasets = await Promise.all(['nbc-bp03','nbc-bp04','nbc-bp02'].map(async id => JSON.parse(await readFile(`.private/${id}/initial.json`, 'utf8'))))
 const env = loadEnv('production', process.cwd(), 'VITE_')
 const key = `sb-${new URL(env.VITE_SUPABASE_URL || 'http://localhost').hostname.split('.')[0]}-auth-token`
 const headless = process.argv.includes('--headless')
@@ -27,5 +27,5 @@ if (headless) {
   console.log('Local project profile initialized. No cloud requests were allowed.')
   process.exit(0)
 }
-console.log('Local BP03/BP04 workspace opened. Close the browser to finish; local edits survive relaunch.')
+console.log('Local BP03/BP04/BP02 workspace opened. Close the browser to finish; local edits survive relaunch.')
 await new Promise(resolve => context.on('close', resolve))
