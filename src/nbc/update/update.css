@@ -44,13 +44,10 @@
 .nbc-gate-list small { color: var(--text-secondary); font-size: 13px; }
 .nbc-gate-go { padding: 12px 32px; font-size: 16px; border-radius: var(--radius-pill); }
 
-/* Table inside the update screen */
-.nbc-update .nbc-wbs-scroll { border-radius: 18px; background: var(--bg-raised); box-shadow: 0 0 0 .5px var(--border-subtle), 0 2px 12px rgb(0 0 0 / .05); }
-.nbc-update .nbc-wbs thead th { background: color-mix(in srgb, var(--bg-raised) 78%, transparent); backdrop-filter: blur(20px) saturate(180%); border-bottom: .5px solid var(--border-strong); text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; padding: 10px 12px; }
-.nbc-update .nbc-wbs td { height: 44px; border-bottom: .5px solid var(--border-subtle); }
-.nbc-update .nbc-wbs tbody tr:last-child td { border-bottom: 0; }
-.nbc-update .nbc-wbs tr[data-changed=true] td { background: color-mix(in srgb, var(--accent) 7%, var(--bg-raised)); }
-.nbc-update .nbc-wbs tr[data-problem=true] td { background: color-mix(in srgb, var(--danger-text) 10%, var(--bg-raised)); }
+/* Table inside the update screen — use the same base style as Activities (ui.css).
+   Only override the changed/problem row colours which are Update-specific. */
+.nbc-update .nbc-wbs tr[data-changed=true] td { background: color-mix(in srgb, var(--accent) 7%, var(--bg-canvas)); }
+.nbc-update .nbc-wbs tr[data-problem=true] td { background: color-mix(in srgb, var(--danger-text) 10%, var(--bg-canvas)); }
 .nbc-cell { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-8); }
 .nbc-cell input { width: calc(8ch + 16px); text-align: end; border: 0; background: var(--status-neutral-bg); color: var(--text-primary); border-radius: 9px; padding: 6px 8px; min-height: 32px; font: inherit; font-weight: 500; font-variant-numeric: tabular-nums; transition: box-shadow .15s, background .15s; }
 .nbc-cell input:focus { outline: 0; background: var(--bg-canvas); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 28%, transparent), 0 0 0 1.5px var(--accent); }
