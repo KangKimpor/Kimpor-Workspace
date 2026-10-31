@@ -6,6 +6,9 @@
 .nbc-update[data-expanded=true] .nbc-update-bar { bottom: 0; }
 .nbc-update[data-expanded=true] .nbc-sheet { bottom: calc(88px + var(--safe-bottom)); }
 .nbc-update > .nbc-wbs-scroll { flex: 1 1 auto; min-height: 8rem; }
+/* Expanded: table fills the full workspace, sidebar/tabs hidden */
+.nbc-update[data-expanded=true] > .nbc-wbs-scroll { flex: 1; max-height: none; }
+.nbc-update[data-expanded=true] > :not(.nbc-wbs-scroll) { flex-shrink: 0; }
 .nbc-update-gate { height: auto; min-height: 0; }
 .nbc-update-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-16); flex-wrap: wrap; margin-bottom: var(--space-4); }
 .nbc-update-head h2 { margin: 2px 0 4px; font-size: 40px; line-height: 46px; font-weight: 700; letter-spacing: -.03em; }

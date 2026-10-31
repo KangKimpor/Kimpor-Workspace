@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { CheckCircle2, CircleAlert, CloudUpload, LoaderCircle } from 'lucide-react'
+import { CheckCircle2, ChevronsDown, ChevronsUp, CircleAlert, CloudUpload, LoaderCircle, Search } from 'lucide-react'
+import { GlassSelect } from '@/components/glass/GlassSelect'
 import { MoreMenu } from '../ui/MoreMenu'
 import { WbsTable } from '../ui/WbsTable'
 import { buildWbsRows } from '../wbs-table'
@@ -31,14 +32,21 @@ export function UpdateEditor({ projectId, week, handler, activities, submission,
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set()), [filter, setFilter] = useState<Filter>(confirmed ? 'chg' : 'need')
   const [focusId, setFocusId] = useState(''), [sheet, setSheet] = useState(false), [tried, setTried] = useState(false)
   const [remarkOpen, setRemarkOpen] = useState<ReadonlySet<string>>(new Set()), [jump, setJump] = useState<{ id: string; kind: 'value' | 'remark' } | null>(null)
+  const [query, setQuery] = useState(''), [area, setArea] = useState('')
+  const search = useRef<HTMLInputElement>(null)
   const values = useRef(new Map<string, HTMLInputElement>()), remarks = useRef(new Map<string, HTMLInputElement>()), beforeFocus = useRef('')
   const byId = new Map(activities.map((a) => [a.id, a])), shownById = new Map(draft.shown.map((e) => [e.activityId, e]))
   const changedIds = new Set(draft.changed.map((e) => e.activityId))
   const problems = new Set([...draft.invalid, ...draft.needsRemark])
+  const q = query.trim().toLowerCase()
+  const textMatch = (a: NbcActivity) => { for (let n: NbcActivity | undefined = a; n; n = n.parentId ? byId.get(n.parentId) : undefined) if (`${n.wbs} ${n.name} ${n.description}`.toLowerCase().includes(q)) return true; return false }
+  const areas = [...new Set(activities.filter((a) => canUpdate(a, handler)).map((a) => a.area).filter(Boolean))]
 
   const visible = (a: NbcActivity) => {
     const e = shownById.get(a.id)
     if (!e) return false
+    if (q && !textMatch(a)) return false
+    if (area && a.area !== area) return false
     if (filter === 'all') return true
     const flagged = problems.has(a.id) || focusId === a.id
     if (filter === 'chg') return changedIds.has(a.id) || flagged
@@ -60,7 +68,14 @@ export function UpdateEditor({ projectId, week, handler, activities, submission,
     setJump(null)
   }, [jump])
 
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => { if (e.key === '/' && !(e.target instanceof HTMLElement && e.target.closest('input,textarea,[contenteditable=true]'))) { e.preventDefault(); search.current?.focus() } }
+    addEventListener('keydown', key); return () => removeEventListener('keydown', key)
+  }, [])
+
   function toggle(id: string) { setCollapsed((old) => { const next = new Set(old); if (next.has(id)) next.delete(id); else next.add(id); return next }) }
+  function expandAll() { setCollapsed(new Set()) }
+  function collapseAll() { setCollapsed(new Set(activities.filter((a) => !canUpdate(a, handler)).map((a) => a.id))) }
   function toggleRemark(id: string) { setRemarkOpen((old) => { const next = new Set(old); if (next.has(id)) next.delete(id); else next.add(id); return next }) }
   function advance(id: string) { const i = leaves.findIndex((r) => r.activity.id === id); const target = values.current.get(leaves[i + 1]?.activity.id ?? ''); if (target) target.focus(); else values.current.get(id)?.blur() }
   function focusFirstProblem() {
@@ -74,7 +89,12 @@ export function UpdateEditor({ projectId, week, handler, activities, submission,
 
   return <>
     <div className="nbc-filters" role="group" aria-label="Show activities">
+      <label className="search-field"><Search size={16}/><input ref={search} aria-label="Search activities" placeholder="Search WBS or activity" value={query} onChange={(e) => { setQuery(e.target.value); setCollapsed(new Set()) }}/><kbd>/</kbd></label>
+      {areas.length > 1 && <GlassSelect aria-label="Work area" value={area} onChange={(e) => setArea(e.target.value)}><option value="">All areas</option>{areas.map((a) => <option key={a}>{a}</option>)}</GlassSelect>}
       <div className="nbc-seg">{FILTERS.map(([key, label]) => <button key={key} aria-pressed={filter === key} onClick={() => setFilter(key)}>{label} <span className="nbc-count">{counts[key]}</span></button>)}</div>
+      <span className="nbc-spacer"/>
+      <button className="ibtn" title="Expand all" aria-label="Expand all" onClick={expandAll}><ChevronsDown size={16}/></button>
+      <button className="ibtn" title="Collapse all" aria-label="Collapse all" onClick={collapseAll}><ChevronsUp size={16}/></button>
     </div>
     {draft.error && !sheet && <p className="form-error" role="alert">{draft.error}{draft.error.includes('GR&P changed') && <button className="text-link" onClick={draft.reloadShared}>Reload shared GR&amp;P</button>}</p>}
     {rows.length === 0
