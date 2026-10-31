@@ -67,9 +67,12 @@ test('right-click reports a linked issue, cancel is harmless and Delete remains 
 })
 
 test('saving an export template upgrades existing local storage without losing records', async ({ page }) => {
-  await page.goto('/favicon.svg')
+  await page.goto('/brand/favicon.svg')
   await page.evaluate(() => new Promise<void>((resolve, reject) => {
-    const request = indexedDB.open('kimpor-workspace', 1)
+    const del = indexedDB.deleteDatabase('kimpor-workspace')
+    del.onerror = () => reject(del.error)
+    del.onsuccess = () => {
+      const request = indexedDB.open('kimpor-workspace', 1)
     request.onupgradeneeded = () => {
       const database = request.result
       for (const [name, keyPath] of [['snapshots', 'scope'], ['outbox', 'key'], ['versions', 'key'], ['files', 'id']]) {
@@ -84,6 +87,7 @@ test('saving an export template upgrades existing local storage without losing r
       transaction.oncomplete = () => { database.close(); resolve() }
       transaction.onerror = () => reject(transaction.error)
     }
+  }
   }))
   await setup(page); await page.goto('/projects-progress/nbc-bp03/overview')
   await page.getByRole('button', { name: 'Export XLSX', exact: true }).click()
