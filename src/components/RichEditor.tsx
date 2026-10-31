@@ -17,6 +17,7 @@ import { BlockNoteView } from '@blocknote/ariakit'
 import { useEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useWorkspace } from '@/data'
+import { useShallow } from 'zustand/react/shallow'
 import type { WorkspacePage } from '@/data'
 import { useTheme } from '@/lib/theme'
 import { uploadWorkspaceFile, resolveFile } from '@/data/files'
@@ -93,7 +94,9 @@ function EmbeddedTasks({
   projectId: string
   onChange: (id: string) => void
 }) {
-  const { tasks, projects } = useWorkspace()
+  const { tasks, projects } = useWorkspace(
+    useShallow((s) => ({ tasks: s.tasks, projects: s.projects })),
+  )
   return (
     <div className="embedded-tasks" contentEditable={false}>
       <GlassSelect

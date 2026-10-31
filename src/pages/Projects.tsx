@@ -7,6 +7,7 @@ import { useProjects, useWorkspace } from '@/data'
 import type { TaskStatus } from '@/data'
 import { rememberWorkspace } from '@/shell/landing'
 import { useMediaQuery } from '@/lib/media'
+import { useShallow } from 'zustand/react/shallow'
 const NbcProject = lazy(() => import('@/nbc/NbcProject'))
 const TaskTable = lazy(() => import('@/components/TaskTable').then((m) => ({ default: m.TaskTable })))
 const GlassSelect = lazy(() => import('@/components/glass/GlassSelect').then((m) => ({ default: m.GlassSelect })))
@@ -19,7 +20,9 @@ export default function Projects({ progressSection = false }: { progressSection?
   const { id, view = 'table' } = useParams()
   const projects = useProjects()
   const project = projects.find((p) => p.id === id)
-  const { tasks, addTask, updateProject } = useWorkspace()
+  const { tasks, addTask, updateProject } = useWorkspace(
+    useShallow((s) => ({ tasks: s.tasks, addTask: s.addTask, updateProject: s.updateProject })),
+  )
   const [editing, setEditing] = useState(false)
   const [params] = useSearchParams()
   const workspace = params.get('workspace') === 'team' ? 'team' : 'personal'

@@ -1,13 +1,21 @@
 import './workspace-views.css'
 import { GlassSelect } from '@/components/glass/GlassSelect'
 import { AlertTriangle, CalendarDays, CheckCircle2, Clock3, Folder, Plus, Search, SlidersHorizontal } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { GlassPopover } from '@/components/glass/GlassPopover'
 import { TaskList } from '@/components/TaskList'
 import { dateKey, useProjects, useWorkspace } from '@/data'
+import { useShallow } from 'zustand/react/shallow'
 
 export default function Tasks() {
-  const { tasks, addTask, taskViews, setTaskViews } = useWorkspace()
+  const { tasks, addTask, taskViews, setTaskViews } = useWorkspace(
+    useShallow((s) => ({
+      tasks: s.tasks,
+      addTask: s.addTask,
+      taskViews: s.taskViews,
+      setTaskViews: s.setTaskViews,
+    })),
+  )
   const projects = useProjects()
   const [project, setProject] = useState('all')
   const [query, setQuery] = useState('')
@@ -17,40 +25,53 @@ export default function Tasks() {
     [selectedView, setSelectedView] = useState('')
   const [scope, setScope] = useState('all')
   const [sort, setSort] = useState('priority')
-  const activeTasks = tasks.filter((t) => !t.deletedAt)
-  const labels = [...new Set(tasks.flatMap((task) => task.labels || []))].sort()
   const today = dateKey()
-  const filtered = tasks.filter(
-    (t) =>
-      !t.deletedAt &&
-      (scope === 'all' || (scope === 'personal' ? !projects.some((p) => p.id === t.projectId) : projects.some((p) => p.id === t.projectId))) &&
-      (project === 'all' || t.projectId === project) &&
-      (priority === 'all' || t.priority === priority) &&
-      (label === 'all' || t.labels?.includes(label)) &&
-      t.title.toLowerCase().includes(query.toLowerCase()),
+  const labels = useMemo(
+    () => [...new Set(tasks.flatMap((t) => t.labels || []))].sort(),
+    [tasks],
   )
-  const groups = [
-    {
-      name: 'Overdue',
-      tasks: filtered.filter(
-        (t) => t.status !== 'Done' && t.due && t.due < today,
-      ),
-      tone: 'danger',
-    },
-    {
-      name: `Today, ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`,
-      tasks: filtered.filter((t) => t.status !== 'Done' && t.due === today),
-    },
-    {
-      name: 'Upcoming',
-      tasks: filtered.filter((t) => t.status !== 'Done' && t.due > today),
-    },
-    {
-      name: 'No date',
-      tasks: filtered.filter((t) => t.status !== 'Done' && !t.due),
-    },
-    { name: 'Completed', tasks: filtered.filter((t) => t.status === 'Done') },
-  ]
+  const projectIds = useMemo(() => new Set(projects.map((p) => p.id)), [projects])
+  const activeTasks = useMemo(
+    () => tasks.filter((t) => !t.deletedAt),
+    [tasks],
+  )
+  const queryLower = query.toLowerCase()
+  const { groups } = useMemo(() => {
+    const overdue: typeof tasks = []
+    const todayGroup: typeof tasks = []
+    const upcoming: typeof tasks = []
+    const noDate: typeof tasks = []
+    const done: typeof tasks = []
+    for (const t of tasks) {
+      if (t.deletedAt) continue
+      if (scope !== 'all') {
+        const inProject = projectIds.has(t.projectId)
+        if (scope === 'personal' && inProject) continue
+        if (scope === 'projects' && !inProject) continue
+      }
+      if (project !== 'all' && t.projectId !== project) continue
+      if (priority !== 'all' && t.priority !== priority) continue
+      if (label !== 'all' && !t.labels?.includes(label)) continue
+      if (queryLower && !t.title.toLowerCase().includes(queryLower)) continue
+      if (t.status === 'Done') { done.push(t); continue }
+      if (!t.due) { noDate.push(t); continue }
+      if (t.due < today) { overdue.push(t); continue }
+      if (t.due === today) { todayGroup.push(t); continue }
+      upcoming.push(t)
+    }
+    return {
+      groups: [
+        { name: 'Overdue', tasks: overdue, tone: 'danger' },
+        {
+          name: `Today, ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`,
+          tasks: todayGroup,
+        },
+        { name: 'Upcoming', tasks: upcoming },
+        { name: 'No date', tasks: noDate },
+        { name: 'Completed', tasks: done },
+      ],
+    }
+  }, [tasks, scope, project, priority, label, queryLower, today, projectIds])
   return (
     <div className="workspace-surface tasks-page">
       <header className="page-heading">
@@ -217,9 +238,9 @@ export default function Tasks() {
       ))}
       <div className="task-summary muted small">
         <CheckCircle2 size={15} />
-        {tasks.filter((t) => !t.deletedAt && t.status === 'Done').length}{' '}
+        {activeTasks.filter((t) => t.status === 'Done').length}{' '}
         completed ·{' '}
-        {tasks.filter((t) => !t.deletedAt && t.status !== 'Done').length} to go
+        {activeTasks.filter((t) => t.status !== 'Done').length} to go
       </div>
     </div>
   )

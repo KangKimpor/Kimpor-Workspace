@@ -23,6 +23,7 @@ import { statuses, useWorkspace } from '@/data'
 import type { Task, TaskStatus } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
 import { Badge, statusColor, tint } from './WorkspaceUI'
+import { useShallow } from 'zustand/react/shallow'
 
 function Card({ task }: { task: Task }) {
   const update = useWorkspace((s) => s.updateTask)
@@ -103,7 +104,9 @@ export function ProjectBoard({
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   )
-  const { moveTask, addTask } = useWorkspace()
+  const { moveTask, addTask } = useWorkspace(
+    useShallow((s) => ({ moveTask: s.moveTask, addTask: s.addTask })),
+  )
   return (
     <DndContext
       sensors={sensors}

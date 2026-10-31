@@ -5,6 +5,7 @@ import { AccountSettings } from '@/components/AccountSettings'
 import { useTheme } from '@/lib/theme'
 import { useGlass } from '@/lib/glass'
 import { useWorkspace } from '@/data'
+import { useShallow } from 'zustand/react/shallow'
 import { useInstall } from '@/lib/install'
 import './settings.css'
 
@@ -19,7 +20,9 @@ export default function Settings() {
   const theme = useTheme()
   const glass = useGlass()
   const install = useInstall()
-  const { calendarPreferences, setCalendarPreferences } = useWorkspace()
+  const { calendarPreferences, setCalendarPreferences } = useWorkspace(
+    useShallow((s) => ({ calendarPreferences: s.calendarPreferences, setCalendarPreferences: s.setCalendarPreferences })),
+  )
   const preferences = calendarPreferences || { weekStart: 1 as const, hour12: false }
   const account = section === 'account'
 

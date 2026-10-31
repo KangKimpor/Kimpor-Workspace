@@ -5,6 +5,7 @@ import { dateKey, useWorkspace } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
 import type { Priority } from '@/data'
 import { defaultCalendar } from '@/calendar/store'
+import { useShallow } from 'zustand/react/shallow'
 
 export function parseQuickAdd(raw: string, now = new Date()) {
   const priorityName = raw.match(/!(low|medium|high|urgent)\b/i)?.[1]
@@ -36,7 +37,9 @@ export function QuickAdd({ onDone }: { onDone?: () => void }) {
   const [text, setText] = useState(''),
     [kind, setKind] = useState('task'),
     [error, setError] = useState('')
-  const { projects, addProject, addTask, saveEvent } = useWorkspace()
+  const { projects, addProject, addTask, saveEvent } = useWorkspace(
+    useShallow((s) => ({ projects: s.projects, addProject: s.addProject, addTask: s.addTask, saveEvent: s.saveEvent })),
+  )
   const ui = useWorkspaceUI()
   const navigate = useNavigate()
   return (

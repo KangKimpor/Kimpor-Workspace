@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
 import { useWorkspace } from '@/data'
+import { useShallow } from 'zustand/react/shallow'
 import { useWorkspaceUI } from '@/shell/workspace'
 import { dueReminders } from '@/calendar/reminders'
 export default function Reminders() {
-  const { scope, tasks, events } = useWorkspace()
+  const { scope, tasks, events } = useWorkspace(
+    useShallow((s) => ({ scope: s.scope, tasks: s.tasks, events: s.events })),
+  )
   useEffect(() => {
     const key = `kw-reminded:${scope}`
     let seen: string[] = []

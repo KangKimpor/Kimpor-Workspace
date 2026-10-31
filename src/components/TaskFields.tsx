@@ -6,6 +6,7 @@ import { priorities, statuses, useWorkspace } from '@/data'
 import type { Task } from '@/data'
 import { canParentTask } from '@/data/task-tree'
 import { GlassSelect } from './glass/GlassSelect'
+import { useShallow } from 'zustand/react/shallow'
 
 export function TaskStatusSelect({ task }: { task: Task }) {
   return <GlassSelect aria-label={`Status for ${task.title}`} value={task.status} onChange={(e) => useWorkspace.getState().updateTask(task.id, { status: e.target.value as Task['status'] })}>{statuses.map((s) => <option key={s}>{s}</option>)}</GlassSelect>
@@ -15,7 +16,9 @@ export function TaskPrioritySelect({ task }: { task: Task }) {
 }
 /** Extra fields expand in the document flow, without a task overlay. */
 export function TaskFields({ task, compact = false, children }: { task: Task; compact?: boolean; children?: ReactNode }) {
-  const { tasks, projects, updateTask } = useWorkspace()
+  const { tasks, projects, updateTask } = useWorkspace(
+    useShallow((s) => ({ tasks: s.tasks, projects: s.projects, updateTask: s.updateTask })),
+  )
   const [subtask, setSubtask] = useState('')
   const update = (patch: Partial<Task>) => updateTask(task.id, patch)
   return <details className="task-fields"><summary aria-label={`More fields for ${task.title}`}>{compact ? <Ellipsis size={18} aria-hidden="true" /> : 'More fields'}</summary>

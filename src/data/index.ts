@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useShallow } from 'zustand/react/shallow'
 import { eventSeed, pageSeed, projectSeed, taskSeed } from './seed'
 import { canParentTask } from './task-tree'
 import { contentText } from './text'
@@ -537,11 +538,15 @@ export function pageTree(
     }))
 }
 export function usePages(): PageNode[] {
-  const { pages, tasks } = useWorkspace()
+  const { pages, tasks } = useWorkspace(
+    useShallow((s) => ({ pages: s.pages, tasks: s.tasks })),
+  )
   return pageTree(pages.filter((p) => !tasks.some((t) => t.pageId === p.id)))
 }
 export function useProjects() {
-  const { tasks, projects, nbc_activities } = useWorkspace()
+  const { tasks, projects, nbc_activities } = useWorkspace(
+    useShallow((s) => ({ tasks: s.tasks, projects: s.projects, nbc_activities: s.nbc_activities })),
+  )
   return projects
     .filter((p) => p.status !== 'Archived')
     .map((project) => {

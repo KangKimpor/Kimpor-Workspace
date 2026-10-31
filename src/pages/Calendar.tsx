@@ -12,6 +12,7 @@ import { GlassPopover } from '@/components/glass/GlassPopover'
 import { Badge, tint } from '@/components/WorkspaceUI'
 import { completeTask } from '@/components/TaskRow'
 import { dateKey, useWorkspace } from '@/data'
+import { useShallow } from 'zustand/react/shallow'
 import type { CalendarEvent, Task } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
 import { clock, expandEvents, layoutEvents, minutes } from '@/calendar/layout'
@@ -40,8 +41,10 @@ function TimelineDay({
 }) {
   const navigate = useNavigate()
   const key = dateKey(date),
-    ui = useWorkspaceUI(),
-    { saveEvent, updateTask } = useWorkspace()
+    ui = useWorkspaceUI()
+  const { saveEvent, updateTask } = useWorkspace(
+    useShallow((s) => ({ saveEvent: s.saveEvent, updateTask: s.updateTask })),
+  )
   const grid = useRef<HTMLDivElement>(null)
   const drag = useRef<{
     start: number
@@ -493,7 +496,8 @@ function TimelineDay({
 export default function Calendar() {
   const { view = 'week', date = 'today' } = useParams(),
     navigate = useNavigate(),
-    { events: stored, tasks: storedTasks } = useWorkspace(),
+    { events: stored, tasks: storedTasks } = useWorkspace(
+    useShallow((s) => ({ events: s.events, tasks: s.tasks }))),
     ui = useWorkspaceUI()
   const parsed = date === 'today' ? new Date() : new Date(`${date}T12:00:00`),
     anchor = Number.isNaN(parsed.getTime()) ? new Date() : parsed

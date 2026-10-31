@@ -9,8 +9,9 @@ import {
   Search,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 import {
   dateKey,
   useProjects,
@@ -41,59 +42,63 @@ export function SearchResults({
   onSelect?: () => void
   selected?: number
 }) {
-  const pages = useWorkspace((s) => s.pages)
-  const tasks = useWorkspace((s) => s.tasks)
-  const events = useWorkspace((s) => s.events)
+  const { pages, tasks, events } = useWorkspace(
+    useShallow((s) => ({ pages: s.pages, tasks: s.tasks, events: s.events })),
+  )
   const projects = useProjects()
   const q = query.toLowerCase().trim()
   const { openEvent } = useWorkspaceUI()
-  const results = [
-    ...pages
-      .filter((p) => !p.deletedAt)
-      .map((p) => ({
-        id: p.id,
-        title: p.title || 'Untitled',
-        body: contentText(p.content || p.blocks),
-        type: 'Page',
-        to: `/p/${p.id}`,
-        icon: FileText,
-      })),
-    ...projects.map((p) => ({
-      id: p.id,
-      title: p.name,
-      body: p.description,
-      type: 'Project',
-      to: `/projects/${p.id}/table`,
-      icon: FileText,
-    })),
-    ...tasks
-      .filter((t) => !t.deletedAt)
-      .map((t) => ({
-        id: t.id,
-        title: t.title,
-        body: `${t.notes} ${(t.labels || []).join(' ')}`,
-        type: 'Task',
-        to: `/projects/${t.projectId}/table?task=${encodeURIComponent(t.id)}`,
-        icon: CheckSquare,
-      })),
-    ...events
-      .filter((e) => !e.deletedAt && !e.isSeriesMaster)
-      .map((e) => ({
-        id: e.id,
-        title: e.title,
-        body: `${e.description || ''} ${e.location}`,
-        type: 'Event',
-        to: '',
-        icon: CalendarDays,
-      })),
-  ]
-    .map((result) => ({
-      ...result,
-      rank: searchRank(q, result.title, result.body),
-    }))
-    .filter((result) => Number.isFinite(result.rank))
-    .sort((a, b) => a.rank - b.rank)
-    .slice(0, q ? 12 : 5)
+  const results = useMemo(
+    () =>
+      [
+        ...pages
+          .filter((p) => !p.deletedAt)
+          .map((p) => ({
+            id: p.id,
+            title: p.title || 'Untitled',
+            body: contentText(p.content || p.blocks),
+            type: 'Page',
+            to: `/p/${p.id}`,
+            icon: FileText,
+          })),
+        ...projects.map((p) => ({
+          id: p.id,
+          title: p.name,
+          body: p.description,
+          type: 'Project',
+          to: `/projects/${p.id}/table`,
+          icon: FileText,
+        })),
+        ...tasks
+          .filter((t) => !t.deletedAt)
+          .map((t) => ({
+            id: t.id,
+            title: t.title,
+            body: `${t.notes} ${(t.labels || []).join(' ')}`,
+            type: 'Task',
+            to: `/projects/${t.projectId}/table?task=${encodeURIComponent(t.id)}`,
+            icon: CheckSquare,
+          })),
+        ...events
+          .filter((e) => !e.deletedAt && !e.isSeriesMaster)
+          .map((e) => ({
+            id: e.id,
+            title: e.title,
+            body: `${e.description || ''} ${e.location}`,
+            type: 'Event',
+            to: '',
+            icon: CalendarDays,
+          })),
+      ]
+        .map((result) => ({
+          ...result,
+          rank: searchRank(q, result.title, result.body),
+        }))
+        .filter((result) => Number.isFinite(result.rank))
+        .sort((a, b) => a.rank - b.rank)
+        .slice(0, q ? 12 : 5),
+    [pages, tasks, events, projects, q],
+  )
   return (
     <div className="search-results">
       {results.map((result, i) => {

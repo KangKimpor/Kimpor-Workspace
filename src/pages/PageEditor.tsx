@@ -8,6 +8,7 @@ import { dateKey, useWorkspace } from '@/data'
 import type { WorkspacePage } from '@/data'
 import { useWorkspaceUI } from '@/shell/workspace'
 import { resolveFile, uploadWorkspaceFile } from '@/data/files'
+import { useShallow } from 'zustand/react/shallow'
 
 function PageCover({ cover }: { cover: string }) {
   const [url, setUrl] = useState('')
@@ -44,7 +45,9 @@ function downloadMarkdown(page: WorkspacePage, body: string) {
 export default function PageEditor() {
   const { id } = useParams(),
     [params] = useSearchParams()
-  const { pages, updatePage, addPage, reorderPage } = useWorkspace()
+  const { pages, updatePage, addPage, reorderPage } = useWorkspace(
+    useShallow((s) => ({ pages: s.pages, updatePage: s.updatePage, addPage: s.addPage, reorderPage: s.reorderPage })),
+  )
   const navigate = useNavigate(),
     notify = useWorkspaceUI((s) => s.notify)
   const opened = useRef<string | null>(null),
