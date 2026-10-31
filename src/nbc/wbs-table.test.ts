@@ -23,6 +23,12 @@ test('wbsLevel counts levels below 1.6 and treats GR&P as level 1', () => {
   expect([wbsLevel('1.6.1'), wbsLevel('1.6.1.1.1'), wbsLevel('1.6.1.3.4.2.4'), wbsLevel('GR&P')]).toEqual([1, 3, 5, 1])
 })
 
+test('wbsLevel treats 1.8.1.3 as level 1 for project BP02', () => {
+  expect([wbsLevel('1.8.1.3', 'nbc-bp02'), wbsLevel('1.8.1.3.1', 'nbc-bp02'), wbsLevel('1.8.1.3.1.1', 'nbc-bp02'), wbsLevel('1.8.1.3.1.1.1', 'nbc-bp02')]).toEqual([1, 2, 3, 4])
+  expect(wbsLevel('1.8.1.3')).toBe(1)
+  expect(wbsLevel('1.8.1.3.1')).toBe(2)
+})
+
 test('a handler scope keeps only that handler leaves with their ancestors, indented by level', () => {
   const rows = buildWbsRows(tree(), { leaf: (a) => a.handler === 'A' })
   expect(rows.map((r) => r.activity.wbs)).toEqual(['1.6.1', '1.6.1.1', '1.6.1.1.1'])
