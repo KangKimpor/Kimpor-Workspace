@@ -121,10 +121,10 @@ test('the header shows the Saturday 12 PM deadline while the week stays Monday t
   expect(screen.getByText(/^Tola · 26 Oct – 1 Nov/)).toBeTruthy()
 })
 
-test('after the deadline the header says updates are marked Late and the sheet repeats it', () => {
+test('after the deadline the header does not show the late banner and the sheet repeats it', () => {
   vi.setSystemTime(new Date('2026-10-31T07:00:00Z'))
   render(<Screen/>)
-  expect(screen.getByText(/Deadline passed Saturday 12:00 PM/)).toBeTruthy()
+  expect(screen.queryByText(/Deadline passed Saturday 12:00 PM/)).toBeNull()
   fireEvent.change(value('1.6.1.2'), { target: { value: '65' } })
   fireEvent.click(screen.getByRole('button', { name: 'Confirm update' }))
   expect(within(screen.getByRole('dialog', { name: 'Confirm update' })).getByText('Late')).toBeTruthy()

@@ -117,6 +117,7 @@ html:has(.nbc-project) .canvas { padding-top: 0; }
 .shell:has(:is(.nbc-update,.nbc-activities-page)[data-expanded=true]) :is(.sidebar-slot, .tabbar) { display: none; }
 .nbc-project:has(:is(.nbc-update,.nbc-activities-page)[data-expanded=true]) > :is(.nbc-project-header, .nbc-tabs) { display: none; }
 .nbc-project:has(.nbc-activities-page[data-expanded=true]) { height: calc(100dvh - var(--h-topbar) - var(--safe-top)); padding: 20px 24px; gap: 0; }
+.nbc-project:has(.nbc-update[data-expanded=true]) { height: calc(100dvh - var(--h-topbar) - var(--safe-top)); padding: 8px 24px; gap: 4px; }
 .canvas:has(.nbc-activities-page[data-expanded=true]) { padding-bottom: 0; }
 .nbc-activities-page[data-expanded=true], .nbc-activities-page[data-expanded=true] > .nbc-activities { display: flex; flex: 1; flex-direction: column; min-height: 0; }
 .nbc-activities-page[data-expanded=true] .nbc-activities > .nbc-wbs-scroll { flex: 1; max-height: none; min-height: 8rem; border-radius: 14px; }
