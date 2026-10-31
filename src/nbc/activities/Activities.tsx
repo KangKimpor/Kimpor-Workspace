@@ -11,7 +11,7 @@ import { MoreMenu } from '../ui/MoreMenu'
 import { SidePeek } from '../ui/SidePeek'
 import { WbsTable } from '../ui/WbsTable'
 import { buildWbsRows } from '../wbs-table'
-import { calculate, summarize } from '../progress'
+import { calculate } from '../progress'
 import { updateActivity } from '../actions'
 import { money, percent } from '../format'
 import { handlers } from '../types'
@@ -56,7 +56,6 @@ function ActivityTable({ projectId, activities, baseline }: { projectId: string;
       && (!wbs || a.wbs === wbs || a.wbs.startsWith(`${wbs}.`)) && (!changed || Math.abs(p - b) > 1e-12) && (range === 'all' || (range === 'zero' ? p === 0 : range === 'done' ? p === 1 : p > 0 && p < 1))
   }
   const rows = buildWbsRows(activities, { leaf, collapsed })
-  const distribution = summarize(activities.filter((a) => a.editable && leaf(a)))
   const active = !!(q || handler || area || location || trade || wbs || range !== 'all' || changed)
   function filter(key: string, value: string) { setCollapsed(new Set()); const next = new URLSearchParams(params); if (value) next.set(key, value); else next.delete(key); setParams(next) }
   function clear() { setParams({}); setQuery(''); setRange('all'); setChanged(false) }
@@ -90,7 +89,6 @@ function ActivityTable({ projectId, activities, baseline }: { projectId: string;
           rowAttrs={({ activity: a }) => ({ 'data-changed': a.editable && Math.abs((live.progress.get(a.id) ?? 0) - (before.progress.get(a.id) ?? 0)) > 1e-12 ? 'true' : undefined })}
           nameSuffix={({ activity: a }) => { const open = tasks.filter((t) => t.nbcActivityId === a.id && !t.deletedAt && t.status !== 'Done'); return open.length ? <Link className="nbc-pill" data-status="Issue" to={`/projects-progress/${projectId}/issues?wbs=${encodeURIComponent(a.wbs)}`} aria-label={`${open.length} open issues for ${a.wbs}`}>{open.length} issue{open.length > 1 ? 's' : ''}</Link> : null }}
           extra={[{ header: 'Handler', cell: ({ activity: a }) => <><HandlerPicker a={a} activities={activities}/>{pending.has(a.id) && <span className="small muted"> · pending</span>}</> }, ...optional.map((c) => ({ header: c, cell: ({ activity: a }: { activity: NbcActivity }) => <span className="muted">{optionalValue(a, c)}</span> }))]}/>}
-    <div className="nbc-table-footer"><span>{distribution.count} matching activities · WBS hierarchical rollup</span><span>Weighted completion: <strong>{percent(distribution.progress)}</strong></span></div>
     <SidePeek open={!!selected} onOpenChange={(open) => { if (!open) setDetail(null) }} title="Activity details">{selected && <ActivityDetail activity={selected} handler={activityHandlers(selected, activities)}/>}</SidePeek>
     <ReassignSheet activities={activities} open={reassign} onOpenChange={setReassign}/>
   </section>

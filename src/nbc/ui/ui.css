@@ -1,25 +1,166 @@
-/* Shared flat, Notion-like primitives. Tokens come from the workspace and the NBC palette block. */
-.nbc-wbs-scroll { overflow: auto; min-width: 0; min-height: 0; border-radius: 8px; box-shadow: 0 1px 4px rgb(0 0 0 / .06); }
+/* Shared flat, Notion-like primitives with high-contrast hierarchical spreadsheet grid. Tokens come from the workspace and the NBC palette block. */
+.nbc-wbs-scroll { overflow: auto; min-width: 0; min-height: 0; border: 1px solid var(--border-strong); border-radius: 4px; box-shadow: 0 1px 4px rgb(0 0 0 / .06); background: var(--bg-canvas); }
 .nbc-wbs { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-small); font-variant-numeric: tabular-nums; }
-.nbc-wbs thead th { position: sticky; top: 0; z-index: 2; background: var(--bg-sidebar); color: var(--text-secondary); font-weight: 500; text-align: start; padding: 12px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
-.nbc-wbs td { padding: 4px 12px; height: 36px; vertical-align: middle; }
-.nbc-wbs td.nbc-num, .nbc-wbs-no { font-family: var(--font-mono); font-size: 11px; }
-.nbc-wbs tbody td:nth-child(4) { color: var(--accent-text); }
+.nbc-wbs thead th { position: sticky; top: 0; z-index: 2; background: #ffffff; color: var(--text-secondary); font-weight: 600; text-align: start; padding: 8px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; border-right: 1px solid var(--border-strong); border-bottom: 1px solid var(--border-strong); border-left: 0; border-top: 0; }
+.nbc-wbs thead th:last-child { border-right: 0; }
+.nbc-wbs td { padding: 6px 12px; height: 36px; vertical-align: middle; border-right: 1px solid var(--border-strong); border-bottom: 1px solid var(--border-strong); border-left: 0; border-top: 0; }
+.nbc-wbs td:last-child { border-right: 0; }
+.nbc-wbs tr:last-child td { border-bottom: 0; }
+.nbc-wbs td.nbc-num, .nbc-wbs-no { font-family: var(--font-mono); font-size: 11.5px; }
 .nbc-wbs .nbc-num { text-align: end; white-space: nowrap; }
-.nbc-wbs tbody tr:hover { background: var(--bg-hover); }
-.nbc-wbs-no { color: var(--text-secondary); white-space: nowrap; font-size: var(--fs-caption); }
+.nbc-wbs-no { white-space: nowrap; }
 .nbc-desc { display: flex; align-items: center; gap: var(--space-4); min-width: 16rem; }
 .nbc-name { overflow-wrap: anywhere; }
 .nbc-wbs .nbc-name { font-size: 13px; line-height: 20px; }
-.nbc-count { color: var(--text-secondary); font-size: var(--fs-caption); margin-inline-start: var(--space-4); }
-.nbc-toggle { display: inline-grid; place-items: center; width: 20px; height: 20px; border: 0; background: transparent; color: var(--text-secondary); border-radius: var(--radius-control); }
+.nbc-count { font-size: var(--fs-caption); margin-inline-start: var(--space-4); font-family: var(--font-mono); }
+.nbc-toggle { display: inline-grid; place-items: center; width: 20px; height: 20px; border: 0; background: transparent; border-radius: var(--radius-control); cursor: pointer; padding: 0; }
 .nbc-toggle:hover { background: var(--bg-pressed); }
-.nbc-toggle-gap { display: inline-block; width: 20px; flex: none; }
-.nbc-wbs tr[data-group=true] td { font-weight: 500; background: var(--bg-sidebar); }
-.nbc-wbs tr[data-group=true][data-level="1"] td { background: var(--surface-selected); }
-.nbc-wbs tr[data-group=true] .nbc-wbs-no { color: var(--text-primary); font-weight: 600; }
-.nbc-wbs tr[data-group=true] td:nth-child(4) { color: var(--text-primary); }
-.nbc-wbs tr[data-changed=true] td { background: color-mix(in srgb, var(--accent) 7%, var(--bg-canvas)); }
+.nbc-toggle-gap { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex: none; color: #94a3b8; }
+
+/* Level 1: Milestone / Floor (e.g. 1.8.1.3 / 1.6.1) - Solid Dark Slate-Indigo across the whole row */
+.nbc-wbs tr[data-level='1'] td {
+  background-color: #1e293b;
+  color: #ffffff;
+  font-weight: 700;
+  border-bottom-color: rgba(255, 255, 255, 0.16);
+  border-right-color: rgba(255, 255, 255, 0.12);
+}
+.nbc-wbs tr[data-level='1'] .nbc-wbs-no,
+.nbc-wbs tr[data-level='1'] .nbc-name,
+.nbc-wbs tr[data-level='1'] td:nth-child(4) {
+  color: #ffffff;
+  font-weight: 700;
+}
+.nbc-wbs tr[data-level='1'] .nbc-toggle,
+.nbc-wbs tr[data-level='1'] .nbc-count {
+  color: #94a3b8;
+}
+.nbc-wbs tr[data-level='1']:hover td {
+  background-color: #243247;
+}
+
+/* Level 2: Parent Task / Room (e.g. 1.8.1.3.1 / 1.6.1.1) - Solid Medium Slate across the whole row */
+.nbc-wbs tr[data-level='2'] td {
+  background-color: #e2e8f0;
+  color: #0f172a;
+  font-weight: 700;
+  border-bottom-color: #cbd5e1;
+  border-right-color: #cbd5e1;
+}
+.nbc-wbs tr[data-level='2'] .nbc-wbs-no,
+.nbc-wbs tr[data-level='2'] .nbc-name,
+.nbc-wbs tr[data-level='2'] td:nth-child(4) {
+  color: #0f172a;
+  font-weight: 700;
+}
+.nbc-wbs tr[data-level='2'] .nbc-toggle {
+  color: #0f172a;
+}
+.nbc-wbs tr[data-level='2'] .nbc-count {
+  color: #64748b;
+}
+.nbc-wbs tr[data-level='2']:hover td {
+  background-color: #d8e0ea;
+}
+
+/* Level 3: Work Type / Trade (e.g. 1.8.1.3.1.1 / 1.6.1.1.1) - Solid Pale Blue across the whole row */
+.nbc-wbs tr[data-level='3'] td {
+  background-color: #eff6ff;
+  color: #1e293b;
+  font-weight: 600;
+  border-bottom-color: #dbeafe;
+  border-right-color: #dbeafe;
+}
+.nbc-wbs tr[data-level='3'] .nbc-wbs-no,
+.nbc-wbs tr[data-level='3'] .nbc-name,
+.nbc-wbs tr[data-level='3'] td:nth-child(4) {
+  color: #1e293b;
+  font-weight: 600;
+}
+.nbc-wbs tr[data-level='3'] .nbc-toggle {
+  color: #2563eb;
+}
+.nbc-wbs tr[data-level='3'] .nbc-count {
+  color: #93c5fd;
+}
+.nbc-wbs tr[data-level='3']:hover td {
+  background-color: #e0f0fe;
+}
+
+/* Level 4+: Leaf Activities - Clean White across the whole row */
+.nbc-wbs tr[data-level='4'] td,
+.nbc-wbs tr:not([data-level='1']):not([data-level='2']):not([data-level='3']) td {
+  background-color: #ffffff;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+.nbc-wbs tr[data-level='4'] .nbc-wbs-no,
+.nbc-wbs tr:not([data-level='1']):not([data-level='2']):not([data-level='3']) .nbc-wbs-no {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+.nbc-wbs tr[data-level='4'] .nbc-name,
+.nbc-wbs tr:not([data-level='1']):not([data-level='2']):not([data-level='3']) .nbc-name {
+  color: var(--text-primary);
+  font-weight: 400;
+}
+.nbc-wbs tr[data-level='4'] td:nth-child(4),
+.nbc-wbs tr:not([data-level='1']):not([data-level='2']):not([data-level='3']) td:nth-child(4) {
+  color: var(--accent-text);
+}
+.nbc-wbs tr[data-level='4']:hover td,
+.nbc-wbs tr:not([data-level='1']):not([data-level='2']):not([data-level='3']):hover td {
+  background-color: var(--bg-hover);
+}
+
+.nbc-wbs tr[data-changed=true] td {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* Dark mode adjustments */
+html[data-theme=dark] .nbc-wbs-scroll {
+  background: var(--bg-canvas);
+  border-color: var(--border-subtle);
+}
+html[data-theme=dark] .nbc-wbs thead th {
+  background: var(--bg-sidebar);
+  border-color: var(--border-subtle);
+}
+html[data-theme=dark] .nbc-wbs tr[data-level='1'] td {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-right-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme=dark] .nbc-wbs tr[data-level='2'] td {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-bottom-color: #334155;
+  border-right-color: #334155;
+}
+html[data-theme=dark] .nbc-wbs tr[data-level='2'] .nbc-wbs-no,
+html[data-theme=dark] .nbc-wbs tr[data-level='2'] .nbc-name,
+html[data-theme=dark] .nbc-wbs tr[data-level='2'] td:nth-child(4) {
+  color: #f1f5f9;
+}
+html[data-theme=dark] .nbc-wbs tr[data-level='3'] td {
+  background-color: #1e3a5f;
+  color: #e2e8f0;
+  border-bottom-color: #2563eb40;
+  border-right-color: #2563eb40;
+}
+html[data-theme=dark] .nbc-wbs tr[data-level='3'] .nbc-wbs-no,
+html[data-theme=dark] .nbc-wbs tr[data-level='3'] .nbc-name,
+html[data-theme=dark] .nbc-wbs tr[data-level='3'] td:nth-child(4) {
+  color: #e2e8f0;
+}
+html[data-theme=dark] .nbc-wbs tr[data-level='4'] td,
+html[data-theme=dark] .nbc-wbs tr:not([data-level='1']):not([data-level='2']):not([data-level='3']) td {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
 .nbc-pill { display: inline-flex; align-items: center; gap: var(--space-6); padding: var(--space-2) var(--space-6); border-radius: var(--radius-control); font-size: var(--fs-caption); white-space: nowrap; background: var(--status-neutral-bg); color: var(--text-primary); }
 .nbc-pill[data-status=Updated] { background: var(--status-success-bg); }
 .nbc-pill[data-status='Updated late'], .nbc-pill[data-status='Needs review'] { background: var(--status-warning-bg); }

@@ -32,10 +32,10 @@ test('a handler filter keeps only that handler leaves with their ancestor groups
   expect(wbsOrder()).toEqual(['1.6.1', '1.6.1.2'])
 })
 
-test('keeps the weighted table footer without Completion Distribution', () => {
+test('removes the table footer and Completion Distribution', () => {
   setup('?handler=Tola')
   expect(screen.queryByRole('region', {name:'Completion distribution'})).toBeNull()
-  expect(within(document.querySelector('.nbc-table-footer') as HTMLElement).getByText('25.00%')).toBeTruthy()
+  expect(document.querySelector('.nbc-table-footer')).toBeNull()
 })
 
 test('shows the workbook columns plus Handler, and no progress input', () => {

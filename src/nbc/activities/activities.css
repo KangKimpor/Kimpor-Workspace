@@ -10,7 +10,7 @@
 .nbc-chip:hover { background: var(--bg-hover); }
 .nbc-spacer { flex: 1; }
 .nbc-columns { display: grid; gap: var(--space-8); padding: var(--space-8); }
-.nbc-handler-button { border: 0; background: transparent; padding: 0; font: inherit; color: var(--text-primary); text-decoration: underline dotted; cursor: pointer; }
+.nbc-handler-button { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; text-decoration: underline dotted; cursor: pointer; }
 .nbc-activities > .nbc-wbs-scroll { max-height: calc(100dvh - 18rem); }
 .nbc-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-block: var(--space-8); }
 .nbc-pill[data-status=Issue] { background: var(--status-warning-bg); text-decoration: none; }

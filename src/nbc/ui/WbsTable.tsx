@@ -48,7 +48,7 @@ export function WbsTable({ rows, caption, collapsed, onToggle, previous, current
         }}>
           <td className="nbc-wbs-no" data-label="WBS">{a.wbs}</td>
           <td style={{ paddingInlineStart: `${row.depth * 16 + 8}px` }} data-label="Description"><div className="nbc-desc">
-            {row.group ? <button className="nbc-toggle" aria-expanded={open} aria-label={`${open ? 'Collapse' : 'Expand'} ${a.wbs}`} onClick={(e) => { e.stopPropagation(); onToggle(a.id) }}>{open ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button> : <span className="nbc-toggle-gap"/>}
+            {row.group ? <button className="nbc-toggle" aria-expanded={open} aria-label={`${open ? 'Collapse' : 'Expand'} ${a.wbs}`} onClick={(e) => { e.stopPropagation(); onToggle(a.id) }}>{open ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}</button> : <span className="nbc-toggle-gap" aria-hidden="true">{row.depth > 0 && <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M3 1v8a2 2 0 002 2h8" strokeWidth="1.75" strokeLinecap="round"/></svg>}</span>}
             {onRowClick ? <button className="nbc-name nbc-name-button" onClick={() => onRowClick(row)}>{a.name}</button> : <span className="nbc-name">{a.name}</span>}{row.group && <span className="nbc-count">{row.leafCount}</span>}{a.wbs === 'GR&P' && <span className="nbc-pill" data-status="Shared">Shared</span>}{nameSuffix?.(row)}</div>
           </td>
           <td className="nbc-num" data-label="Previous week %">{percent(previous(a))}</td>
